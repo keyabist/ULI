@@ -5,7 +5,7 @@ import ProfileIcon from './ProfileIcon.jsx';
 
 const NavBar = () => {
   return (
-    <AppBar position="static">
+    <AppBar position="fixed" sx={{ width: '100%' }}>
       <Toolbar>
         <Typography variant="h6" style={{ flexGrow: 1 }}>
           Lending Dashboard
