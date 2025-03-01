@@ -1,13 +1,19 @@
 import { useState } from 'react';
 import './Login.css';
-import { Navigate } from 'react-router-dom';
 
 const Login = () => {
     const [isLogin, setIsLogin] = useState(true);
     const [formData, setFormData] = useState({
         username: '',
         password: '',
-        confirmPassword: ''
+        confirmPassword: '',
+        // Additional fields for registration
+        firstName: '',
+        lastName: '',
+        email: '',
+        phoneNumber: '',
+        userType: 'borrower', // Default value
+        address: ''
     });
 
     const handleInputChange = (e) => {
@@ -26,7 +32,6 @@ const Login = () => {
         }
         // Here you would typically make an API call to handle authentication
         console.log('Form submitted:', formData);
-        Navigate('./connectWallet.jsx')
     };
 
     return (
@@ -34,6 +39,71 @@ const Login = () => {
             <div className="login-box">
                 <h2>{isLogin ? 'Login' : 'Sign Up'}</h2>
                 <form onSubmit={handleSubmit}>
+                    {!isLogin && (
+                        <>
+                            <div className="form-group">
+                                <input
+                                    type="text"
+                                    name="firstName"
+                                    placeholder="First Name"
+                                    value={formData.firstName}
+                                    onChange={handleInputChange}
+                                    required={!isLogin}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <input
+                                    type="text"
+                                    name="lastName"
+                                    placeholder="Last Name"
+                                    value={formData.lastName}
+                                    onChange={handleInputChange}
+                                    required={!isLogin}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <input
+                                    type="email"
+                                    name="email"
+                                    placeholder="Email Address"
+                                    value={formData.email}
+                                    onChange={handleInputChange}
+                                    required={!isLogin}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <input
+                                    type="tel"
+                                    name="phoneNumber"
+                                    placeholder="Phone Number"
+                                    value={formData.phoneNumber}
+                                    onChange={handleInputChange}
+                                    required={!isLogin}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <input
+                                    type="text"
+                                    name="address"
+                                    placeholder="Address"
+                                    value={formData.address}
+                                    onChange={handleInputChange}
+                                    required={!isLogin}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <select
+                                    name="userType"
+                                    value={formData.userType}
+                                    onChange={handleInputChange}
+                                    required={!isLogin}
+                                >
+                                    <option value="borrower">Borrower</option>
+                                    <option value="lender">Lender</option>
+                                </select>
+                            </div>
+                        </>
+                    )}
                     <div className="form-group">
                         <input
                             type="text"
