@@ -1,5 +1,5 @@
 import './App.css'
-import Login from './components/Login'
+import RegistrationForm from './components/RegistrationForm'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import NavBar from './components/navbar';
 import LenderDashboard from './components/LenderDashboard';
@@ -14,6 +14,7 @@ function App() {
         
         <Routes>
           <Route path="/" element={<WalletConnect />} />
+          <Route path="/registrationForm" element={<RegistrationForm />} />
           <Route path="/lenderDashboard" element={<LenderDashboard />} />
           <Route path="/borrowerDashboard" element={<BorrowerDashboard />} />
           <Route path="/edit-profile" element={<EditProfileForm />} />
