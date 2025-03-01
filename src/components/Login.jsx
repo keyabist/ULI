@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import './Login.css';
+import { Navigate } from 'react-router-dom';
 
 const Login = () => {
     const [isLogin, setIsLogin] = useState(true);
@@ -25,6 +26,7 @@ const Login = () => {
         }
         // Here you would typically make an API call to handle authentication
         console.log('Form submitted:', formData);
+        Navigate('./connectWallet.jsx')
     };
 
     return (

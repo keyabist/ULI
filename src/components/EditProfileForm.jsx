@@ -1,9 +1,11 @@
 import React from 'react';
 import { TextField, Button, Box, Typography } from '@mui/material';
+import NavBar from './navbar';
 
 const EditProfileForm = () => {
   return (
     <Box sx={{ maxWidth: 400, margin: 'auto', mt: 4 }}>
+      <NavBar />
       <Typography variant="h4" gutterBottom>
         Edit Profile
       </Typography>
