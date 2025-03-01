@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import { ethers } from "ethers";
 import { contractConfig } from "../contractConfig";
+import NavBar from "./navbar";
 
 const BorrowerDashboard = () => {
   const [lenders, setLenders] = useState([]);
@@ -78,6 +79,7 @@ const BorrowerDashboard = () => {
 
   return (
     <Paper sx={{ maxWidth: 600, margin: "auto", mt: 4, p: 3 }}>
+      <NavBar />
       <Typography variant="h4" gutterBottom>
         Borrower Dashboard
       </Typography>

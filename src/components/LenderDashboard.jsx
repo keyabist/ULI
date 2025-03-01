@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Typography, List, ListItem, ListItemText, Paper, CircularProgress, Alert } from "@mui/material";
 import { ethers } from "ethers";
 import { contractConfig } from "../contractConfig";
+import NavBar from "./navbar";
 
 const LenderDashboard = () => {
   const [borrowers, setBorrowers] = useState([]);
@@ -44,6 +45,7 @@ const LenderDashboard = () => {
 
   return (
     <Paper sx={{ maxWidth: 600, margin: "auto", mt: 4, p: 3 }}>
+      <NavBar />
       <Typography variant="h4" gutterBottom>
         Lender Dashboard
       </Typography>
