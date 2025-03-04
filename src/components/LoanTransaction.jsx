@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { ethers } from "ethers";
 import contractABI from "../contracts/abi.json";
 
-const CONTRACT_ADDRESS = "0x6b82A39f2f184A069D999D24025Cf656d0d8E5cf";
+const CONTRACT_ADDRESS = "0x4d20B7131ac08bba92b885188d0980d2C2dea68f";
 
 export default function LoanStatus({ account }) {
   const [loans, setLoans] = useState([]);

@@ -6,6 +6,8 @@ contract UnifiedLending {
     
     struct Borrower {
         address borrowerAddress;
+        string username;
+        string password;
         string name;
         string phone;
         string email;
@@ -17,6 +19,8 @@ contract UnifiedLending {
     
     struct Lender {
         address lenderAddress;
+        string username;
+        string password;
         string name;
         string phone;
         string email;
@@ -49,6 +53,9 @@ contract UnifiedLending {
     mapping(uint => Loan) public loans;
     mapping(uint => Transaction[]) public loanTransactions;
     
+    address[] public borrowerList;
+    address[] public lenderList;
+    
     uint public nextLoanId = 1;
     
     event BorrowerRegistered(address indexed borrower, string name);
@@ -69,13 +76,51 @@ contract UnifiedLending {
         _;
     }
 
-    function registerBorrower(string memory _name, string memory _phone, string memory _email, string memory _addressDetails) external onlyUnregisteredBorrower {
-        borrowers[msg.sender] = Borrower(msg.sender, _name, _phone, _email, _addressDetails, 0, 0, true);
+    function registerBorrower(
+        string memory _username, 
+        string memory _password, 
+        string memory _name, 
+        string memory _phone, 
+        string memory _email, 
+        string memory _addressDetails
+    ) external onlyUnregisteredBorrower {
+        borrowers[msg.sender] = Borrower(
+            msg.sender, 
+            _username, 
+            _password, 
+            _name, 
+            _phone, 
+            _email, 
+            _addressDetails, 
+            0, 
+            0, 
+            true
+        );
+        borrowerList.push(msg.sender);
         emit BorrowerRegistered(msg.sender, _name);
     }
 
-    function registerLender(string memory _name, string memory _phone, string memory _email, uint _interestRate, uint _monthlyIncome) external onlyUnregisteredLender {
-        lenders[msg.sender] = Lender(msg.sender, _name, _phone, _email, _interestRate, _monthlyIncome, true);
+    function registerLender(
+        string memory _username, 
+        string memory _password, 
+        string memory _name, 
+        string memory _phone, 
+        string memory _email, 
+        uint _interestRate, 
+        uint _monthlyIncome
+    ) external onlyUnregisteredLender {
+        lenders[msg.sender] = Lender(
+            msg.sender, 
+            _username, 
+            _password, 
+            _name, 
+            _phone, 
+            _email, 
+            _interestRate, 
+            _monthlyIncome, 
+            true
+        );
+        lenderList.push(msg.sender);
         emit LenderRegistered(msg.sender, _name);
     }
 
@@ -113,5 +158,13 @@ contract UnifiedLending {
 
     function getTransactions(uint _loanId) external view returns (Transaction[] memory) {
         return loanTransactions[_loanId];
+    }
+
+    function getAllBorrowers() external view returns (address[] memory) {
+        return borrowerList;
+    }
+
+    function getAllLenders() external view returns (address[] memory) {
+        return lenderList;
     }
 }
