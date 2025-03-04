@@ -1,41 +1,89 @@
-import { useState } from 'react';
-import './RegistrationForm.css';
-import { useNavigate } from 'react-router-dom';
+import { useState } from "react";
+import { ethers } from "ethers";
+import "./RegistrationForm.css";
+import { useNavigate } from "react-router-dom";
+import { contractConfig } from "../contractConfig"; // Import contract config
+
+const contractAddress = contractConfig.contractAddress;
+const contractABI = contractConfig.abi; // Ensure ABI is correctly imported
 
 const RegistrationForm = () => {
   const [formData, setFormData] = useState({
-    username: '',
-    password: '',
-    confirmPassword: '',
-    firstName: '',
-    lastName: '',
-    email: '',
-    phoneNumber: '',
-    userType: 'borrower', // Default value
-    address: ''
+    username: "",
+    password: "",
+    confirmPassword: "",
+    fullName: "",
+    email: "",
+    phoneNumber: "",
+    userType: "borrower",
+    addressDetails: "",
+    interestRate: "", // Only for lenders
+    monthlyIncome: "", // Only for lenders
   });
 
   const navigate = useNavigate();
 
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+  
     if (formData.password !== formData.confirmPassword) {
       alert("Passwords don't match!");
       return;
     }
-    // Process the complete formData (e.g., API call)
-    console.log('Form submitted:', formData);
-    navigate(userType === 'lender' ? '/lenderDashboard' : '/borrowerDashboard');
+  
+    try {
+      if (!window.ethereum) {
+        alert("MetaMask is required to register.");
+        return;
+      }
+  
+      // Connect to MetaMask
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+  
+      // Initialize contract correctly
+      const contract = new ethers.Contract(contractAddress, contractABI, signer);
+  
+      let tx;
+      if (formData.userType === "borrower") {
+        tx = await contract.registerBorrower(
+          formData.username,        // ✅ Fix: Add username
+          formData.password,        // ✅ Fix: Add password
+          formData.fullName,
+          formData.phoneNumber.toString(),
+          formData.email,
+          formData.addressDetails
+        );
+      } else {
+        tx = await contract.registerLender(
+          formData.username,
+          formData.password,
+          formData.fullName,
+          formData.phoneNumber.toString(),
+          formData.email,
+          formData.interestRate.toString(),
+          formData.monthlyIncome.toString()
+        );
+      }
+  
+      await tx.wait();
+      alert("Registration successful!");
+  
+      navigate(formData.userType === "lender" ? "/lenderDashboard" : "/borrowerDashboard");
+    } catch (error) {
+      console.error("Error in registration:", error);
+      alert("Registration failed!");
+    }
   };
+  
 
   return (
     <div className="login-container">
@@ -45,19 +93,9 @@ const RegistrationForm = () => {
           <div className="form-group">
             <input
               type="text"
-              name="firstName"
-              placeholder="First Name"
-              value={formData.firstName}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-          <div className="form-group">
-            <input
-              type="text"
-              name="lastName"
-              placeholder="Last Name"
-              value={formData.lastName}
+              name="fullName"
+              placeholder="Full Name"
+              value={formData.fullName}
               onChange={handleInputChange}
               required
             />
@@ -85,34 +123,43 @@ const RegistrationForm = () => {
           <div className="form-group">
             <input
               type="text"
-              name="address"
+              name="addressDetails"
               placeholder="Address"
-              value={formData.address}
+              value={formData.addressDetails}
               onChange={handleInputChange}
               required
             />
           </div>
           <div className="form-group">
-            <select
-              name="userType"
-              value={formData.userType}
-              onChange={handleInputChange}
-              required
-            >
+            <select name="userType" value={formData.userType} onChange={handleInputChange} required>
               <option value="borrower">Borrower</option>
               <option value="lender">Lender</option>
             </select>
           </div>
-          <div className="form-group">
-            <input
-              type="text"
-              name="username"
-              placeholder="Username"
-              value={formData.username}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
+          {formData.userType === "lender" && (
+            <>
+              <div className="form-group">
+                <input
+                  type="number"
+                  name="interestRate"
+                  placeholder="Interest Rate"
+                  value={formData.interestRate}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <input
+                  type="number"
+                  name="monthlyIncome"
+                  placeholder="Monthly Income"
+                  value={formData.monthlyIncome}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+            </>
+          )}
           <div className="form-group">
             <input
               type="password"
@@ -134,7 +181,7 @@ const RegistrationForm = () => {
             />
           </div>
           <button type="submit" className="submit-btn">
-            Submit
+            Register
           </button>
         </form>
       </div>
