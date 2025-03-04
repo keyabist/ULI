@@ -2,13 +2,16 @@
 pragma solidity ^0.8.19;
 
 contract UnifiedLending {
+    enum LoanStatus { Pending, Approved, Rejected, Completed }
+    
     struct Borrower {
         address borrowerAddress;
         string name;
         string phone;
         string email;
         string addressDetails;
-        string dob;
+        uint creditScore;
+        uint monthlyIncome;
         bool isRegistered;
     }
     
@@ -17,91 +20,98 @@ contract UnifiedLending {
         string name;
         string phone;
         string email;
+        uint interestRate;
+        uint monthlyIncome;
         bool isRegistered;
+    }
+
+    struct Loan {
+        uint loanId;
+        address borrower;
+        address lender;
+        uint amount;
+        uint amountPaid;
+        uint repaymentPeriod;
+        LoanStatus status;
+        uint interestRate;
+    }
+    
+    struct Transaction {
+        uint loanId;
+        address from;
+        address to;
+        uint amount;
+        uint timestamp;
     }
 
     mapping(address => Borrower) public borrowers;
     mapping(address => Lender) public lenders;
+    mapping(uint => Loan) public loans;
+    mapping(uint => Transaction[]) public loanTransactions;
     
-    Borrower[] public borrowerList;
-    Lender[] public lenderList;
-
-    event BorrowerRegistered(address indexed borrower, string name, string email);
-    event LenderRegistered(address indexed lender, string name, string email);
-    event BorrowerUpdated(address indexed borrower, string name, string email);
-    event LenderUpdated(address indexed lender, string name, string email);
+    uint public nextLoanId = 1;
+    
+    event BorrowerRegistered(address indexed borrower, string name);
+    event LenderRegistered(address indexed lender, string name);
+    event LoanRequested(uint indexed loanId, address indexed borrower, address indexed lender, uint amount);
+    event LoanApproved(uint indexed loanId, address indexed lender);
+    event PaymentMade(uint indexed loanId, address indexed from, address indexed to, uint amount);
 
     modifier onlyUnregisteredBorrower() {
         require(!borrowers[msg.sender].isRegistered, "Already registered as a borrower");
         require(!lenders[msg.sender].isRegistered, "Already registered as a lender");
         _;
     }
-    
+
     modifier onlyUnregisteredLender() {
         require(!lenders[msg.sender].isRegistered, "Already registered as a lender");
         require(!borrowers[msg.sender].isRegistered, "Already registered as a borrower");
         _;
     }
 
-    function registerBorrower(string memory _name, string memory _phone, string memory _email, string memory _addressDetails, string memory _dob) external onlyUnregisteredBorrower {
-        Borrower memory newBorrower = Borrower(msg.sender, _name, _phone, _email, _addressDetails, _dob, true);
-        borrowers[msg.sender] = newBorrower;
-        borrowerList.push(newBorrower);
-        emit BorrowerRegistered(msg.sender, _name, _email);
+    function registerBorrower(string memory _name, string memory _phone, string memory _email, string memory _addressDetails) external onlyUnregisteredBorrower {
+        borrowers[msg.sender] = Borrower(msg.sender, _name, _phone, _email, _addressDetails, 0, 0, true);
+        emit BorrowerRegistered(msg.sender, _name);
     }
 
-    function registerLender(string memory _name, string memory _phone, string memory _email) external onlyUnregisteredLender {
-        Lender memory newLender = Lender(msg.sender, _name, _phone, _email, true);
-        lenders[msg.sender] = newLender;
-        lenderList.push(newLender);
-        emit LenderRegistered(msg.sender, _name, _email);
+    function registerLender(string memory _name, string memory _phone, string memory _email, uint _interestRate, uint _monthlyIncome) external onlyUnregisteredLender {
+        lenders[msg.sender] = Lender(msg.sender, _name, _phone, _email, _interestRate, _monthlyIncome, true);
+        emit LenderRegistered(msg.sender, _name);
     }
 
-    function getBorrower(address _borrower) external view returns (Borrower memory) {
-        require(borrowers[_borrower].isRegistered, "Borrower not found");
-        return borrowers[_borrower];
-    }
-
-    function getLender(address _lender) external view returns (Lender memory) {
+    function requestLoan(uint _amount, uint _repaymentPeriod, address _lender) external {
+        require(borrowers[msg.sender].isRegistered, "Only registered borrowers can request loans");
         require(lenders[_lender].isRegistered, "Lender not found");
-        return lenders[_lender];
-    }
-
-    function getAllBorrowers() external view returns (Borrower[] memory) {
-        return borrowerList;
-    }
-
-    function getAllLenders() external view returns (Lender[] memory) {
-        return lenderList;
-    }
-
-    function updateBorrower(string memory _name, string memory _phone, string memory _email, string memory _addressDetails, string memory _dob) external {
-        require(borrowers[msg.sender].isRegistered, "Not registered as borrower");
         
-        borrowers[msg.sender] = Borrower(msg.sender, _name, _phone, _email, _addressDetails, _dob, true);
+        loans[nextLoanId] = Loan(nextLoanId, msg.sender, _lender, _amount, 0, _repaymentPeriod, LoanStatus.Pending, lenders[_lender].interestRate);
+        emit LoanRequested(nextLoanId, msg.sender, _lender, _amount);
+        nextLoanId++;
+    }
+
+    function approveLoan(uint _loanId) external {
+        require(lenders[msg.sender].isRegistered, "Only registered lenders can approve loans");
+        require(loans[_loanId].lender == msg.sender, "Not authorized to approve this loan");
+        require(loans[_loanId].status == LoanStatus.Pending, "Loan already processed");
         
-        for (uint i = 0; i < borrowerList.length; i++) {
-            if (borrowerList[i].borrowerAddress == msg.sender) {
-                borrowerList[i] = borrowers[msg.sender];
-                break;
-            }
+        loans[_loanId].status = LoanStatus.Approved;
+        emit LoanApproved(_loanId, msg.sender);
+    }
+
+    function recordPayment(uint _loanId, uint _amount) external {
+        require(loans[_loanId].status == LoanStatus.Approved, "Loan not approved");
+        require(msg.sender == loans[_loanId].borrower, "Only borrower can make payments");
+        
+        loans[_loanId].amountPaid += _amount;
+        loanTransactions[_loanId].push(Transaction(_loanId, msg.sender, loans[_loanId].lender, _amount, block.timestamp));
+
+        if (loans[_loanId].amountPaid >= loans[_loanId].amount) {
+            loans[_loanId].status = LoanStatus.Completed;
         }
-        
-        emit BorrowerUpdated(msg.sender, _name, _email);
+
+        emit PaymentMade(_loanId, msg.sender, loans[_loanId].lender, _amount);
     }
 
-    function updateLender(string memory _name, string memory _phone, string memory _email) external {
-        require(lenders[msg.sender].isRegistered, "Not registered as lender");
-        
-        lenders[msg.sender] = Lender(msg.sender, _name, _phone, _email, true);
-        
-        for (uint i = 0; i < lenderList.length; i++) {
-            if (lenderList[i].lenderAddress == msg.sender) {
-                lenderList[i] = lenders[msg.sender];
-                break;
-            }
-        }
-        
-        emit LenderUpdated(msg.sender, _name, _email);
+    function getTransactions(uint _loanId) external view returns (Transaction[] memory) {
+        return loanTransactions[_loanId];
     }
 }
