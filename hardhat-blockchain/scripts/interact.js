@@ -12,7 +12,7 @@ async function main() {
 
     // Register a borrower
     const tx = await contract.registerBorrower(
-        "Alice", "1234567890", "alice@email.com", "Some Address", "1990-01-01"
+        "Alice", "1234567890", "alice@email.com", "Some Address"
     );
     
     console.log("Transaction sent! Waiting for confirmation...");

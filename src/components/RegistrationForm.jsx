@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import './RegistrationForm.css';
-import { Navigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const RegistrationForm = () => {
   const [formData, setFormData] = useState({

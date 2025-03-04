@@ -3,7 +3,7 @@ import { ethers } from "ethers";
 import { useLocation, useNavigate } from "react-router-dom";
 import contractABI from "../contracts/abi.json";
 
-const contractAddress = "0x966e13C18C818C779bdBa1C875830c44826c5b97"; 
+const contractAddress = "0x6b82A39f2f184A069D999D24025Cf656d0d8E5cf"; 
 
 const WalletConnect = () => {
   const [account, setAccount] = useState(null);
@@ -76,7 +76,7 @@ const WalletConnect = () => {
       } else if (lenderData.isRegistered) {
         navigate("/lenderDashboard");
       } else {
-        navigate("registrationForm");
+        navigate("/registrationForm");
       }
       
     } catch (error) {
