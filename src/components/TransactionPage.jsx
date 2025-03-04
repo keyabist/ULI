@@ -6,7 +6,7 @@ import contractABI from "../contracts/abi.json";
 const TransactionPage = () => {
     const { loanId } = useParams();
     const [transactions, setTransactions] = useState([]);
-    const CONTRACT_ADDRESS = "0x6b82A39f2f184A069D999D24025Cf656d0d8E5cf";
+    const CONTRACT_ADDRESS = "0x4d20B7131ac08bba92b885188d0980d2C2dea68f";
 
     useEffect(() => {
         const fetchTransactions = async () => {
