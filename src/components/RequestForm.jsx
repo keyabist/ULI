@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const LoanRequestForm = () => {
   const [formData, setFormData] = useState({
@@ -6,6 +7,8 @@ const LoanRequestForm = () => {
     repaymentPeriod: '',
     repaymentSchedule: ''
   });
+
+  const navigate = useNavigate();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -16,6 +19,7 @@ const LoanRequestForm = () => {
     e.preventDefault();
     // Process the loan request here (e.g., send data to your backend)
     console.log("Loan Request Submitted:", formData);
+    navigate("/borrowerDashboard");
   };
 
   return (
