@@ -40,9 +40,9 @@ const PendingRequests = () => {
           signer
         );
 
-        // Get the next loan ID (this is sequential; loans are stored from 1 to nextLoanId - 1)
+        // Get the next loan ID (loans are stored from 1 to nextLoanId - 1)
         const nextLoanIdBN = await contract.nextLoanId();
-        const nextLoanId = nextLoanIdBN.toNumber();
+        const nextLoanId = Number(nextLoanIdBN); // Use Number() conversion
 
         const tempPending = [];
 
@@ -52,7 +52,7 @@ const PendingRequests = () => {
           // Check if the loan belongs to the connected lender and is Pending (status 0)
           if (
             loan.lender.toLowerCase() === userAddress &&
-            loan.status.toNumber() === 0
+            Number(loan.status) === 0
           ) {
             tempPending.push({
               loanId: loan.loanId.toString(),
@@ -60,10 +60,8 @@ const PendingRequests = () => {
               amount: ethers.formatUnits(loan.amount, 'ether') + " ETH",
               interestRate: loan.interestRate.toString() + " %",
               term: loan.repaymentPeriod.toString() + " months",
-              // Collateral & Request Date are not stored on-chain in your contract,
-              // so we can leave them as "N/A" or blank.
-              collateral: "N/A",
-              requestDate: "N/A",
+              collateral: "N/A", // Not stored on-chain
+              requestDate: "N/A",  // Not stored on-chain
               status: "Pending",
             });
           }
@@ -85,11 +83,7 @@ const PendingRequests = () => {
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
-      const contract = new ethers.Contract(
-        contractConfig.contractAddress,
-        contractConfig.abi,
-        signer
-      );
+      const contract = new ethers.Contract(contractConfig.contractAddress, contractConfig.abi, signer);
       const tx = await contract.approveLoan(loanId);
       await tx.wait();
       alert(`Loan ${loanId} approved successfully!`);

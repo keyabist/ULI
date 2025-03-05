@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ethers } from 'ethers';
 import { contractConfig } from '../contractConfig';
-import { Typography, Paper, List, ListItem, Divider } from '@mui/material';
+import { Typography, Paper, List, ListItem } from '@mui/material';
 
 const ActiveLoans = () => {
   const [activeLoans, setActiveLoans] = useState([]);
@@ -17,7 +17,7 @@ const ActiveLoans = () => {
         setLoading(true);
         const provider = new ethers.BrowserProvider(window.ethereum);
         const signer = await provider.getSigner();
-        const userAddress = await signer.getAddress();
+        const userAddress = (await signer.getAddress()).toLowerCase();
         const contract = new ethers.Contract(
           contractConfig.contractAddress,
           contractConfig.abi,
@@ -25,17 +25,22 @@ const ActiveLoans = () => {
         );
 
         const totalLoansBN = await contract.nextLoanId();
-        const totalLoans = totalLoansBN.toNumber();
+        const totalLoans = Number(totalLoansBN); // Convert BigInt to number
 
         const tempActive = [];
 
         for (let loanId = 1; loanId < totalLoans; loanId++) {
           const loan = await contract.loans(loanId);
           if (
-            loan.lender.toLowerCase() === userAddress.toLowerCase() &&
-            loan.status.toNumber() === 1
+            loan.lender.toLowerCase() === userAddress &&
+            Number(loan.status) === 1
           ) {
-            tempActive.push(loan);
+            tempActive.push({
+              loanId: loan.loanId.toString(),
+              borrower: loan.borrower,
+              amount: ethers.formatUnits(loan.amount, 'ether') + " ETH",
+              repaymentPeriod: Number(loan.repaymentPeriod) + " months",
+            });
           }
         }
         setActiveLoans(tempActive);
@@ -45,6 +50,7 @@ const ActiveLoans = () => {
         setLoading(false);
       }
     };
+
     fetchActiveLoans();
   }, []);
 
@@ -60,18 +66,17 @@ const ActiveLoans = () => {
             <ListItem>
               <div>
                 <Typography variant="body1">
-                  Loan ID: {loan.loanId.toString()}
+                  Loan ID: {loan.loanId}
                 </Typography>
                 <Typography variant="body1">
                   Borrower: {loan.borrower}
                 </Typography>
                 <Typography variant="body1">
-                  Amount: {ethers.formatUnits(loan.amount, 'ether')} ETH
+                  Amount: {loan.amount}
                 </Typography>
                 <Typography variant="body1">
-                  Repayment Period: {loan.repaymentPeriod.toString()} months
+                  Repayment Period: {loan.repaymentPeriod}
                 </Typography>
-                {/* ... any other info you want to display ... */}
               </div>
             </ListItem>
           </Paper>

@@ -55,28 +55,60 @@ const BorrowerDashboard = ({ account }) => {
     }
   };
 
+  // Replace the non-existent getRequestsByBorrower with a loop that fetches all loans and filters for the current borrower with status Pending (0)
   const fetchRequests = async () => {
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const contract = new ethers.Contract(contractAddress, contractABI, provider);
-      const borrowerRequests = await contract.getRequestsByBorrower(account);
+      const nextLoanIdBN = await contract.nextLoanId();
+      const nextLoanId = Number(nextLoanIdBN); // Use Number() conversion
+  
+      let borrowerRequests = [];
+      for (let i = 1; i < nextLoanId; i++) {
+        const loan = await contract.loans(i);
+        if (
+          loan.borrower.toLowerCase() === account.toLowerCase() &&
+          Number(loan.status) === 0  // Convert status BigInt to number
+        ) {
+          borrowerRequests.push({
+            id: loan.loanId.toString(),
+            isApproved: false,
+          });
+        }
+      }
       setRequests(borrowerRequests);
     } catch (error) {
       console.error("Error fetching requests:", error);
     }
   };
-
+  
   const fetchOngoingLoans = async () => {
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const contract = new ethers.Contract(contractAddress, contractABI, provider);
-      const borrowerLoans = await contract.getActiveLoansByBorrower(account);
+      const nextLoanIdBN = await contract.nextLoanId();
+      const nextLoanId = Number(nextLoanIdBN); // Convert BigInt to Number
+  
+      let borrowerLoans = [];
+      for (let i = 1; i < nextLoanId; i++) {
+        const loan = await contract.loans(i);
+        if (
+          loan.borrower.toLowerCase() === account.toLowerCase() &&
+          Number(loan.status) === 1
+        ) {
+          borrowerLoans.push({
+            amount: ethers.formatEther(loan.amount) + " ETH",
+            interestRate: loan.interestRate.toString() + " %",
+            duration: loan.repaymentPeriod.toString() + " months",
+          });
+        }
+      }
       setOngoingLoans(borrowerLoans);
     } catch (error) {
       console.error("Error fetching loans:", error);
     }
   };
-
+  
   const handleRequest = (lender) => {
     navigate("/requestForm", { state: { lender } });
   };
@@ -194,7 +226,7 @@ const BorrowerDashboard = ({ account }) => {
             ) : (
               requests.map((request, index) => (
                 <div key={index} style={lenderBoxStyle}>
-                  <p>Request ID: {request.id.toString()}</p>
+                  <p>Request ID: {request.id}</p>
                   <p>Status: {request.isApproved ? "Approved ✅" : "Pending 🔄"}</p>
                 </div>
               ))
@@ -208,9 +240,9 @@ const BorrowerDashboard = ({ account }) => {
             ) : (
               ongoingLoans.map((loan, index) => (
                 <div key={index} style={lenderBoxStyle}>
-                  <p>Amount: {ethers.formatEther(loan.amount)} ETH</p>
-                  <p>Interest: {loan.interestRate}%</p>
-                  <p>Duration: {loan.duration.toString()} Days</p>
+                  <p>Amount: {loan.amount}</p>
+                  <p>Interest: {loan.interestRate}</p>
+                  <p>Duration: {loan.duration}</p>
                 </div>
               ))
             )}

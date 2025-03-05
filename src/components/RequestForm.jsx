@@ -37,21 +37,34 @@ const LoanRequestForm = () => {
       // Connect to MetaMask and get the signer (borrower's account)
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
-      
+  
       // Create contract instance using the signer for write access.
       const contract = new ethers.Contract(contractConfig.contractAddress, contractConfig.abi, signer);
-      
+  
       // Call the blockchain function requestLoan to store the loan data.
-      // Note: The amount is converted from ETH to Wei, and the repayment period is parsed as an integer.
       const tx = await contract.requestLoan(
         ethers.parseUnits(formData.amountNeeded, 'ether'),
         parseInt(formData.repaymentPeriod),
         lender.walletAddress
       );
-      
+  
       // Wait for transaction confirmation
       await tx.wait();
-      
+  
+      // Fetch nextLoanId and subtract 1 to get the loan just stored.
+      const nextLoanIdBN = await contract.nextLoanId();
+      const loanId = Number(nextLoanIdBN) - 1;
+      const loan = await contract.loans(loanId);
+      console.log("Stored Loan Data:", {
+        loanId: loan.loanId.toString(),
+        borrower: loan.borrower,
+        lender: loan.lender,
+        amount: ethers.formatEther(loan.amount) + " ETH",
+        repaymentPeriod: loan.repaymentPeriod.toString() + " months",
+        status: Number(loan.status), // 0 for Pending
+        interestRate: loan.interestRate.toString(),
+      });
+  
       console.log("Loan request submitted on-chain. UI Loan Reference ID:", uiLoanId);
       alert("Loan request submitted successfully!");
       navigate("/borrowerDashboard");
@@ -60,6 +73,7 @@ const LoanRequestForm = () => {
       alert("Failed to submit loan request. Check the console for details.");
     }
   };
+  
   
   return (
     <div className="loan-request-container">
