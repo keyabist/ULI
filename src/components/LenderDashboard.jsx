@@ -1,150 +1,156 @@
-import React, { useEffect, useState } from "react";
-import {
-  Typography,
-  List,
-  ListItem,
-  Paper,
-  Button,
-  TextField,
-  Box,
-  CircularProgress,
-  Alert,
-  Divider,
-} from "@mui/material";
-import { ethers } from "ethers";
-import { contractConfig } from "../contractConfig";
-import NavBar from "./navbar";
+import React, { useEffect, useState } from 'react';
+import { Grid, Paper, Typography, Box } from '@mui/material';
+import { Link } from 'react-router-dom';
+import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
+import PendingActionsIcon from '@mui/icons-material/PendingActions';
+import { ethers } from 'ethers';
+import Navbar from './navbarLender';
+import { contractConfig } from '../contractConfig';
 
 const LenderDashboard = () => {
-  const [borrowers, setBorrowers] = useState([]);
-  const [filteredBorrowers, setFilteredBorrowers] = useState([]); // New State for Filtered Data
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [searchQuery, setSearchQuery] = useState(""); // State for Search Query
+  const [stats, setStats] = useState({
+    totalActiveLoans: 0,
+    totalPendingRequests: 0,
+    totalLentAmount: '0 ETH',
+    totalPendingAmount: '0 ETH',
+  });
+
+  // We store the raw arrays of loans if needed for other pages
+  // (You might store these in a global state or context, or fetch them again in each page.)
+  const [activeLoans, setActiveLoans] = useState([]);
+  const [pendingRequests, setPendingRequests] = useState([]);
 
   useEffect(() => {
-    const fetchBorrowers = async () => {
+    const fetchLoansForLender = async () => {
       if (!window.ethereum) {
-        setError("MetaMask is not installed.");
+        console.error('MetaMask is not installed.');
         return;
       }
 
       try {
-        setLoading(true);
         const provider = new ethers.BrowserProvider(window.ethereum);
         const signer = await provider.getSigner();
+        const userAddress = await signer.getAddress(); // The currently connected lender
         const contract = new ethers.Contract(
           contractConfig.contractAddress,
           contractConfig.abi,
           signer
         );
 
-        const borrowerData = await contract.getAllBorrowers();
+        // Get the total number of loans created so far
+        const totalLoansBN = await contract.nextLoanId(); // BigNumber
+        const totalLoans = totalLoansBN.toNumber();
 
-        const formattedBorrowers = borrowerData.map((borrower, index) => ({
-          id: index + 1,
-          address: borrower.borrowerAddress, // Assuming borrowerAddress is available
-          name: borrower.name,
-          phone: borrower.phone,
-          email: borrower.email,
-        }));
+        const tempActive = [];
+        const tempPending = [];
 
-        setBorrowers(formattedBorrowers);
-        setFilteredBorrowers(formattedBorrowers); // Initialize filtered list
-      } catch (error) {
-        setError("Error fetching borrower data.");
-        console.error("Fetch error:", error);
-      } finally {
-        setLoading(false);
+        // Enumerate all loans from 1..(nextLoanId-1)
+        // (This is feasible only if nextLoanId is not huge; for large-scale data, you'd need a better approach.)
+        for (let loanId = 1; loanId < totalLoans; loanId++) {
+          const loan = await contract.loans(loanId);
+          // loan is a struct: [loanId, borrower, lender, amount, amountPaid, repaymentPeriod, status, interestRate]
+
+          // We only care about loans where loan.lender == userAddress
+          if (loan.lender.toLowerCase() === userAddress.toLowerCase()) {
+            // LoanStatus => 0=Pending, 1=Approved, 2=Rejected, 3=Completed
+            const status = loan.status.toNumber();
+            if (status === 0) {
+              // Pending
+              tempPending.push(loan);
+            } else if (status === 1) {
+              // Approved => "Active"
+              tempActive.push(loan);
+            }
+          }
+        }
+
+        // Sum amounts for each category
+        const sumPending = tempPending.reduce((acc, loan) => {
+          return acc + parseFloat(ethers.formatUnits(loan.amount, 'ether'));
+        }, 0);
+
+        const sumActive = tempActive.reduce((acc, loan) => {
+          return acc + parseFloat(ethers.formatUnits(loan.amount, 'ether'));
+        }, 0);
+
+        setPendingRequests(tempPending);
+        setActiveLoans(tempActive);
+
+        setStats({
+          totalActiveLoans: tempActive.length,
+          totalPendingRequests: tempPending.length,
+          totalLentAmount: `${sumActive} ETH`,
+          totalPendingAmount: `${sumPending} ETH`,
+        });
+      } catch (err) {
+        console.error('Error fetching lender loans:', err);
       }
     };
 
-    fetchBorrowers();
+    fetchLoansForLender();
   }, []);
 
-  // 🔹 Handle Search Input Change
-  const handleSearchChange = (event) => {
-    const query = event.target.value.toLowerCase();
-    setSearchQuery(query);
-
-    if (query === "") {
-      setFilteredBorrowers(borrowers); // Show all borrowers when search is empty
-    } else {
-      setFilteredBorrowers(
-        borrowers.filter((borrower) =>
-          Object.values(borrower).some((value) =>
-            String(value).toLowerCase().includes(query)
-          )
-        )
-      );
-    }
-  };
-
   return (
-    <Paper
-      sx={{
-        width: "80vw", // Covers 80% of viewport width
-        margin: "auto",
-        mt: 4,
-        p: 3,
-        boxShadow: 3,
-        maxHeight: "100vh", // Set a maximum height
-        overflowY: "auto", // Enable vertical scrolling
-      }}
-    >
-      <NavBar />
-      <Typography variant="h4" fontWeight="bold" gutterBottom align="center">
-        Lender Dashboard
+    <Box>
+      <Navbar />
+      <Typography variant="h4" gutterBottom>
+        Dashboard Overview
       </Typography>
 
-      {/* 🔍 Search Bar */}
-      <TextField
-        fullWidth
-        label="Search borrowers by name, email, phone, or address"
-        variant="outlined"
-        size="small"
-        value={searchQuery}
-        onChange={handleSearchChange}
-        sx={{
-          mb: 2,
-          "& .MuiOutlinedInput-root": {
-            backgroundColor: "white", // Set background color to white
-          },
-          "& .MuiInputBase-input": {
-            color: "white", // Set text color to black
-          },
-        }}
-      />
+      <Grid container spacing={3}>
+        {/* Active Loans Card */}
+        <Grid item xs={12} md={6}>
+          <Paper
+            sx={{
+              p: 3,
+              display: 'flex',
+              flexDirection: 'column',
+              height: 200,
+              cursor: 'pointer',
+            }}
+            component={Link}
+            to="/activeLoans" // Route to ActiveLoans page
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+              <AccountBalanceIcon sx={{ mr: 1, fontSize: 40, color: 'primary.main' }} />
+              <Typography variant="h6">Active Loans</Typography>
+            </Box>
+            <Typography variant="h3" gutterBottom>
+              {stats.totalActiveLoans}
+            </Typography>
+            <Typography variant="subtitle1" color="text.secondary">
+              Total Amount: {stats.totalLentAmount}
+            </Typography>
+          </Paper>
+        </Grid>
 
-      <Typography variant="h5" fontWeight="medium" gutterBottom>
-        Registered Borrowers
-      </Typography>
-      <Divider sx={{ mb: 2 }} />
-
-      {loading && <CircularProgress />}
-      {error && <Alert severity="error">{error}</Alert>}
-
-      <List>
-        {filteredBorrowers.length > 0 ? (
-          filteredBorrowers.map((borrower) => (
-            <Paper key={borrower.id} elevation={3} sx={{ mb: 2, p: 2 }}>
-              <ListItem
-                sx={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}
-              >
-                <Typography variant="h6" fontWeight="bold">
-                  {borrower.name}
-                </Typography>
-                <Typography variant="body2">📧 Email: {borrower.email}</Typography>
-                <Typography variant="body2">📞 Phone: {borrower.phone}</Typography>
-                <Typography variant="body2">🏦 Address: {borrower.address}</Typography>
-              </ListItem>
-            </Paper>
-          ))
-        ) : (
-          <Typography variant="body1">No borrowers found.</Typography>
-        )}
-      </List>
-    </Paper>
+        {/* Pending Requests Card */}
+        <Grid item xs={12} md={6}>
+          <Paper
+            sx={{
+              p: 3,
+              display: 'flex',
+              flexDirection: 'column',
+              height: 200,
+              cursor: 'pointer',
+            }}
+            component={Link}
+            to="/pendingRequests" // Route to PendingRequests page
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+              <PendingActionsIcon sx={{ mr: 1, fontSize: 40, color: 'secondary.main' }} />
+              <Typography variant="h6">Pending Requests</Typography>
+            </Box>
+            <Typography variant="h3" gutterBottom>
+              {stats.totalPendingRequests}
+            </Typography>
+            <Typography variant="subtitle1" color="text.secondary">
+              Total Amount: {stats.totalPendingAmount}
+            </Typography>
+          </Paper>
+        </Grid>
+      </Grid>
+    </Box>
   );
 };
 

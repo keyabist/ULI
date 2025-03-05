@@ -1,33 +1,77 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { ethers } from 'ethers';
+import { contractConfig } from '../contractConfig';
 
 const LoanRequestForm = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  
+  // Retrieve lender data passed from BorrowerDashboard
+  const lender = location.state?.lender;
+  if (!lender) {
+    return <p>Error: Lender data not found. Please go back and select a lender.</p>;
+  }
+  
   const [formData, setFormData] = useState({
     amountNeeded: '',
     repaymentPeriod: '',
-    repaymentSchedule: ''
+    repaymentSchedule: ''  // For UI only; not stored on-chain.
   });
-
-  const navigate = useNavigate();
-
+  
+  // Generate a random UI reference ID (for display/logging only)
+  const [uiLoanId, setUiLoanId] = useState('');
+  useEffect(() => {
+    const randomPart = Math.floor(1000 + Math.random() * 9000);
+    setUiLoanId(`${Date.now()}-${randomPart}`);
+  }, []);
+  
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
-
-  const handleSubmit = (e) => {
+  
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Process the loan request here (e.g., send data to your backend)
-    console.log("Loan Request Submitted:", formData);
-    navigate("/borrowerDashboard");
+    try {
+      // Connect to MetaMask and get the signer (borrower's account)
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      
+      // Create contract instance using the signer for write access.
+      const contract = new ethers.Contract(contractConfig.contractAddress, contractConfig.abi, signer);
+      
+      // Call the blockchain function requestLoan to store the loan data.
+      // Note: The amount is converted from ETH to Wei, and the repayment period is parsed as an integer.
+      const tx = await contract.requestLoan(
+        ethers.parseUnits(formData.amountNeeded, 'ether'),
+        parseInt(formData.repaymentPeriod),
+        lender.walletAddress
+      );
+      
+      // Wait for transaction confirmation
+      await tx.wait();
+      
+      console.log("Loan request submitted on-chain. UI Loan Reference ID:", uiLoanId);
+      alert("Loan request submitted successfully!");
+      navigate("/borrowerDashboard");
+    } catch (error) {
+      console.error("Error submitting loan request:", error);
+      alert("Failed to submit loan request. Check the console for details.");
+    }
   };
-
+  
   return (
     <div className="loan-request-container">
       <h2>Loan Request Form</h2>
+      
+      <p><strong>Lender Address:</strong> {lender.walletAddress}</p>
+      <p><strong>Lender Interest Rate:</strong> {lender.interestRate}</p>
+      <p><strong>Your UI Loan Reference ID:</strong> {uiLoanId}</p>
+      
       <form onSubmit={handleSubmit}>
         <div className="form-group">
-          <label>Amount Needed:</label>
+          <label>Amount Needed (in ETH):</label>
           <input
             type="number"
             name="amountNeeded"
@@ -36,6 +80,7 @@ const LoanRequestForm = () => {
             required
           />
         </div>
+        
         <div className="form-group">
           <label>Repayment Period (in months):</label>
           <input
@@ -46,6 +91,7 @@ const LoanRequestForm = () => {
             required
           />
         </div>
+        
         <div className="form-group">
           <label>Repayment Schedule:</label>
           <select
@@ -60,6 +106,7 @@ const LoanRequestForm = () => {
             <option value="monthly">Monthly</option>
           </select>
         </div>
+        
         <button type="submit">Submit Loan Request</button>
       </form>
     </div>

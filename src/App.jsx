@@ -8,6 +8,9 @@ import EditProfileForm from './components/EditProfileForm';
 import WalletConnect from './components/connectWallet';
 import LoanRequestForm from './components/RequestForm';
 import CompleteProfile from './components/completeProfileBor';
+import Navbar from './components/navbarLender.jsx';
+import ActiveLoans from './components/ActiveLoans';
+import PendingRequests from './components/PendingRequests';
 
 function App() {
   return (
@@ -20,9 +23,11 @@ function App() {
           <Route path="/lenderDashboard" element={<LenderDashboard />} />
           <Route path="/borrowerDashboard" element={<BorrowerDashboard />} />
           <Route path="/edit-profile" element={<EditProfileForm />} />
+          <Route path='navbar-lender' element={<Navbar />} />
           <Route path="/requestForm" element={<LoanRequestForm />} />
           <Route path="/completeProfile" element={<CompleteProfile />} />
-
+          <Route path="/activeLoans" element={<ActiveLoans />} />
+          <Route path="/pendingRequests" element={<PendingRequests />} />
         </Routes>
       </div>
     </Router>
