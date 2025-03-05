@@ -15,8 +15,6 @@ const LenderDashboard = () => {
     totalPendingAmount: '0 ETH',
   });
 
-  // We store the raw arrays of loans if needed for other pages
-  // (You might store these in a global state or context, or fetch them again in each page.)
   const [activeLoans, setActiveLoans] = useState([]);
   const [pendingRequests, setPendingRequests] = useState([]);
 
@@ -30,7 +28,7 @@ const LenderDashboard = () => {
       try {
         const provider = new ethers.BrowserProvider(window.ethereum);
         const signer = await provider.getSigner();
-        const userAddress = await signer.getAddress(); // The currently connected lender
+        const userAddress = await signer.getAddress(); // Currently connected lender
         const contract = new ethers.Contract(
           contractConfig.contractAddress,
           contractConfig.abi,
@@ -38,27 +36,21 @@ const LenderDashboard = () => {
         );
 
         // Get the total number of loans created so far
-        const totalLoansBN = await contract.nextLoanId(); // BigNumber
-        const totalLoans = totalLoansBN.toNumber();
+        const totalLoansBN = await contract.nextLoanId(); // Native BigInt now
+        const totalLoans = Number(totalLoansBN); // Convert BigInt to Number
 
         const tempActive = [];
         const tempPending = [];
 
-        // Enumerate all loans from 1..(nextLoanId-1)
-        // (This is feasible only if nextLoanId is not huge; for large-scale data, you'd need a better approach.)
+        // Enumerate all loans from ID 1 to nextLoanId - 1
         for (let loanId = 1; loanId < totalLoans; loanId++) {
           const loan = await contract.loans(loanId);
-          // loan is a struct: [loanId, borrower, lender, amount, amountPaid, repaymentPeriod, status, interestRate]
-
-          // We only care about loans where loan.lender == userAddress
+          // Compare addresses in lowercase
           if (loan.lender.toLowerCase() === userAddress.toLowerCase()) {
-            // LoanStatus => 0=Pending, 1=Approved, 2=Rejected, 3=Completed
-            const status = loan.status.toNumber();
+            const status = Number(loan.status); // Convert BigInt status to number
             if (status === 0) {
-              // Pending
               tempPending.push(loan);
             } else if (status === 1) {
-              // Approved => "Active"
               tempActive.push(loan);
             }
           }
@@ -109,7 +101,7 @@ const LenderDashboard = () => {
               cursor: 'pointer',
             }}
             component={Link}
-            to="/activeLoans" // Route to ActiveLoans page
+            to="/activeLoans"
           >
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <AccountBalanceIcon sx={{ mr: 1, fontSize: 40, color: 'primary.main' }} />
@@ -135,7 +127,7 @@ const LenderDashboard = () => {
               cursor: 'pointer',
             }}
             component={Link}
-            to="/pendingRequests" // Route to PendingRequests page
+            to="/pendingRequests"
           >
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <PendingActionsIcon sx={{ mr: 1, fontSize: 40, color: 'secondary.main' }} />
