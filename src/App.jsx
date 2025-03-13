@@ -11,6 +11,8 @@ import CompleteProfile from './components/completeProfileBor';
 import Navbar from './components/navbarLender.jsx';
 import ActiveLoans from './components/ActiveLoans';
 import PendingRequests from './components/PendingRequests';
+import TransactionPage from './components/TransactionPage';
+import LoanStatus from './components/LoanStatus.jsx';
 
 function App() {
   return (
@@ -28,6 +30,8 @@ function App() {
           <Route path="/completeProfile" element={<CompleteProfile />} />
           <Route path="/activeLoans" element={<ActiveLoans />} />
           <Route path="/pendingRequests" element={<PendingRequests />} />
+          <Route path="/transactionpage" element={<TransactionPage/>} />
+          <Route path="/loanstatus" element={<LoanStatus/>} />
         </Routes>
       </div>
     </Router>
