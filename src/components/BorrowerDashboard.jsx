@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ethers } from "ethers";
 import contractABI from "../contracts/abi.json";
 import NavBar from "./navbar"; 
+import { contractConfig } from '../contractConfig';
 
 const contractAddress = "0x4d20B7131ac08bba92b885188d0980d2C2dea68f";
 
@@ -58,8 +59,15 @@ const BorrowerDashboard = ({ account }) => {
   // Replace the non-existent getRequestsByBorrower with a loop that fetches all loans and filters for the current borrower with status Pending (0)
   const fetchRequests = async () => {
     try {
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const contract = new ethers.Contract(contractAddress, contractABI, provider);
+       const provider = new ethers.BrowserProvider(window.ethereum);
+              const signer = await provider.getSigner();
+              const userAddress = await signer.getAddress(); 
+              const contract = new ethers.Contract(
+                contractConfig.contractAddress,
+                contractConfig.abi,
+                signer
+              );
+
       const nextLoanIdBN = await contract.nextLoanId();
       const nextLoanId = Number(nextLoanIdBN); // Use Number() conversion
   
@@ -67,7 +75,7 @@ const BorrowerDashboard = ({ account }) => {
       for (let i = 1; i < nextLoanId; i++) {
         const loan = await contract.loans(i);
         if (
-          loan.borrower.toLowerCase() === account.toLowerCase() &&
+          loan.borrower === userAddress &&
           Number(loan.status) === 0  // Convert status BigInt to number
         ) {
           borrowerRequests.push({
@@ -85,7 +93,13 @@ const BorrowerDashboard = ({ account }) => {
   const fetchOngoingLoans = async () => {
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
-      const contract = new ethers.Contract(contractAddress, contractABI, provider);
+              const signer = await provider.getSigner();
+              const userAddress = await signer.getAddress(); 
+              const contract = new ethers.Contract(
+                contractConfig.contractAddress,
+                contractConfig.abi,
+                signer
+              );
       const nextLoanIdBN = await contract.nextLoanId();
       const nextLoanId = Number(nextLoanIdBN); // Convert BigInt to Number
   
@@ -93,7 +107,7 @@ const BorrowerDashboard = ({ account }) => {
       for (let i = 1; i < nextLoanId; i++) {
         const loan = await contract.loans(i);
         if (
-          loan.borrower.toLowerCase() === account.toLowerCase() &&
+          loan.borrower === userAddress &&
           Number(loan.status) === 1
         ) {
           borrowerLoans.push({
@@ -205,7 +219,7 @@ const BorrowerDashboard = ({ account }) => {
             <p>No Lenders Found</p>
           ) : (
             filteredLenders.map((lender, index) => (
-              <div key={index} style={lenderBoxStyle}>
+              <div key={index} style={lenderBoxStyle} >
                 <p>Name: {lender.name}</p>
                 <p>Email: {lender.email}</p>
                 <p>Phone: {lender.phone}</p>
@@ -225,7 +239,7 @@ const BorrowerDashboard = ({ account }) => {
               <p>No Requests Found</p>
             ) : (
               requests.map((request, index) => (
-                <div key={index} style={lenderBoxStyle}>
+                <div key={index} style={lenderBoxStyle} onClick={() => navigate(`/loanstatus`, { state: { loanId: request.id } })}>
                   <p>Request ID: {request.id}</p>
                   <p>Status: {request.isApproved ? "Approved ✅" : "Pending 🔄"}</p>
                 </div>
@@ -239,7 +253,7 @@ const BorrowerDashboard = ({ account }) => {
               <p>No Ongoing Loans</p>
             ) : (
               ongoingLoans.map((loan, index) => (
-                <div key={index} style={lenderBoxStyle}>
+                <div key={index} style={lenderBoxStyle} onClick={() => navigate(`/loanstatus`, { state: { loanId: loan.loanId } })}>
                   <p>Amount: {loan.amount}</p>
                   <p>Interest: {loan.interestRate}</p>
                   <p>Duration: {loan.duration}</p>
