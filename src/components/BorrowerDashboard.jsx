@@ -111,6 +111,7 @@ const BorrowerDashboard = ({ account }) => {
           Number(loan.status) === 1
         ) {
           borrowerLoans.push({
+            id: loan.loanId.toString(),
             amount: ethers.formatEther(loan.amount) + " ETH",
             interestRate: loan.interestRate.toString() + " %",
             duration: loan.repaymentPeriod.toString() + " months",
@@ -253,7 +254,7 @@ const BorrowerDashboard = ({ account }) => {
               <p>No Ongoing Loans</p>
             ) : (
               ongoingLoans.map((loan, index) => (
-                <div key={index} style={lenderBoxStyle} onClick={() => navigate(`/loanstatus`, { state: { loanId: loan.loanId } })}>
+                <div key={index} style={lenderBoxStyle} onClick={() => navigate(`/loanstatus`, { state: { loanId: loan.id } })}>
                   <p>Amount: {loan.amount}</p>
                   <p>Interest: {loan.interestRate}</p>
                   <p>Duration: {loan.duration}</p>
