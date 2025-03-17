@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material';
 import { Link } from 'react-router-dom';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
+import ProfileIcon from './ProfileIcon.jsx';
 
 const Navbar = () => {
     const [account, setAccount] = useState('');
@@ -53,13 +54,8 @@ const Navbar = () => {
                     <Button color="inherit" component={Link} to="/pendingRequests">
                         Pending Requests
                     </Button>
-                    <Button
-                        color="inherit"
-                        startIcon={<AccountBalanceWalletIcon />}
-                        onClick={connectWallet}
-                    >
-                        {isConnected ? `${account.slice(0, 6)}...${account.slice(-4)}` : 'Connect Wallet'}
-                    </Button>
+                    <ProfileIcon />
+                    
                 </Box>
             </Toolbar>
         </AppBar>

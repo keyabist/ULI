@@ -5,7 +5,7 @@ import contractABI from "../contracts/abi.json";
 import NavBar from "./navbar"; // For borrowers
 import NavbarLender from "./navbarLender"; // For lenders
 
-const contractAddress = "0x4d20B7131ac08bba92b885188d0980d2C2dea68f";
+const contractAddress = "0x776fbF8c1b3A64a48EE8976b6825E1Ec76de7B4F";
 
 const LoanStatus = () => {
   const { loanId } = useParams();
