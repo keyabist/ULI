@@ -30,8 +30,8 @@ function App() {
           <Route path="/completeProfile" element={<CompleteProfile />} />
           <Route path="/activeLoans" element={<ActiveLoans />} />
           <Route path="/pendingRequests" element={<PendingRequests />} />
-          <Route path="/transactionpage" element={<TransactionPage/>} />
-          <Route path="/loanstatus" element={<LoanStatus/>} />
+          <Route path="/transactionPage" element={<TransactionPage/>} />
+          <Route path="/loanStatus/:loanId" element={<LoanStatus />} />
         </Routes>
       </div>
     </Router>

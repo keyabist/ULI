@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ethers } from "ethers";
 import contractABI from "../contracts/abi.json";
-import NavBar from "./navbar"; 
-import { contractConfig } from '../contractConfig';
+import NavBar from "./navbar";
+import { contractConfig } from "../contractConfig";
 
 const contractAddress = "0x4d20B7131ac08bba92b885188d0980d2C2dea68f";
 
@@ -56,30 +56,23 @@ const BorrowerDashboard = ({ account }) => {
     }
   };
 
-  // Replace the non-existent getRequestsByBorrower with a loop that fetches all loans and filters for the current borrower with status Pending (0)
   const fetchRequests = async () => {
     try {
-       const provider = new ethers.BrowserProvider(window.ethereum);
-              const signer = await provider.getSigner();
-              const userAddress = await signer.getAddress(); 
-              const contract = new ethers.Contract(
-                contractConfig.contractAddress,
-                contractConfig.abi,
-                signer
-              );
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const userAddress = await signer.getAddress();
+      const contract = new ethers.Contract(contractConfig.contractAddress, contractConfig.abi, signer);
 
       const nextLoanIdBN = await contract.nextLoanId();
-      const nextLoanId = Number(nextLoanIdBN); // Use Number() conversion
-  
+      const nextLoanId = Number(nextLoanIdBN);
+
       let borrowerRequests = [];
       for (let i = 1; i < nextLoanId; i++) {
         const loan = await contract.loans(i);
-        if (
-          loan.borrower === userAddress &&
-          Number(loan.status) === 0  // Convert status BigInt to number
-        ) {
+        if (loan.borrower === userAddress && Number(loan.status) === 0) {
           borrowerRequests.push({
             id: loan.loanId.toString(),
+            lender: loan.lender,
             isApproved: false,
           });
         }
@@ -89,27 +82,21 @@ const BorrowerDashboard = ({ account }) => {
       console.error("Error fetching requests:", error);
     }
   };
-  
+
   const fetchOngoingLoans = async () => {
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
-              const signer = await provider.getSigner();
-              const userAddress = await signer.getAddress(); 
-              const contract = new ethers.Contract(
-                contractConfig.contractAddress,
-                contractConfig.abi,
-                signer
-              );
+      const signer = await provider.getSigner();
+      const userAddress = await signer.getAddress();
+      const contract = new ethers.Contract(contractConfig.contractAddress, contractConfig.abi, signer);
+
       const nextLoanIdBN = await contract.nextLoanId();
-      const nextLoanId = Number(nextLoanIdBN); // Convert BigInt to Number
-  
+      const nextLoanId = Number(nextLoanIdBN);
+
       let borrowerLoans = [];
       for (let i = 1; i < nextLoanId; i++) {
         const loan = await contract.loans(i);
-        if (
-          loan.borrower === userAddress &&
-          Number(loan.status) === 1
-        ) {
+        if (loan.borrower === userAddress && Number(loan.status) === 1) {
           borrowerLoans.push({
             id: loan.loanId.toString(),
             amount: ethers.formatEther(loan.amount) + " ETH",
@@ -123,7 +110,7 @@ const BorrowerDashboard = ({ account }) => {
       console.error("Error fetching loans:", error);
     }
   };
-  
+
   const handleRequest = (lender) => {
     navigate("/requestForm", { state: { lender } });
   };
@@ -146,7 +133,8 @@ const BorrowerDashboard = ({ account }) => {
     paddingTop: "100px",
     backgroundColor: "#1A3A6A",
     color: "white",
-    minHeight: "100vh",
+    height: "100vh",
+    width: "100vw",
     overflowY: "auto",
   };
 
@@ -170,8 +158,13 @@ const BorrowerDashboard = ({ account }) => {
     padding: "20px",
     borderRadius: "10px",
     backgroundColor: "#27374D",
-    overflowY: "auto",
     maxHeight: "80vh",
+    overflowY: "auto",
+  };
+
+  const listContainerStyle = {
+    overflowY: "auto",
+    maxHeight: "35vh",
   };
 
   const lenderBoxStyle = {
@@ -179,7 +172,7 @@ const BorrowerDashboard = ({ account }) => {
     border: "2px solid #00d1b2",
     backgroundColor: "#394867",
     borderRadius: "10px",
-    marginBottom: "20px",
+    marginBottom: "10px",
     color: "white",
   };
 
@@ -194,15 +187,6 @@ const BorrowerDashboard = ({ account }) => {
     fontWeight: "bold",
   };
 
-  const searchBarStyle = {
-    padding: "10px",
-    marginBottom: "20px",
-    borderRadius: "5px",
-    border: "none",
-    outline: "none",
-    width: "100%",
-  };
-
   return (
     <>
       <NavBar />
@@ -214,53 +198,57 @@ const BorrowerDashboard = ({ account }) => {
             placeholder="Search by Name or Interest Rate..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            style={searchBarStyle}
+            style={{ padding: "10px", borderRadius: "5px", width: "100%" }}
           />
-          {filteredLenders.length === 0 ? (
-            <p>No Lenders Found</p>
-          ) : (
-            filteredLenders.map((lender, index) => (
-              <div key={index} style={lenderBoxStyle} >
-                <p>Name: {lender.name}</p>
-                <p>Email: {lender.email}</p>
-                <p>Phone: {lender.phone}</p>
-                <p>Interest Rate: {lender.interestRate}%</p>
-                <button style={buttonStyle} onClick={() => handleRequest(lender)}>
-                  Request Loan
-                </button>
-              </div>
-            ))
-          )}
+          <div>
+            {filteredLenders.length === 0 ? (
+              <p>No Lenders Found</p>
+            ) : (
+              filteredLenders.map((lender, index) => (
+                <div key={index} style={lenderBoxStyle}>
+                  <p>Name: {lender.name}</p>
+                  <p>Email: {lender.email}</p>
+                  <p>Phone: {lender.phone}</p>
+                  <p>Interest Rate: {lender.interestRate}%</p>
+                  <button style={buttonStyle} onClick={() => handleRequest(lender)}>
+                    Request Loan
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
         </div>
 
         <div style={rightSectionStyle}>
-          <div>
+          <div style={listContainerStyle}>
             <h3>Generated Requests</h3>
             {requests.length === 0 ? (
               <p>No Requests Found</p>
             ) : (
-              requests.map((request, index) => (
-                <div key={index} style={lenderBoxStyle} onClick={() => navigate(`/loanstatus`, { state: { loanId: request.id } })}>
-                  <p>Request ID: {request.id}</p>
-                  <p>Status: {request.isApproved ? "Approved ✅" : "Pending 🔄"}</p>
+              requests.map((loan, index) => (
+                <div
+                  key={index}
+                  style={lenderBoxStyle}
+                  onClick={() => navigate(`/loanStatus/${loan.id}`)}
+                >
+                  <p>Loan ID: {loan.id}</p>
+                  <p>Lender Address: {loan.lender}</p>
+                  <p>Status: Pending</p>
                 </div>
               ))
             )}
           </div>
 
-          <div>
+          <div style={listContainerStyle}>
             <h3>Ongoing Loans</h3>
-            {ongoingLoans.length === 0 ? (
-              <p>No Ongoing Loans</p>
-            ) : (
-              ongoingLoans.map((loan, index) => (
-                <div key={index} style={lenderBoxStyle} onClick={() => navigate(`/loanstatus`, { state: { loanId: loan.id } })}>
-                  <p>Amount: {loan.amount}</p>
-                  <p>Interest: {loan.interestRate}</p>
-                  <p>Duration: {loan.duration}</p>
-                </div>
-              ))
-            )}
+            {ongoingLoans.length === 0 ? <p>No Loans Found</p> : ongoingLoans.map((loan, index) => (
+              <div key={index} style={lenderBoxStyle}  onClick={() => navigate(`/loanStatus/${loan.id}`)}>
+                <p>Loan ID: {loan.id}</p>
+                <p>Amount: {loan.amount}</p>
+                <p>Interest: {loan.interestRate}</p>
+                <p>Duration: {loan.duration}</p>
+              </div>
+            ))}
           </div>
         </div>
       </div>
