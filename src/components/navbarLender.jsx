@@ -38,13 +38,13 @@ const Navbar = () => {
     }, []);
 
     return (
-        <AppBar position="static">
+        <AppBar position="fixed" sx={{ top: 0, zIndex: 1100 }}>
             <Toolbar>
                 <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
                     Blockchain Lending Dashboard
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 2 }}>
-                    <Button color="inherit" component={Link} to="/">
+                    <Button color="inherit" component={Link} to="/lenderDashboard">
                         Dashboard
                     </Button>
                     <Button color="inherit" component={Link} to="/activeLoans">

@@ -1,110 +1,124 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { ethers } from "ethers";
 import contractABI from "../contracts/abi.json";
 
+const CONTRACT_ADDRESS = "0x4d20B7131ac08bba92b885188d0980d2C2dea68f";
+
 const TransactionPage = () => {
-    const { state } = useLocation();
-    const loanId = state?.loanId;
-    const [transactions, setTransactions] = useState([]);
-    const [paymentAmount, setPaymentAmount] = useState("");
-    const CONTRACT_ADDRESS = "0x4d20B7131ac08bba92b885188d0980d2C2dea68f";
+  const { state } = useLocation();
+  const navigate = useNavigate();
+  // Expecting state to contain: loanId, installmentAmount, and lender (as recipient)
+  const { loanId, installmentAmount, lender } = state || {};
 
-    // Function to fetch the transaction history for the loan
-    const fetchTransactions = async () => {
+  const [loading, setLoading] = useState(false);
+  const [provider, setProvider] = useState(null);
+  const [signer, setSigner] = useState(null);
+  const [contract, setContract] = useState(null);
+
+  // Initialize provider, signer, and contract only once
+  useEffect(() => {
+    if (!window.ethereum) {
+      alert("MetaMask is not installed.");
+      return;
+    }
+    const p = new ethers.BrowserProvider(window.ethereum);
+    setProvider(p);
+    p.getSigner()
+      .then((s) => {
+        setSigner(s);
+        const c = new ethers.Contract(CONTRACT_ADDRESS, contractABI, s);
+        setContract(c);
+      })
+      .catch((error) => {
+        console.error("Error getting signer:", error);
+      });
+  }, []);
+
+  // If no loanId, check the current user’s role and navigate accordingly
+  useEffect(() => {
+    const checkUserRole = async () => {
+      if (!loanId && provider && signer && contract) {
         try {
-            const provider = new ethers.BrowserProvider(window.ethereum);
-            const contract = new ethers.Contract(CONTRACT_ADDRESS, contractABI, provider);
-            const txs = await contract.getTransactions(loanId);
-            const formattedTxs = txs.map(tx => ({
-                loanId: tx.loanId.toNumber(),
-                from: tx.from,
-                to: tx.to,
-                amount: ethers.formatEther(tx.amount),
-                timestamp: new Date(tx.timestamp.toNumber() * 1000).toLocaleString()
-            }));
-            setTransactions(formattedTxs);
+          const userAddress = (await signer.getAddress()).toLowerCase();
+          // Check if the user is a registered borrower
+          const borrower = await contract.borrowers(userAddress);
+          if (borrower.isRegistered) {
+            navigate("/borrowerDashboard");
+          } else {
+            // Otherwise check if they are a registered lender
+            const lenderData = await contract.lenders(userAddress);
+            if (lenderData.isRegistered) {
+              navigate("/lenderDashboard");
+            } else {
+              // Fallback: if not registered, send to registration page
+              navigate("/register");
+            }
+          }
         } catch (error) {
-            console.error("Error fetching transactions:", error);
+          console.error("Error checking user role:", error);
         }
+      }
     };
 
-    useEffect(() => {
-        if (loanId) {
-            fetchTransactions();
-        }
-    }, [loanId]);
+    checkUserRole();
+  }, [loanId, provider, signer, contract, navigate]);
 
-    // Function to handle making a new payment
-    const handlePayment = async () => {
-        try {
-            const provider = new ethers.BrowserProvider(window.ethereum);
-            const signer = await provider.getSigner();
-            const contract = new ethers.Contract(CONTRACT_ADDRESS, contractABI, signer);
+  const handleTransaction = async () => {
+    if (!window.ethereum) {
+      alert("MetaMask is not installed.");
+      return;
+    }
+    try {
+      setLoading(true);
+      // We already have provider, signer, and contract from our initialization
+      const amountInWei = ethers.parseEther(installmentAmount.toString());
 
-            // Calling recordPayment with the entered payment amount (in ETH)
-            const transaction = await contract.recordPayment(
-                loanId,
-                ethers.parseEther(paymentAmount)
-            );
-            await transaction.wait();
-            alert("Payment Successful!");
-            setPaymentAmount("");
-            fetchTransactions(); // Refresh the transaction list after payment
-        } catch (error) {
-            console.error("Payment Error:", error);
-            alert("Payment Failed!");
-        }
-    };
+      // Send ETH to the recipient (lender)
+      const txPayment = await signer.sendTransaction({
+        to: lender,
+        value: amountInWei,
+      });
+      await txPayment.wait();
+      alert("Transaction Successful! Recording payment...");
 
-    return (
-        <div className="p-6 max-w-4xl mx-auto bg-white rounded-xl shadow-md">
-            <h2 className="text-xl font-bold mb-4">Loan Transactions</h2>
+      // Record the payment in the contract. recordPayment will update amountPaid and, if paid in full, mark as Completed.
+      const txRecord = await contract.recordPayment(loanId, amountInWei);
+      await txRecord.wait();
+      alert("Payment recorded! Loan status updated accordingly.");
 
-            {/* Payment Section */}
-            <div className="mb-4">
-                <input
-                    type="number"
-                    placeholder="Enter Payment Amount (ETH)"
-                    value={paymentAmount}
-                    onChange={(e) => setPaymentAmount(e.target.value)}
-                    className="border p-2 rounded mr-2"
-                />
-                <button
-                    onClick={handlePayment}
-                    className="bg-blue-500 text-white p-2 rounded"
-                >
-                    Pay Now
-                </button>
-            </div>
+      navigate("/borrowerDashboard");
+    } catch (error) {
+      console.error("Transaction Error:", error);
+      alert("Transaction Failed!");
+      // If transaction fails, attempt to reject the loan
+      try {
+        const txReject = await contract.rejectLoan(loanId);
+        await txReject.wait();
+        alert("Loan Declined!");
+      } catch (err) {
+        console.error("Error declining loan:", err);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
-            {/* Transaction History Section */}
-            {transactions.length === 0 ? (
-                <p>No transactions found for this loan.</p>
-            ) : (
-                <table className="w-full border-collapse border border-gray-200">
-                    <thead>
-                        <tr className="bg-gray-100">
-                            <th className="border p-2">From</th>
-                            <th className="border p-2">To</th>
-                            <th className="border p-2">Amount (ETH)</th>
-                            <th className="border p-2">Timestamp</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {transactions.map((tx, index) => (
-                            <tr key={index} className="border">
-                                <td className="border p-2">{tx.from}</td>
-                                <td className="border p-2">{tx.to}</td>
-                                <td className="border p-2">{tx.amount}</td>
-                                <td className="border p-2">{tx.timestamp}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            )}
-        </div>
-    );
+  return (
+    <div className="p-6 max-w-4xl mx-auto bg-white rounded-xl shadow-md">
+      <h2 className="text-xl font-bold mb-4">Confirm Loan Transaction</h2>
+      <p><b>Loan ID:</b> {loanId}</p>
+      <p><b>Amount (ETH):</b> {installmentAmount}</p>
+      <p><b>Recipient Address:</b> {lender}</p>
+      <button
+        onClick={handleTransaction}
+        className="bg-blue-500 text-white p-2 rounded mt-4"
+        disabled={loading}
+      >
+        {loading ? "Processing..." : "Confirm & Pay"}
+      </button>
+    </div>
+  );
 };
 
 export default TransactionPage;
