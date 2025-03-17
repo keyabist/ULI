@@ -3,7 +3,7 @@ import { ethers } from "ethers";
 import { useLocation, useNavigate } from "react-router-dom";
 import contractABI from "../contracts/abi.json";
 
-const contractAddress = "0x4d20B7131ac08bba92b885188d0980d2C2dea68f"; 
+const contractAddress = "0x776fbF8c1b3A64a48EE8976b6825E1Ec76de7B4F"; 
 
 const WalletConnect = () => {
   const [account, setAccount] = useState(null);
@@ -70,10 +70,13 @@ const WalletConnect = () => {
       console.log("Borrower Data:", borrowerData);
       console.log("Lender Data:", lenderData);
 
-      // Navigate based on registration status:
+      // Use ethers.constants.AddressZero to compare against the zero address
       if (borrowerData.isRegistered) {
         navigate("/borrowerDashboard");
-      } else if (lenderData.isRegistered) {
+      } else if (
+        lenderData.isRegistered && 
+        lenderData.lenderAddress !== ethers.ZeroAddress // ethers.ZeroAddress is equivalent to "0x0000000000000000000000000000000000000000"
+      ) {
         navigate("/lenderDashboard");
       } else {
         navigate("/registrationForm");

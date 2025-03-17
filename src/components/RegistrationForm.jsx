@@ -9,14 +9,10 @@ const contractABI = contractConfig.abi; // Ensure ABI is correctly imported
 
 const RegistrationForm = () => {
   const [formData, setFormData] = useState({
-    username: "",
-    password: "",
-    confirmPassword: "",
     fullName: "",
     email: "",
     phoneNumber: "",
     userType: "borrower",
-    addressDetails: "",
     interestRate: "", // Only for lenders
     monthlyIncome: "", // Only for lenders
   });
@@ -34,11 +30,6 @@ const RegistrationForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
   
-    if (formData.password !== formData.confirmPassword) {
-      alert("Passwords don't match!");
-      return;
-    }
-  
     try {
       if (!window.ethereum) {
         alert("MetaMask is required to register.");
@@ -55,17 +46,12 @@ const RegistrationForm = () => {
       let tx;
       if (formData.userType === "borrower") {
         tx = await contract.registerBorrower(
-          formData.username,        // ✅ Fix: Add username
-          formData.password,        // ✅ Fix: Add password
           formData.fullName,
           formData.phoneNumber.toString(),
           formData.email,
-          formData.addressDetails
         );
       } else {
         tx = await contract.registerLender(
-          formData.username,
-          formData.password,
           formData.fullName,
           formData.phoneNumber.toString(),
           formData.email,
@@ -121,16 +107,6 @@ const RegistrationForm = () => {
             />
           </div>
           <div className="form-group">
-            <input
-              type="text"
-              name="addressDetails"
-              placeholder="Address"
-              value={formData.addressDetails}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-          <div className="form-group">
             <select name="userType" value={formData.userType} onChange={handleInputChange} required>
               <option value="borrower">Borrower</option>
               <option value="lender">Lender</option>
@@ -160,26 +136,6 @@ const RegistrationForm = () => {
               </div>
             </>
           )}
-          <div className="form-group">
-            <input
-              type="password"
-              name="password"
-              placeholder="Password"
-              value={formData.password}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-          <div className="form-group">
-            <input
-              type="password"
-              name="confirmPassword"
-              placeholder="Confirm Password"
-              value={formData.confirmPassword}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
           <button type="submit" className="submit-btn">
             Register
           </button>

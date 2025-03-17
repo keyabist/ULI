@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { ethers } from "ethers";
 import contractABI from "../contracts/abi.json";
 
-const CONTRACT_ADDRESS = "0x4d20B7131ac08bba92b885188d0980d2C2dea68f";
+const CONTRACT_ADDRESS = "0x776fbF8c1b3A64a48EE8976b6825E1Ec76de7B4F";
 
 const TransactionPage = () => {
   const { state } = useLocation();

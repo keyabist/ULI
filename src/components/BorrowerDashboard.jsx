@@ -3,9 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { ethers } from "ethers";
 import contractABI from "../contracts/abi.json";
 import NavBar from "./navbar";
-import { contractConfig } from "../contractConfig";
 
-const contractAddress = "0x4d20B7131ac08bba92b885188d0980d2C2dea68f";
+const contractAddress = "0x776fbF8c1b3A64a48EE8976b6825E1Ec76de7B4F";
 
 const BorrowerDashboard = ({ account }) => {
   const [lenders, setLenders] = useState([]);
@@ -25,6 +24,7 @@ const BorrowerDashboard = ({ account }) => {
     handleSearch();
   }, [search, lenders]);
 
+  // Fetch all registered lenders using getAllLenders()
   const fetchLenders = async () => {
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
@@ -48,6 +48,7 @@ const BorrowerDashboard = ({ account }) => {
       );
 
       const filtered = lenderDetails.filter(Boolean);
+      // Sort by interest rate (ascending)
       filtered.sort((a, b) => a.interestRate - b.interestRate);
       setLenders(filtered);
       setFilteredLenders(filtered);
@@ -56,12 +57,13 @@ const BorrowerDashboard = ({ account }) => {
     }
   };
 
+  // Fetch loan requests (pending) sent by the borrower
   const fetchRequests = async () => {
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
       const userAddress = await signer.getAddress();
-      const contract = new ethers.Contract(contractConfig.contractAddress, contractConfig.abi, signer);
+      const contract = new ethers.Contract(contractAddress, contractABI, signer);
 
       const nextLoanIdBN = await contract.nextLoanId();
       const nextLoanId = Number(nextLoanIdBN);
@@ -69,7 +71,11 @@ const BorrowerDashboard = ({ account }) => {
       let borrowerRequests = [];
       for (let i = 1; i < nextLoanId; i++) {
         const loan = await contract.loans(i);
-        if (loan.borrower === userAddress && Number(loan.status) === 0) {
+        // Check if the loan was requested by the current user and is Pending (status = 0)
+        if (
+          loan.borrower.toLowerCase() === userAddress.toLowerCase() &&
+          Number(loan.status) === 0
+        ) {
           borrowerRequests.push({
             id: loan.loanId.toString(),
             lender: loan.lender,
@@ -83,12 +89,13 @@ const BorrowerDashboard = ({ account }) => {
     }
   };
 
+  // Fetch ongoing (approved) loans for the borrower
   const fetchOngoingLoans = async () => {
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
       const userAddress = await signer.getAddress();
-      const contract = new ethers.Contract(contractConfig.contractAddress, contractConfig.abi, signer);
+      const contract = new ethers.Contract(contractAddress, contractABI, signer);
 
       const nextLoanIdBN = await contract.nextLoanId();
       const nextLoanId = Number(nextLoanIdBN);
@@ -96,7 +103,11 @@ const BorrowerDashboard = ({ account }) => {
       let borrowerLoans = [];
       for (let i = 1; i < nextLoanId; i++) {
         const loan = await contract.loans(i);
-        if (loan.borrower === userAddress && Number(loan.status) === 1) {
+        // Check if the loan is from this borrower and has been approved (status = 1)
+        if (
+          loan.borrower.toLowerCase() === userAddress.toLowerCase() &&
+          Number(loan.status) === 1
+        ) {
           borrowerLoans.push({
             id: loan.loanId.toString(),
             amount: ethers.formatEther(loan.amount) + " ETH",
@@ -125,6 +136,7 @@ const BorrowerDashboard = ({ account }) => {
     setFilteredLenders(filtered);
   };
 
+  // Styles remain unchanged
   const dashboardStyle = {
     display: "grid",
     gridTemplateColumns: "1.2fr 2fr",
@@ -241,14 +253,22 @@ const BorrowerDashboard = ({ account }) => {
 
           <div style={listContainerStyle}>
             <h3>Ongoing Loans</h3>
-            {ongoingLoans.length === 0 ? <p>No Loans Found</p> : ongoingLoans.map((loan, index) => (
-              <div key={index} style={lenderBoxStyle}  onClick={() => navigate(`/loanStatus/${loan.id}`)}>
-                <p>Loan ID: {loan.id}</p>
-                <p>Amount: {loan.amount}</p>
-                <p>Interest: {loan.interestRate}</p>
-                <p>Duration: {loan.duration}</p>
-              </div>
-            ))}
+            {ongoingLoans.length === 0 ? (
+              <p>No Loans Found</p>
+            ) : (
+              ongoingLoans.map((loan, index) => (
+                <div
+                  key={index}
+                  style={lenderBoxStyle}
+                  onClick={() => navigate(`/loanStatus/${loan.id}`)}
+                >
+                  <p>Loan ID: {loan.id}</p>
+                  <p>Amount: {loan.amount}</p>
+                  <p>Interest: {loan.interestRate}</p>
+                  <p>Duration: {loan.duration}</p>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
