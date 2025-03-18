@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, TextField, Typography, Container } from '@mui/material';
+import { Box, Button, TextField, Typography, Container, Paper, Grid } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { ethers } from 'ethers';
 import NavBar from './navbar';
@@ -10,71 +10,87 @@ const CONTRACT_ADDRESS = "0x776fbF8c1b3A64a48EE8976b6825E1Ec76de7B4F";
 const EditProfileForm = () => {
   // Role: "borrower" or "lender"
   const [role, setRole] = useState(null);
+
   // Common profile fields
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [monthlyIncome, setMonthlyIncome] = useState('');
-  // Borrower-only field
+
+  // Borrower-only: creditScore (read-only)
   const [creditScore, setCreditScore] = useState('');
+
   // Lender-only field
   const [interestRate, setInterestRate] = useState('');
+
   // Document CIDs (fetched from contract)
   const [govidCID, setGovidCID] = useState('');
   const [signatureCID, setSignatureCID] = useState('');
+
   // Files (if user uploads a new one)
   const [govidFile, setGovidFile] = useState(null);
   const [signatureFile, setSignatureFile] = useState(null);
+
   // To preserve the original verified flag (not editable by user)
   const [verified, setVerified] = useState(false);
+
   // Loading state for form submission
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
+
   // On mount, fetch the current account's profile
   useEffect(() => {
     async function fetchProfile() {
       if (window.ethereum) {
-        // Using ethers v6 BrowserProvider
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        const signer = await provider.getSigner();
-        const account = await signer.getAddress();
-        const contract = new ethers.Contract(CONTRACT_ADDRESS, ContractABI, signer);
+        try {
+          const provider = new ethers.BrowserProvider(window.ethereum);
+          const signer = await provider.getSigner();
+          const account = await signer.getAddress();
+          const contract = new ethers.Contract(CONTRACT_ADDRESS, ContractABI, signer);
 
-        try {
           // Try borrower mapping first
-          const borrowerData = await contract.borrowers(account);
-          if (borrowerData.isRegistered) {
-            setRole('borrower');
-            setName(borrowerData.name);
-            setPhone(borrowerData.phone);
-            setEmail(borrowerData.email);
-            setCreditScore(borrowerData.creditScore.toString());
-            setMonthlyIncome(borrowerData.monthlyIncome.toString());
-            setGovidCID(borrowerData.govidCID);
-            setSignatureCID(borrowerData.signatureCID);
-            setVerified(borrowerData.verified);
-            return;
+          try {
+            const borrowerData = await contract.borrowers(account);
+            if (borrowerData.isRegistered) {
+              setRole('borrower');
+              setName(borrowerData.name);
+              setPhone(borrowerData.phone);
+              setEmail(borrowerData.email);
+              setMonthlyIncome(borrowerData.monthlyIncome.toString());
+              setGovidCID(borrowerData.govidCID);
+              setSignatureCID(borrowerData.signatureCID);
+              setVerified(borrowerData.verified);
+              // Convert creditScore (uint) to string for display
+              // If creditScore doesn't exist in the contract struct, skip it
+              if (borrowerData.creditScore) {
+                setCreditScore(borrowerData.creditScore.toString());
+              }
+              return;
+            }
+          } catch (error) {
+            // Not a borrower
           }
-        } catch (error) {
-          // If call fails, account might not be a borrower
-        }
-        try {
+
           // Try lender mapping if borrower lookup failed
-          const lenderData = await contract.lenders(account);
-          if (lenderData.isRegistered) {
-            setRole('lender');
-            setName(lenderData.name);
-            setPhone(lenderData.phone);
-            setEmail(lenderData.email);
-            setInterestRate(lenderData.interestRate.toString());
-            setMonthlyIncome(lenderData.monthlyIncome.toString());
-            setGovidCID(lenderData.govidCID);
-            setSignatureCID(lenderData.signatureCID);
-            setVerified(lenderData.verified);
+          try {
+            const lenderData = await contract.lenders(account);
+            if (lenderData.isRegistered) {
+              setRole('lender');
+              setName(lenderData.name);
+              setPhone(lenderData.phone);
+              setEmail(lenderData.email);
+              setInterestRate(lenderData.interestRate.toString());
+              setMonthlyIncome(lenderData.monthlyIncome.toString());
+              setGovidCID(lenderData.govidCID);
+              setSignatureCID(lenderData.signatureCID);
+              setVerified(lenderData.verified);
+            }
+          } catch (error) {
+            console.error('Error fetching lender profile:', error);
           }
         } catch (error) {
-          console.error('Error fetching lender profile:', error);
+          console.error('Error fetching profile:', error);
         }
       }
     }
@@ -118,36 +134,33 @@ const EditProfileForm = () => {
       }
 
       if (role === 'borrower') {
+        // Pass creditScore as well, even though user can't edit it
         const tx = await contract.updateBorrowerProfile({
-          name: name,
-          phone: phone,
-          email: email,
-          creditScore: creditScore, // Ensure this is numeric if required by your contract
-          monthlyIncome: monthlyIncome,
+          name,
+          phone,
+          email,
+          creditScore: creditScore || 0, // fallback to 0 if empty
+          monthlyIncome,
           govidCID: newGovidCID,
           signatureCID: newSignatureCID,
-          verified: verified
+          verified
         });
         await tx.wait();
       } else if (role === 'lender') {
         const tx = await contract.updateLenderProfile({
-          name: name,
-          phone: phone,
-          email: email,
-          interestRate: interestRate, // Ensure this is numeric if required
-          monthlyIncome: monthlyIncome,
+          name,
+          phone,
+          email,
+          interestRate,
+          monthlyIncome,
           govidCID: newGovidCID,
           signatureCID: newSignatureCID,
-          verified: verified
+          verified
         });
         await tx.wait();
       }
       alert('Profile updated successfully!');
-      if (role === 'borrower') {
-        navigate('/borrowerDashboard');
-      } else if (role === 'lender') {
-        navigate('/lenderDashboard');
-      }
+      navigate('/view-profile');
       
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -157,135 +170,202 @@ const EditProfileForm = () => {
   }
 
   return (
-    <Container maxWidth="sm" sx={{ mt: 4, height: 'calc(100vh - 64px)', overflowY: 'auto', pb: 8 }}>
+    <Container
+      maxWidth="sm"
+      sx={{
+        mt: '2rem',
+        height: 'calc(100vh - 64px)', // Adjust the height as needed (64px = NavBar height)
+        overflowY: 'auto',
+        pb: 8
+      }}
+    >
       <NavBar />
-      <Typography variant="h4" gutterBottom>
-        Edit Profile
-      </Typography>
-      <Box component="form" onSubmit={handleSubmit} noValidate sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <TextField 
-          fullWidth 
-          label="Name" 
-          variant="outlined" 
-          value={name} 
-          onChange={(e) => setName(e.target.value)}
-        />
-        <TextField 
-          fullWidth 
-          label="Email" 
-          variant="outlined" 
-          type="email" 
-          value={email} 
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <TextField 
-          fullWidth 
-          label="Phone" 
-          variant="outlined" 
-          value={phone} 
-          onChange={(e) => setPhone(e.target.value)}
-        />
-        {role === 'borrower' && (
-          <TextField 
-            fullWidth 
-            label="Credit Score" 
-            variant="outlined" 
-            value={creditScore} 
-            onChange={(e) => setCreditScore(e.target.value)}
-          />
-        )}
-        {role === 'lender' && (
-          <TextField 
-            fullWidth 
-            label="Interest Rate" 
-            variant="outlined" 
-            value={interestRate} 
-            onChange={(e) => setInterestRate(e.target.value)}
-          />
-        )}
-        <TextField 
-          fullWidth 
-          label="Monthly Income" 
-          variant="outlined" 
-          value={monthlyIncome} 
-          onChange={(e) => setMonthlyIncome(e.target.value)}
-        />
-
-        <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
-          Documents
+      <Paper elevation={3} sx={{ padding: '2rem' }}>
+        <Typography variant="h4" gutterBottom>
+          Edit Profile
         </Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Typography variant="body2">
-            Current Government ID CID: {govidCID ? govidCID : "Not uploaded"}
-          </Typography>
-          {govidCID && (
-            <Button variant="text" component="a" href={`https://gateway.pinata.cloud/ipfs/${govidCID}`} target="_blank" rel="noopener noreferrer">
-              View
-            </Button>
-          )}
-        </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Button variant="outlined" component="label">
-            Upload New Government ID
-            <input
-              type="file"
-              hidden
-              onChange={(e) => {
-                if (e.target.files && e.target.files[0]) {
-                  setGovidFile(e.target.files[0]);
-                }
-              }}
-            />
-          </Button>
-          {govidFile && (
-            <Typography variant="body2">
-              {govidFile.name}
-            </Typography>
-          )}
-        </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 2 }}>
-          <Typography variant="body2">
-            Current Signature CID: {signatureCID ? signatureCID : "Not uploaded"}
-          </Typography>
-          {signatureCID && (
-            <Button variant="text" component="a" href={`https://gateway.pinata.cloud/ipfs/${signatureCID}`} target="_blank" rel="noopener noreferrer">
-              View
-            </Button>
-          )}
-        </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Button variant="outlined" component="label">
-            Upload New Signature
-            <input
-              type="file"
-              hidden
-              onChange={(e) => {
-                if (e.target.files && e.target.files[0]) {
-                  setSignatureFile(e.target.files[0]);
-                }
-              }}
-            />
-          </Button>
-          {signatureFile && (
-            <Typography variant="body2">
-              {signatureFile.name}
-            </Typography>
-          )}
-        </Box>
+        <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 2 }}>
+          <Grid container spacing={2}>
+            {/* Name */}
+            <Grid item xs={12}>
+              <TextField 
+                fullWidth 
+                label="Name" 
+                variant="outlined" 
+                value={name} 
+                onChange={(e) => setName(e.target.value)}
+              />
+            </Grid>
 
-        {/* Sticky footer for Save Changes button */}
-        <Box sx={{ position: 'sticky', bottom: 0, backgroundColor: 'inherit', pt: 2 }}>
-          <Button 
-            type="submit" 
-            variant="contained" 
-            color="primary" 
-            fullWidth
-            disabled={loading}
-          >
-            {loading ? 'Updating...' : 'Save Changes'}
-          </Button>
+            {/* Email */}
+            <Grid item xs={12}>
+              <TextField 
+                fullWidth 
+                label="Email" 
+                variant="outlined" 
+                type="email" 
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </Grid>
+
+            {/* Phone */}
+            <Grid item xs={12}>
+              <TextField 
+                fullWidth 
+                label="Phone" 
+                variant="outlined" 
+                value={phone} 
+                onChange={(e) => setPhone(e.target.value)}
+              />
+            </Grid>
+
+            {/* Borrower-only: credit score (read-only) */}
+            {role === 'borrower' && (
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Credit Score"
+                  variant="outlined"
+                  value={creditScore}
+                  onChange={() => {}}
+                  disabled
+                />
+              </Grid>
+            )}
+
+            {/* Lender-only: interest rate */}
+            {role === 'lender' && (
+              <Grid item xs={12}>
+                <TextField 
+                  fullWidth 
+                  label="Interest Rate" 
+                  variant="outlined" 
+                  value={interestRate} 
+                  onChange={(e) => setInterestRate(e.target.value)}
+                />
+              </Grid>
+            )}
+
+            {/* Monthly Income */}
+            <Grid item xs={12}>
+              <TextField 
+                fullWidth 
+                label="Monthly Income" 
+                variant="outlined" 
+                value={monthlyIncome} 
+                onChange={(e) => setMonthlyIncome(e.target.value)}
+              />
+            </Grid>
+
+            {/* Documents */}
+            <Grid item xs={12}>
+              <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
+                Documents
+              </Typography>
+            </Grid>
+
+            {/* Government ID CID */}
+            <Grid item xs={12}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography variant="body2">
+                  Current Government ID CID: {govidCID || "Not uploaded"}
+                </Typography>
+                {govidCID && (
+                  <Button
+                    variant="text"
+                    component="a"
+                    href={`https://gateway.pinata.cloud/ipfs/${govidCID}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    View
+                  </Button>
+                )}
+              </Box>
+            </Grid>
+
+            {/* Government ID Upload */}
+            <Grid item xs={12}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Button variant="outlined" component="label">
+                  Upload New Government ID
+                  <input
+                    type="file"
+                    hidden
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        setGovidFile(e.target.files[0]);
+                      }
+                    }}
+                  />
+                </Button>
+                {govidFile && (
+                  <Typography variant="body2">
+                    {govidFile.name}
+                  </Typography>
+                )}
+              </Box>
+            </Grid>
+
+            {/* Signature CID */}
+            <Grid item xs={12}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 2 }}>
+                <Typography variant="body2">
+                  Current Signature CID: {signatureCID || "Not uploaded"}
+                </Typography>
+                {signatureCID && (
+                  <Button
+                    variant="text"
+                    component="a"
+                    href={`https://gateway.pinata.cloud/ipfs/${signatureCID}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    View
+                  </Button>
+                )}
+              </Box>
+            </Grid>
+
+            {/* Signature Upload */}
+            <Grid item xs={12}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Button variant="outlined" component="label">
+                  Upload New Signature
+                  <input
+                    type="file"
+                    hidden
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        setSignatureFile(e.target.files[0]);
+                      }
+                    }}
+                  />
+                </Button>
+                {signatureFile && (
+                  <Typography variant="body2">
+                    {signatureFile.name}
+                  </Typography>
+                )}
+              </Box>
+            </Grid>
+
+            {/* Submit Button */}
+            <Grid item xs={12}>
+              <Button 
+                type="submit" 
+                variant="contained" 
+                color="primary" 
+                fullWidth
+                disabled={loading}
+              >
+                {loading ? 'Updating...' : 'Save Changes'}
+              </Button>
+            </Grid>
+          </Grid>
         </Box>
-      </Box>
+      </Paper>
     </Container>
   );
 };

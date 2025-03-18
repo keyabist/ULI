@@ -8,9 +8,8 @@ const NavBar = () => {
     <AppBar position="fixed" sx={{ width: '100%' }}>
       <Toolbar>
         <Typography variant="h6" style={{ flexGrow: 1 }}>
-          Lending Dashboard
+          Borrower Dashboard
         </Typography>
-        <Button color="inherit" component={Link} to="/lenderDashboard">Lender</Button>
         <Button color="inherit" component={Link} to="/borrowerDashboard">Borrower</Button>
         <ProfileIcon />
       </Toolbar>
