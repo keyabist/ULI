@@ -4,7 +4,8 @@ import { Container, Typography, Paper, Button, Grid, Link as MuiLink } from '@mu
 import { Link } from 'react-router-dom';
 import { ethers } from 'ethers';
 import contractABI from "../contracts/abi.json";
-import NavBar from "./navbar";
+import Navbar from "./navbar";
+import NavbarLender from "./navbarLender"
 
 const contractAddress = "0x776fbF8c1b3A64a48EE8976b6825E1Ec76de7B4F";
 
@@ -72,8 +73,8 @@ const ViewProfile = () => {
 
   return (
     <Container maxWidth="sm" style={{ marginTop: '2rem' }}>
-      <NavBar />
-      <Paper elevation={3} style={{ padding: '2rem' }}>
+      {profile && profile.role === 'borrower' ? <Navbar /> : <NavbarLender />}
+      <Paper elevation={3} style={{ padding: '2rem', borderRadius: 20}}>
         <Typography variant="h4" gutterBottom>
           Profile ({profile.role})
         </Typography>

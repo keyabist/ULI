@@ -8,21 +8,21 @@ const Navbar = () => {
     const [account, setAccount] = useState('');
     const [isConnected, setIsConnected] = useState(false);
 
-    const connectWallet = async () => {
-        if (window.ethereum) {
-            try {
-                const accounts = await window.ethereum.request({
-                    method: 'eth_requestAccounts',
-                });
-                setAccount(accounts[0]);
-                setIsConnected(true);
-            } catch (error) {
-                console.error('Error connecting to MetaMask:', error);
-            }
-        } else {
-            alert('Please install MetaMask to use this application!');
-        }
-    };
+    // const connectWallet = async () => {
+    //     if (window.ethereum) {
+    //         try {
+    //             const accounts = await window.ethereum.request({
+    //                 method: 'eth_requestAccounts',
+    //             });
+    //             setAccount(accounts[0]);
+    //             setIsConnected(true);
+    //         } catch (error) {
+    //             console.error('Error connecting to MetaMask:', error);
+    //         }
+    //     } else {
+    //         alert('Please install MetaMask to use this application!');
+    //     }
+    // };
 
     useEffect(() => {
         if (window.ethereum) {

@@ -44,13 +44,13 @@ const LoanStatus = () => {
         setLoan({
           loanId: loanData.loanId.toString(),
           borrower: loanData.borrower,
-          amount: totalAmount.toFixed(4),
-          amountPaid: amountPaid.toFixed(4),
+          amount: totalAmount.toFixed(6),
+          amountPaid: amountPaid.toFixed(6),
           interestRate: (rawInterestRate * 100).toFixed(2) + "%", // display as percentage
-          amountRemaining: remainingAmount.toFixed(4),
+          amountRemaining: remainingAmount.toFixed(6),
           duration: loanData.repaymentPeriod.toString(),
           status: Number(loanData.status),
-          nextInstallment: nextInstallment.toFixed(4),
+          nextInstallment: nextInstallment.toFixed(6),
           lender: loanData.lender,
         });
 

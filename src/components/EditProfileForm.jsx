@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Box, Button, TextField, Typography, Container, Paper, Grid } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { ethers } from 'ethers';
-import NavBar from './navbar';
+import Navbar from './navbar';
 import ContractABI from "../contracts/abi.json";
+import NavbarLender from './navbarLender';
 
 const CONTRACT_ADDRESS = "0x776fbF8c1b3A64a48EE8976b6825E1Ec76de7B4F";
 
@@ -170,203 +171,226 @@ const EditProfileForm = () => {
   }
 
   return (
-    <Container
-      maxWidth="sm"
+    <Box
       sx={{
-        mt: '2rem',
-        height: 'calc(100vh - 64px)', // Adjust the height as needed (64px = NavBar height)
-        overflowY: 'auto',
-        pb: 8
+        height: "100vh",        // Full viewport height
+        width: "100vw",         // Full viewport width
       }}
     >
-      <NavBar />
-      <Paper elevation={3} sx={{ padding: '2rem' }}>
-        <Typography variant="h4" gutterBottom>
-          Edit Profile
-        </Typography>
-        <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 2 }}>
-          <Grid container spacing={2}>
-            {/* Name */}
-            <Grid item xs={12}>
-              <TextField 
-                fullWidth 
-                label="Name" 
-                variant="outlined" 
-                value={name} 
-                onChange={(e) => setName(e.target.value)}
-              />
-            </Grid>
-
-            {/* Email */}
-            <Grid item xs={12}>
-              <TextField 
-                fullWidth 
-                label="Email" 
-                variant="outlined" 
-                type="email" 
-                value={email} 
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </Grid>
-
-            {/* Phone */}
-            <Grid item xs={12}>
-              <TextField 
-                fullWidth 
-                label="Phone" 
-                variant="outlined" 
-                value={phone} 
-                onChange={(e) => setPhone(e.target.value)}
-              />
-            </Grid>
-
-            {/* Borrower-only: credit score (read-only) */}
-            {role === 'borrower' && (
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Credit Score"
-                  variant="outlined"
-                  value={creditScore}
-                  onChange={() => {}}
-                  disabled
-                />
-              </Grid>
-            )}
-
-            {/* Lender-only: interest rate */}
-            {role === 'lender' && (
-              <Grid item xs={12}>
-                <TextField 
-                  fullWidth 
-                  label="Interest Rate" 
-                  variant="outlined" 
-                  value={interestRate} 
-                  onChange={(e) => setInterestRate(e.target.value)}
-                />
-              </Grid>
-            )}
-
-            {/* Monthly Income */}
-            <Grid item xs={12}>
-              <TextField 
-                fullWidth 
-                label="Monthly Income" 
-                variant="outlined" 
-                value={monthlyIncome} 
-                onChange={(e) => setMonthlyIncome(e.target.value)}
-              />
-            </Grid>
-
-            {/* Documents */}
-            <Grid item xs={12}>
-              <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
-                Documents
-              </Typography>
-            </Grid>
-
-            {/* Government ID CID */}
-            <Grid item xs={12}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Typography variant="body2">
-                  Current Government ID CID: {govidCID || "Not uploaded"}
-                </Typography>
-                {govidCID && (
-                  <Button
-                    variant="text"
-                    component="a"
-                    href={`https://gateway.pinata.cloud/ipfs/${govidCID}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    View
-                  </Button>
-                )}
-              </Box>
-            </Grid>
-
-            {/* Government ID Upload */}
-            <Grid item xs={12}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Button variant="outlined" component="label">
-                  Upload New Government ID
-                  <input
-                    type="file"
-                    hidden
-                    onChange={(e) => {
-                      if (e.target.files && e.target.files[0]) {
-                        setGovidFile(e.target.files[0]);
-                      }
-                    }}
+      {role && role === 'borrower' ?  <Navbar /> : <NavbarLender />}
+      <Box
+        sx={{
+          width: "90%",
+          margin: "auto",
+          pt: 8,     // Padding top (so content isn't behind the navbar)
+          pb: 10,
+          mb:10     // Padding bottom
+        }}
+      >
+        {/* <Container
+          maxWidth="sm"
+          sx={{
+            mt: 7,
+            width: '90vw',  // 90% of viewport width
+            height: '90vh', // 90% of viewport height
+            overflowY: 'auto',
+            pb: 10,
+            mx: 'auto',
+          }}
+        > */}
+          
+          <Paper elevation={3} sx={{p: 4,
+              maxHeight: '85vh',
+              borderRadius: 5, 
+              overflowY: 'auto',}}>
+            <Typography variant="h4" gutterBottom>
+              Edit Profile
+            </Typography>
+            <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 2 }}>
+              <Grid container spacing={2}>
+                {/* Name */}
+                <Grid item xs={12}>
+                  <TextField 
+                    fullWidth 
+                    label="Name" 
+                    variant="outlined" 
+                    value={name} 
+                    onChange={(e) => setName(e.target.value)}
                   />
-                </Button>
-                {govidFile && (
-                  <Typography variant="body2">
-                    {govidFile.name}
-                  </Typography>
-                )}
-              </Box>
-            </Grid>
+                </Grid>
 
-            {/* Signature CID */}
-            <Grid item xs={12}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 2 }}>
-                <Typography variant="body2">
-                  Current Signature CID: {signatureCID || "Not uploaded"}
-                </Typography>
-                {signatureCID && (
-                  <Button
-                    variant="text"
-                    component="a"
-                    href={`https://gateway.pinata.cloud/ipfs/${signatureCID}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    View
-                  </Button>
-                )}
-              </Box>
-            </Grid>
-
-            {/* Signature Upload */}
-            <Grid item xs={12}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Button variant="outlined" component="label">
-                  Upload New Signature
-                  <input
-                    type="file"
-                    hidden
-                    onChange={(e) => {
-                      if (e.target.files && e.target.files[0]) {
-                        setSignatureFile(e.target.files[0]);
-                      }
-                    }}
+                {/* Email */}
+                <Grid item xs={12}>
+                  <TextField 
+                    fullWidth 
+                    label="Email" 
+                    variant="outlined" 
+                    type="email" 
+                    value={email} 
+                    onChange={(e) => setEmail(e.target.value)}
                   />
-                </Button>
-                {signatureFile && (
-                  <Typography variant="body2">
-                    {signatureFile.name}
-                  </Typography>
-                )}
-              </Box>
-            </Grid>
+                </Grid>
 
-            {/* Submit Button */}
-            <Grid item xs={12}>
-              <Button 
-                type="submit" 
-                variant="contained" 
-                color="primary" 
-                fullWidth
-                disabled={loading}
-              >
-                {loading ? 'Updating...' : 'Save Changes'}
-              </Button>
-            </Grid>
-          </Grid>
-        </Box>
-      </Paper>
-    </Container>
+                {/* Phone */}
+                <Grid item xs={12}>
+                  <TextField 
+                    fullWidth 
+                    label="Phone" 
+                    variant="outlined" 
+                    value={phone} 
+                    onChange={(e) => setPhone(e.target.value)}
+                  />
+                </Grid>
+
+                {/* Borrower-only: credit score (read-only) */}
+                {role === 'borrower' && (
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Credit Score"
+                      variant="outlined"
+                      value={creditScore}
+                      onChange={() => {}}
+                      disabled
+                    />
+                  </Grid>
+                )}
+
+                {/* Lender-only: interest rate */}
+                {role === 'lender' && (
+                  <Grid item xs={12}>
+                    <TextField 
+                      fullWidth 
+                      label="Interest Rate" 
+                      variant="outlined" 
+                      value={interestRate} 
+                      onChange={(e) => setInterestRate(e.target.value)}
+                    />
+                  </Grid>
+                )}
+
+                {/* Monthly Income */}
+                <Grid item xs={12}>
+                  <TextField 
+                    fullWidth 
+                    label="Monthly Income" 
+                    variant="outlined" 
+                    value={monthlyIncome} 
+                    onChange={(e) => setMonthlyIncome(e.target.value)}
+                  />
+                </Grid>
+
+                {/* Documents */}
+                <Grid item xs={12}>
+                  <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
+                    Documents
+                  </Typography>
+                </Grid>
+
+                {/* Government ID CID */}
+                <Grid item xs={12}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography variant="body2">
+                      Current Government ID CID: {govidCID || "Not uploaded"}
+                    </Typography>
+                    {govidCID && (
+                      <Button
+                        variant="text"
+                        component="a"
+                        href={`https://gateway.pinata.cloud/ipfs/${govidCID}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        View
+                      </Button>
+                    )}
+                  </Box>
+                </Grid>
+
+                {/* Government ID Upload */}
+                <Grid item xs={12}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Button variant="outlined" component="label">
+                      Upload New Government ID
+                      <input
+                        type="file"
+                        hidden
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            setGovidFile(e.target.files[0]);
+                          }
+                        }}
+                      />
+                    </Button>
+                    {govidFile && (
+                      <Typography variant="body2">
+                        {govidFile.name}
+                      </Typography>
+                    )}
+                  </Box>
+                </Grid>
+
+                {/* Signature CID */}
+                <Grid item xs={12}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 2 }}>
+                    <Typography variant="body2">
+                      Current Signature CID: {signatureCID || "Not uploaded"}
+                    </Typography>
+                    {signatureCID && (
+                      <Button
+                        variant="text"
+                        component="a"
+                        href={`https://gateway.pinata.cloud/ipfs/${signatureCID}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        View
+                      </Button>
+                    )}
+                  </Box>
+                </Grid>
+
+                {/* Signature Upload */}
+                <Grid item xs={12}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Button variant="outlined" component="label">
+                      Upload New Signature
+                      <input
+                        type="file"
+                        hidden
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            setSignatureFile(e.target.files[0]);
+                          }
+                        }}
+                      />
+                    </Button>
+                    {signatureFile && (
+                      <Typography variant="body2">
+                        {signatureFile.name}
+                      </Typography>
+                    )}
+                  </Box>
+                </Grid>
+
+                {/* Submit Button */}
+                <Grid item xs={12}>
+                  <Button 
+                    type="submit" 
+                    variant="contained" 
+                    color="primary" 
+                    fullWidth
+                    disabled={loading}
+                  >
+                    {loading ? 'Updating...' : 'Save Changes'}
+                  </Button>
+                </Grid>
+              </Grid>
+            </Box>
+          </Paper>
+        {/* </Container> */}
+      </Box>
+    </Box>
   );
 };
 
