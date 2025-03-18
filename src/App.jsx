@@ -13,6 +13,7 @@ import ActiveLoans from './components/ActiveLoans';
 import PendingRequests from './components/PendingRequests';
 import TransactionPage from './components/TransactionPage';
 import LoanStatus from './components/LoanStatus.jsx';
+import ViewProfile from './components/ViewProfile.jsx';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
           <Route path="/lenderDashboard" element={<LenderDashboard />} />
           <Route path="/borrowerDashboard" element={<BorrowerDashboard />} />
           <Route path="/edit-profile" element={<EditProfileForm />} />
+          <Route path="/view-profile" element={<ViewProfile />} />
           <Route path='navbar-lender' element={<Navbar />} />
           <Route path="/requestForm" element={<LoanRequestForm />} />
           <Route path="/completeProfile" element={<CompleteProfile />} />
