@@ -97,7 +97,7 @@ const LenderDashboard = () => {
               p: 3,
               display: 'flex',
               flexDirection: 'column',
-              height: 200,
+              height: 250,
               cursor: 'pointer',
             }}
             component={Link}
@@ -123,7 +123,7 @@ const LenderDashboard = () => {
               p: 3,
               display: 'flex',
               flexDirection: 'column',
-              height: 200,
+              height: 250,
               cursor: 'pointer',
             }}
             component={Link}

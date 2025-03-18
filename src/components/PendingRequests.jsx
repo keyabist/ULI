@@ -52,7 +52,7 @@ const PendingRequests = () => {
           const loan = await contract.loans(loanId);
           if (
             loan.lender.toLowerCase() === userAddress &&
-            Number(loan.status) === 0
+            Number(loan.status) === 0 // Only fetch loans with "Pending" status
           ) {
             tempPending.push({
               loanId: loan.loanId.toString(),
@@ -76,8 +76,38 @@ const PendingRequests = () => {
     fetchPendingLoans();
   }, []);
 
-  const handleApproveRedirect = (loan) => {
-    navigate("/transactionPage", { state: { loan } });
+  const handleApproveLoan = async (loanId) => {
+    try {
+      if (!window.ethereum) {
+        alert("Please install MetaMask to proceed.");
+        return;
+      }
+  
+      setProcessing(loanId); // Show loading state for the loan being approved
+  
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const contract = new ethers.Contract(
+        contractConfig.contractAddress,
+        contractConfig.abi,
+        signer
+      );
+  
+      const tx = await contract.approveLoan(loanId);
+      await tx.wait(); // Wait for transaction confirmation
+  
+      alert(`Loan ${loanId} has been approved successfully.`);
+  
+      // Remove the approved loan from pending list
+      setPendingLoans((prevLoans) =>
+        prevLoans.filter((loan) => loan.loanId !== loanId)
+      );
+    } catch (error) {
+      console.error("Error approving loan:", error);
+      alert("Failed to approve the loan.");
+    } finally {
+      setProcessing(null);
+    }
   };
 
   const handleRejectLoan = async (loanId) => {
@@ -102,7 +132,7 @@ const PendingRequests = () => {
 
       alert(`Loan ${loanId} has been rejected successfully.`);
 
-      // Update the UI after rejection
+      // Remove the rejected loan from pending list
       setPendingLoans((prevLoans) =>
         prevLoans.filter((loan) => loan.loanId !== loanId)
       );
@@ -129,6 +159,7 @@ const PendingRequests = () => {
         <Table>
           <TableHead>
             <TableRow>
+              <TableCell>Loan ID</TableCell> {/* Added Loan ID column */}
               <TableCell>Borrower</TableCell>
               <TableCell align="right">Amount</TableCell>
               <TableCell align="right">Interest Rate</TableCell>
@@ -140,6 +171,7 @@ const PendingRequests = () => {
           <TableBody>
             {pendingLoans.map((loan) => (
               <TableRow key={loan.loanId}>
+                <TableCell>{loan.loanId}</TableCell> {/* Display Loan ID */}
                 <TableCell>{loan.borrower}</TableCell>
                 <TableCell align="right">{loan.amount}</TableCell>
                 <TableCell align="right">{loan.interestRate}</TableCell>
@@ -151,10 +183,14 @@ const PendingRequests = () => {
                   <Button
                     variant="contained"
                     color="success"
-                    onClick={() => handleApproveRedirect(loan)}
+                    onClick={() => handleApproveLoan(loan.loanId)}
                     disabled={processing === loan.loanId}
                   >
-                    Approve
+                    {processing === loan.loanId ? (
+                      <CircularProgress size={20} />
+                    ) : (
+                      "Approve"
+                    )}
                   </Button>
                   <Button
                     variant="contained"
