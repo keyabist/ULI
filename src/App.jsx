@@ -1,43 +1,90 @@
-import './App.css'
-import RegistrationForm from './components/RegistrationForm.jsx'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import NavBar from './components/navbar';
-import LenderDashboard from './components/LenderDashboard';
-import BorrowerDashboard from './components/BorrowerDashboard';
-import EditProfileForm from './components/EditProfileForm';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
 import WalletConnect from './components/connectWallet';
-import LoanRequestForm from './components/RequestForm';
-import CompleteProfile from './components/completeProfileBor';
-import Navbar from './components/navbarLender.jsx';
-import ActiveLoans from './components/ActiveLoans';
+import RegistrationForm from './components/RegistrationForm';
+import BorrowerDashboard from './components/BorrowerDashboard';
+import LenderDashboard from './components/LenderDashboard';
+import RequestForm from './components/RequestForm';
 import PendingRequests from './components/PendingRequests';
-import TransactionPage from './components/TransactionPage';
-import LoanStatus from './components/LoanStatus.jsx';
-import ViewProfile from './components/ViewProfile.jsx';
+import ActiveLoans from './components/ActiveLoans';
+import Navbar from './components/navbar';
+import './App.css';
 
-function App() {
+const UnauthorizedPage = () => {
+  const navigate = useNavigate();
+
   return (
-    <Router>
-      <div className="App">
-        
-        <Routes>
-          <Route path="/" element={<WalletConnect />} />
-          <Route path="/registrationForm" element={<RegistrationForm />} />
-          <Route path="/lenderDashboard" element={<LenderDashboard />} />
-          <Route path="/borrowerDashboard" element={<BorrowerDashboard />} />
-          <Route path="/edit-profile" element={<EditProfileForm />} />
-          <Route path="/view-profile" element={<ViewProfile />} />
-          <Route path='navbar-lender' element={<Navbar />} />
-          <Route path="/requestForm" element={<LoanRequestForm />} />
-          <Route path="/completeProfile" element={<CompleteProfile />} />
-          <Route path="/activeLoans" element={<ActiveLoans />} />
-          <Route path="/pendingRequests" element={<PendingRequests />} />
-          <Route path="/transactionPage" element={<TransactionPage/>} />
-          <Route path="/loanStatus/:loanId" element={<LoanStatus />} />
-        </Routes>
-      </div>
-    </Router>
-  )
-}
+    <div className="unauthorized">
+      <h1>Access Denied</h1>
+      <p>You don't have permission to access this page.</p>
+      <button onClick={() => navigate(-1)}>Go Back</button>
+    </div>
+  );
+};
 
-export default App
+const App = () => {
+  return (
+    <AuthProvider>
+      <Router>
+        <div className="app">
+          <Navbar />
+          <Routes>
+            {/* Public routes */}
+            <Route path="/" element={<WalletConnect />} />
+            <Route path="/registration" element={<RegistrationForm />} />
+            <Route path="/unauthorized" element={<UnauthorizedPage />} />
+
+            {/* Protected routes */}
+            <Route
+              path="/borrower-dashboard"
+              element={
+                <ProtectedRoute allowedRoles={['borrower']}>
+                  <BorrowerDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/lender-dashboard"
+              element={
+                <ProtectedRoute allowedRoles={['lender']}>
+                  <LenderDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/request-form"
+              element={
+                <ProtectedRoute allowedRoles={['borrower']}>
+                  <RequestForm />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/pending-requests"
+              element={
+                <ProtectedRoute allowedRoles={['lender']}>
+                  <PendingRequests />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/active-loans"
+              element={
+                <ProtectedRoute allowedRoles={['lender', 'borrower']}>
+                  <ActiveLoans />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Catch all route */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </div>
+      </Router>
+    </AuthProvider>
+  );
+};
+
+export default App;

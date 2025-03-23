@@ -1,274 +1,412 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ethers } from "ethers";
 import contractABI from "../contracts/abi.json";
 import NavBar from "./navbar";
+import './BorrowerDashboard.css';
 
 const contractAddress = "0x776fbF8c1b3A64a48EE8976b6825E1Ec76de7B4F";
 
-const BorrowerDashboard = ({ account }) => {
+const BorrowerDashboard = () => {
   const [lenders, setLenders] = useState([]);
   const [filteredLenders, setFilteredLenders] = useState([]);
-  const [search, setSearch] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [requests, setRequests] = useState([]);
   const [ongoingLoans, setOngoingLoans] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [account, setAccount] = useState(null);
+  const [contract, setContract] = useState(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchLenders();
-    fetchRequests();
-    fetchOngoingLoans();
-  }, []);
-
-  useEffect(() => {
-    handleSearch();
-  }, [search, lenders]);
-
-  // Fetch all registered lenders using getAllLenders()
-  const fetchLenders = async () => {
+  const initializeWallet = async () => {
     try {
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const contract = new ethers.Contract(contractAddress, contractABI, provider);
-      const lenderAddresses = await contract.getAllLenders();
+      if (!window.ethereum) {
+        throw new Error("Please install MetaMask to use this application");
+      }
 
+      // Request account access
+      const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+      if (!accounts || accounts.length === 0) {
+        throw new Error("No accounts found. Please connect your wallet.");
+      }
+
+      const connectedAccount = accounts[0];
+      setAccount(connectedAccount);
+
+      // Create provider and signer
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const contractInstance = new ethers.Contract(contractAddress, contractABI, signer);
+      setContract(contractInstance);
+
+      return contractInstance;
+    } catch (error) {
+      console.error("Error initializing wallet:", error);
+      setError(error.message || "Failed to connect wallet");
+      return null;
+    }
+  };
+
+  const initializeDashboard = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const contractInstance = await initializeWallet();
+      if (!contractInstance) return;
+
+      // Check if user is registered as borrower
+      const borrowerData = await contractInstance.borrowers(account);
+      if (!borrowerData.isRegistered) {
+        navigate("/registrationForm");
+        return;
+      }
+
+      // Fetch all data in parallel
+      const [lenderAddresses, nextLoanIdBN] = await Promise.all([
+        contractInstance.getAllLenders(),
+        contractInstance.nextLoanId()
+      ]);
+
+      const nextLoanId = Number(nextLoanIdBN);
+
+      // Fetch lenders
       const lenderDetails = await Promise.all(
         lenderAddresses.map(async (address) => {
-          const lender = await contract.lenders(address);
-          if (lender.isRegistered) {
-            return {
-              walletAddress: address,
-              name: lender.name,
-              email: lender.email,
-              phone: lender.phone,
-              interestRate: parseFloat(lender.interestRate.toString()),
-            };
+          try {
+            const lender = await contractInstance.lenders(address);
+            if (lender.isRegistered) {
+              return {
+                walletAddress: address,
+                name: lender.name,
+                email: lender.email,
+                phone: lender.phone,
+                interestRate: parseFloat(lender.interestRate.toString()),
+                maxLoanAmount: lender.maxLoanAmount,
+              };
+            }
+            return null;
+          } catch (error) {
+            console.error(`Error fetching lender ${address}:`, error);
+            return null;
           }
-          return null;
         })
       );
 
       const filtered = lenderDetails.filter(Boolean);
-      // Sort by interest rate (ascending)
       filtered.sort((a, b) => a.interestRate - b.interestRate);
       setLenders(filtered);
       setFilteredLenders(filtered);
+
+      // Fetch requests and loans
+      const [borrowerRequests, borrowerLoans] = await Promise.all([
+        fetchRequests(contractInstance, account, nextLoanId),
+        fetchOngoingLoans(contractInstance, account, nextLoanId)
+      ]);
+
+      setRequests(borrowerRequests);
+      setOngoingLoans(borrowerLoans);
     } catch (error) {
-      console.error("Error fetching lenders:", error);
+      console.error("Error initializing dashboard:", error);
+      setError(error.message || "Failed to load dashboard data");
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Fetch loan requests (pending) sent by the borrower
-  const fetchRequests = async () => {
-    try {
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      const userAddress = await signer.getAddress();
-      const contract = new ethers.Contract(contractAddress, contractABI, signer);
+  useEffect(() => {
+    initializeDashboard();
 
-      const nextLoanIdBN = await contract.nextLoanId();
-      const nextLoanId = Number(nextLoanIdBN);
+    // Set up event listeners
+    if (window.ethereum) {
+      window.ethereum.on("accountsChanged", async (newAccounts) => {
+        if (newAccounts.length > 0) {
+          setAccount(newAccounts[0]);
+          await initializeDashboard();
+        } else {
+          setAccount(null);
+          navigate("/");
+        }
+      });
 
-      let borrowerRequests = [];
-      for (let i = 1; i < nextLoanId; i++) {
-        const loan = await contract.loans(i);
-        // Check if the loan was requested by the current user and is Pending (status = 0)
+      window.ethereum.on("chainChanged", () => {
+        window.location.reload();
+      });
+    }
+
+    // Cleanup event listeners
+    return () => {
+      if (window.ethereum) {
+        window.ethereum.removeListener("accountsChanged", () => { });
+        window.ethereum.removeListener("chainChanged", () => { });
+      }
+    };
+  }, [navigate]);
+
+  useEffect(() => {
+    handleSearch();
+  }, [searchQuery, lenders]);
+
+  const fetchRequests = async (contractInstance, userAddress, nextLoanId) => {
+    const requests = [];
+    for (let i = 1; i < nextLoanId; i++) {
+      try {
+        const loan = await contractInstance.loans(i);
         if (
           loan.borrower.toLowerCase() === userAddress.toLowerCase() &&
           Number(loan.status) === 0
         ) {
-          borrowerRequests.push({
+          requests.push({
             id: loan.loanId.toString(),
             lender: loan.lender,
-            isApproved: false,
+            amount: loan.amount,
+            interestRate: parseFloat(loan.interestRate.toString()),
+            duration: loan.repaymentPeriod.toString(),
+            status: "Pending",
           });
         }
+      } catch (error) {
+        console.error(`Error fetching loan ${i}:`, error);
+        continue;
       }
-      setRequests(borrowerRequests);
-    } catch (error) {
-      console.error("Error fetching requests:", error);
     }
+    return requests;
   };
 
-  // Fetch ongoing (approved) loans for the borrower
-  const fetchOngoingLoans = async () => {
-    try {
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      const userAddress = await signer.getAddress();
-      const contract = new ethers.Contract(contractAddress, contractABI, signer);
-
-      const nextLoanIdBN = await contract.nextLoanId();
-      const nextLoanId = Number(nextLoanIdBN);
-
-      let borrowerLoans = [];
-      for (let i = 1; i < nextLoanId; i++) {
-        const loan = await contract.loans(i);
-        // Check if the loan is from this borrower and has been approved (status = 1)
+  const fetchOngoingLoans = async (contractInstance, userAddress, nextLoanId) => {
+    const loans = [];
+    for (let i = 1; i < nextLoanId; i++) {
+      try {
+        const loan = await contractInstance.loans(i);
         if (
           loan.borrower.toLowerCase() === userAddress.toLowerCase() &&
           Number(loan.status) === 1
         ) {
-          borrowerLoans.push({
+          loans.push({
             id: loan.loanId.toString(),
-            amount: ethers.formatEther(loan.amount) + " ETH",
-            interestRate: loan.interestRate.toString() + " %",
-            duration: loan.repaymentPeriod.toString() + " months",
+            lender: loan.lender,
+            amount: loan.amount,
+            interestRate: parseFloat(loan.interestRate.toString()),
+            duration: loan.repaymentPeriod.toString(),
+            startTime: loan.startTime.toString(),
+            status: "Active",
           });
         }
+      } catch (error) {
+        console.error(`Error fetching loan ${i}:`, error);
+        continue;
       }
-      setOngoingLoans(borrowerLoans);
-    } catch (error) {
-      console.error("Error fetching loans:", error);
     }
+    return loans;
   };
 
-  const handleRequest = (lender) => {
-    navigate("/requestForm", { state: { lender } });
+  const handleRequestLoan = (lender) => {
+    navigate("/requestForm", {
+      state: {
+        lender: {
+          address: lender.walletAddress,
+          interestRate: lender.interestRate,
+          maxLoanAmount: lender.maxLoanAmount,
+          name: lender.name,
+          email: lender.email
+        }
+      }
+    });
   };
 
   const handleSearch = () => {
-    const lowerSearch = search.toLowerCase();
-    const filtered = lenders.filter(
-      (lender) =>
-        lender.name.toLowerCase().includes(lowerSearch) ||
-        lender.interestRate.toString().includes(lowerSearch)
+    if (!searchQuery.trim()) {
+      setFilteredLenders(lenders);
+      return;
+    }
+
+    const query = searchQuery.toLowerCase();
+    const filtered = lenders.filter((lender) =>
+      lender.name.toLowerCase().includes(query) ||
+      lender.email.toLowerCase().includes(query) ||
+      lender.phone.toLowerCase().includes(query)
     );
     setFilteredLenders(filtered);
   };
 
-  // Styles remain unchanged
-  const dashboardStyle = {
-    display: "grid",
-    gridTemplateColumns: "1.2fr 2fr",
-    gap: "40px",
-    padding: "40px",
-    paddingTop: "100px",
-    backgroundColor: "#1A3A6A",
-    color: "white",
-    height: "100vh",
-    width: "100vw",
-    overflowY: "auto",
-  };
+  if (!account) {
+    return (
+      <>
+        <NavBar />
+        <div className="dashboard-container">
+          <div className="error-state">
+            <p>Please connect your wallet to continue</p>
+            <button onClick={() => window.location.reload()}>Connect Wallet</button>
+          </div>
+        </div>
+      </>
+    );
+  }
 
-  const leftSectionStyle = {
-    display: "flex",
-    flexDirection: "column",
-    gap: "20px",
-    border: "3px solid #00d1b2",
-    padding: "20px",
-    borderRadius: "10px",
-    backgroundColor: "#27374D",
-    overflowY: "auto",
-    maxHeight: "80vh",
-  };
+  if (loading) {
+    return (
+      <>
+        <NavBar />
+        <div className="dashboard-container">
+          <div className="loading-state">
+            <p>Loading dashboard...</p>
+          </div>
+        </div>
+      </>
+    );
+  }
 
-  const rightSectionStyle = {
-    display: "grid",
-    gridTemplateRows: "1fr 1fr",
-    gap: "20px",
-    border: "3px solid #00d1b2",
-    padding: "20px",
-    borderRadius: "10px",
-    backgroundColor: "#27374D",
-    maxHeight: "80vh",
-    overflowY: "auto",
-  };
-
-  const listContainerStyle = {
-    overflowY: "auto",
-    maxHeight: "35vh",
-  };
-
-  const lenderBoxStyle = {
-    padding: "15px",
-    border: "2px solid #00d1b2",
-    backgroundColor: "#394867",
-    borderRadius: "10px",
-    marginBottom: "10px",
-    color: "white",
-  };
-
-  const buttonStyle = {
-    padding: "10px 14px",
-    backgroundColor: "#00d1b2",
-    color: "#fff",
-    border: "none",
-    borderRadius: "5px",
-    cursor: "pointer",
-    marginTop: "10px",
-    fontWeight: "bold",
-  };
+  if (error) {
+    return (
+      <>
+        <NavBar />
+        <div className="dashboard-container">
+          <div className="error-state">
+            <p>{error}</p>
+            <button onClick={() => window.location.reload()}>Retry</button>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
       <NavBar />
-      <div style={dashboardStyle}>
-        <div style={leftSectionStyle}>
-          <h3>Available Lenders</h3>
-          <input
-            type="text"
-            placeholder="Search by Name or Interest Rate..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            style={{ padding: "10px", borderRadius: "5px", width: "100%" }}
-          />
-          <div>
-            {filteredLenders.length === 0 ? (
-              <p>No Lenders Found</p>
-            ) : (
-              filteredLenders.map((lender, index) => (
-                <div key={index} style={lenderBoxStyle}>
-                  <p>Name: {lender.name}</p>
-                  <p>Email: {lender.email}</p>
-                  <p>Phone: {lender.phone}</p>
-                  <p>Interest Rate: {lender.interestRate}%</p>
-                  <button style={buttonStyle} onClick={() => handleRequest(lender)}>
-                    Request Loan
-                  </button>
+      <div className="dashboard-container">
+        <div className="dashboard-grid">
+          <div className="dashboard-section">
+            <div className="section-header">
+              <h3>Available Lenders</h3>
+            </div>
+            <input
+              type="text"
+              className="search-input"
+              placeholder="Search lenders..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <div className="lender-list">
+              {filteredLenders.length > 0 ? (
+                filteredLenders.map((lender) => (
+                  <div key={lender.walletAddress} className="lender-card">
+                    <div className="lender-info">
+                      <h4>{lender.name}</h4>
+                      <p>
+                        <span>Email:</span> {lender.email}
+                      </p>
+                      <p>
+                        <span>Phone:</span> {lender.phone}
+                      </p>
+                      <p>
+                        <span>Interest Rate:</span> {lender.interestRate}%
+                      </p>
+                      <p>
+                        <span>Max Loan Amount:</span>{" "}
+                        {ethers.formatEther(lender.maxLoanAmount)} ETH
+                      </p>
+                    </div>
+                    <button
+                      className="request-button"
+                      onClick={() => handleRequestLoan(lender)}
+                    >
+                      Request Loan
+                    </button>
+                  </div>
+                ))
+              ) : (
+                <div className="empty-state">
+                  <p>No lenders found</p>
                 </div>
-              ))
-            )}
+              )}
+            </div>
           </div>
-        </div>
 
-        <div style={rightSectionStyle}>
-          <div style={listContainerStyle}>
-            <h3>Generated Requests</h3>
-            {requests.length === 0 ? (
-              <p>No Requests Found</p>
-            ) : (
-              requests.map((loan, index) => (
-                <div
-                  key={index}
-                  style={lenderBoxStyle}
-                  onClick={() => navigate(`/loanStatus/${loan.id}`)}
-                >
-                  <p>Loan ID: {loan.id}</p>
-                  <p>Lender Address: {loan.lender}</p>
-                  <p>Status: Pending</p>
+          <div className="dashboard-section">
+            <div className="section-header">
+              <h3>Your Loan Requests</h3>
+            </div>
+            <div className="loan-list">
+              {requests.length > 0 ? (
+                requests.map((request) => (
+                  <div key={request.id} className="loan-card">
+                    <div className="loan-card-header">
+                      <div className="loan-card-title">Loan Request #{request.id}</div>
+                      <div className="loan-card-status status-pending">
+                        {request.status}
+                      </div>
+                    </div>
+                    <div className="loan-info">
+                      <div className="loan-info-item">
+                        <span className="loan-info-label">Amount</span>
+                        <span className="loan-info-value">
+                          {ethers.formatEther(request.amount)} ETH
+                        </span>
+                      </div>
+                      <div className="loan-info-item">
+                        <span className="loan-info-label">Interest Rate</span>
+                        <span className="loan-info-value">{request.interestRate}%</span>
+                      </div>
+                      <div className="loan-info-item">
+                        <span className="loan-info-label">Duration</span>
+                        <span className="loan-info-value">{request.duration} days</span>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="empty-state">
+                  <p>No pending loan requests</p>
                 </div>
-              ))
-            )}
+              )}
+            </div>
           </div>
 
-          <div style={listContainerStyle}>
-            <h3>Ongoing Loans</h3>
-            {ongoingLoans.length === 0 ? (
-              <p>No Loans Found</p>
-            ) : (
-              ongoingLoans.map((loan, index) => (
-                <div
-                  key={index}
-                  style={lenderBoxStyle}
-                  onClick={() => navigate(`/loanStatus/${loan.id}`)}
-                >
-                  <p>Loan ID: {loan.id}</p>
-                  <p>Amount: {loan.amount}</p>
-                  <p>Interest: {loan.interestRate}</p>
-                  <p>Duration: {loan.duration}</p>
+          <div className="dashboard-section">
+            <div className="section-header">
+              <h3>Active Loans</h3>
+            </div>
+            <div className="loan-list">
+              {ongoingLoans.length > 0 ? (
+                ongoingLoans.map((loan) => (
+                  <div key={loan.id} className="loan-card">
+                    <div className="loan-card-header">
+                      <div className="loan-card-title">Loan #{loan.id}</div>
+                      <div className="loan-card-status status-active">
+                        {loan.status}
+                      </div>
+                    </div>
+                    <div className="loan-info">
+                      <div className="loan-info-item">
+                        <span className="loan-info-label">Amount</span>
+                        <span className="loan-info-value">
+                          {ethers.formatEther(loan.amount)} ETH
+                        </span>
+                      </div>
+                      <div className="loan-info-item">
+                        <span className="loan-info-label">Interest Rate</span>
+                        <span className="loan-info-value">{loan.interestRate}%</span>
+                      </div>
+                      <div className="loan-info-item">
+                        <span className="loan-info-label">Duration</span>
+                        <span className="loan-info-value">{loan.duration} days</span>
+                      </div>
+                      <div className="loan-info-item">
+                        <span className="loan-info-label">Start Time</span>
+                        <span className="loan-info-value">
+                          {new Date(Number(loan.startTime) * 1000).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="empty-state">
+                  <p>No active loans</p>
                 </div>
-              ))
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>

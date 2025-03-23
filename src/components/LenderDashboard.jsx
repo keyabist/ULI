@@ -6,6 +6,7 @@ import PendingActionsIcon from '@mui/icons-material/PendingActions';
 import { ethers } from 'ethers';
 import Navbar from './navbarLender';
 import { contractConfig } from '../contractConfig';
+import './LenderDashboard.css';
 
 const LenderDashboard = () => {
   const [stats, setStats] = useState({
@@ -83,66 +84,90 @@ const LenderDashboard = () => {
   }, []);
 
   return (
-    <Box>
-      <Navbar />
-      <Typography variant="h4" gutterBottom>
-        Dashboard Overview
-      </Typography>
+    <div className="dashboard-container">
+      <div className="dashboard-grid">
+        <div className="dashboard-section">
+          <div className="section-header">
+            <h3>Lender Statistics</h3>
+          </div>
+          <div className="stats-grid">
+            <div className="stat-card">
+              <div className="stat-value">{stats.totalActiveLoans}</div>
+              <div className="stat-label">Total Loans</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-value">{ethers.formatEther(ethers.parseEther(stats.totalLentAmount))}</div>
+              <div className="stat-label">Total Amount Lent</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-value">{stats.totalActiveLoans}</div>
+              <div className="stat-label">Active Loans</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-value">{stats.totalPendingRequests}</div>
+              <div className="stat-label">Pending Requests</div>
+            </div>
+          </div>
+        </div>
 
-      <Grid container spacing={3}>
-        {/* Active Loans Card */}
-        <Grid item xs={12} md={6}>
-          <Paper
-            sx={{
-              p: 3,
-              display: 'flex',
-              flexDirection: 'column',
-              height: 250,
-              cursor: 'pointer',
-            }}
-            component={Link}
-            to="/activeLoans"
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-              <AccountBalanceIcon sx={{ mr: 1, fontSize: 40, color: 'primary.main' }} />
-              <Typography variant="h6">Active Loans</Typography>
-            </Box>
-            <Typography variant="h3" gutterBottom>
-              {stats.totalActiveLoans}
-            </Typography>
-            <Typography variant="subtitle1" color="text.secondary">
-              Total Amount: {stats.totalLentAmount}
-            </Typography>
-          </Paper>
-        </Grid>
-
-        {/* Pending Requests Card */}
-        <Grid item xs={12} md={6}>
-          <Paper
-            sx={{
-              p: 3,
-              display: 'flex',
-              flexDirection: 'column',
-              height: 250,
-              cursor: 'pointer',
-            }}
-            component={Link}
-            to="/pendingRequests"
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-              <PendingActionsIcon sx={{ mr: 1, fontSize: 40, color: 'secondary.main' }} />
-              <Typography variant="h6">Pending Requests</Typography>
-            </Box>
-            <Typography variant="h3" gutterBottom>
-              {stats.totalPendingRequests}
-            </Typography>
-            <Typography variant="subtitle1" color="text.secondary">
-              Total Amount: {stats.totalPendingAmount}
-            </Typography>
-          </Paper>
-        </Grid>
-      </Grid>
-    </Box>
+        <div className="dashboard-section">
+          <div className="section-header">
+            <h3>Loan Requests</h3>
+          </div>
+          <div className="loan-list">
+            {pendingRequests.map((request) => (
+              <div key={request.id} className="loan-card">
+                <div className="loan-info">
+                  <p>
+                    <span>Borrower:</span>
+                    {request.borrower}
+                  </p>
+                  <p>
+                    <span>Amount:</span>
+                    {ethers.formatEther(request.amount)} ETH
+                  </p>
+                  <p>
+                    <span>Interest Rate:</span>
+                    {request.interestRate}%
+                  </p>
+                  <p>
+                    <span>Duration:</span>
+                    {request.duration} days
+                  </p>
+                  <p>
+                    <span>Status:</span>
+                    <span className={`status-badge status-${request.status.toLowerCase()}`}>
+                      {request.status}
+                    </span>
+                  </p>
+                </div>
+                {request.status === 'Pending' && (
+                  <div className="action-buttons">
+                    <button
+                      className="action-button approve-button"
+                      onClick={() => handleApprove(request.id)}
+                    >
+                      Approve
+                    </button>
+                    <button
+                      className="action-button reject-button"
+                      onClick={() => handleReject(request.id)}
+                    >
+                      Reject
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+            {pendingRequests.length === 0 && (
+              <div className="empty-state">
+                <p>No loan requests found</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 

@@ -1,0 +1,197 @@
+.loan-list-container {
+    min-height: 100vh;
+    padding: var(--spacing-xl);
+    background: var(--background-gradient);
+    position: relative;
+    overflow: hidden;
+}
+
+.loan-list-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at top right, rgba(79, 70, 229, 0.1), transparent 50%),
+        radial-gradient(circle at bottom left, rgba(79, 70, 229, 0.1), transparent 50%);
+    z-index: 0;
+}
+
+.loan-list-header {
+    position: relative;
+    z-index: 1;
+    margin-bottom: var(--spacing-xl);
+}
+
+.loan-list-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: var(--spacing-sm);
+}
+
+.loan-list-header p {
+    color: var(--text-light);
+    font-size: 1.1rem;
+}
+
+.loan-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: var(--spacing-lg);
+    position: relative;
+    z-index: 1;
+}
+
+.loan-card {
+    background: var(--glass-background);
+    backdrop-filter: var(--glass-blur);
+    border: var(--glass-border);
+    border-radius: 1.5rem;
+    padding: var(--spacing-xl);
+    box-shadow: var(--glass-shadow);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.loan-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--card-hover-shadow);
+}
+
+.loan-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-lg);
+}
+
+.loan-card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.loan-card-status {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: 2rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.loan-info {
+    display: grid;
+    gap: var(--spacing-md);
+}
+
+.loan-info-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-sm) 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.loan-info-item:last-child {
+    border-bottom: none;
+}
+
+.loan-info-label {
+    color: var(--text-light);
+    font-size: 0.875rem;
+}
+
+.loan-info-value {
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+.loan-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-lg);
+}
+
+.action-button {
+    flex: 1;
+    padding: var(--spacing-sm);
+    border: none;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-xs);
+}
+
+.approve-button {
+    background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+    color: white;
+}
+
+.reject-button {
+    background: linear-gradient(135deg, var(--error-color) 0%, #dc2626 100%);
+    color: white;
+}
+
+.view-button {
+    width: 100%;
+    padding: var(--spacing-sm);
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    color: white;
+    border: none;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-xs);
+}
+
+.view-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(79, 70, 229, 0.3);
+}
+
+.empty-state {
+    text-align: center;
+    padding: var(--spacing-xl);
+    color: var(--text-light);
+    position: relative;
+    z-index: 1;
+}
+
+.empty-state p {
+    margin: var(--spacing-sm) 0;
+}
+
+@media (max-width: 1024px) {
+    .loan-grid {
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .loan-list-container {
+        padding: var(--spacing-md);
+    }
+
+    .loan-list-header h1 {
+        font-size: 1.75rem;
+    }
+
+    .loan-card {
+        padding: var(--spacing-lg);
+    }
+
+    .loan-grid {
+        grid-template-columns: 1fr;
+    }
+}

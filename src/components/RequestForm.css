@@ -1,0 +1,189 @@
+.request-form-container {
+    min-height: 100vh;
+    padding: var(--spacing-lg);
+    background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-primary) 100%);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.request-form-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-xl);
+    width: 100%;
+    max-width: 800px;
+    box-shadow: var(--shadow-lg);
+    transition: transform 0.3s ease;
+}
+
+.request-form-card:hover {
+    transform: translateY(-5px);
+}
+
+.request-form-header {
+    text-align: center;
+    margin-bottom: var(--spacing-xl);
+}
+
+.request-form-header h1 {
+    color: var(--color-white);
+    font-size: var(--font-size-xxl);
+    margin-bottom: var(--spacing-sm);
+}
+
+.request-form-header p {
+    color: var(--color-white);
+    opacity: 0.8;
+    font-size: var(--font-size-lg);
+}
+
+.lender-info {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+}
+
+.lender-info h3 {
+    color: var(--color-white);
+    margin-bottom: var(--spacing-md);
+    font-size: var(--font-size-lg);
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-md);
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.info-label {
+    color: var(--color-white);
+    opacity: 0.7;
+    font-size: var(--font-size-sm);
+}
+
+.info-value {
+    color: var(--color-white);
+    font-size: var(--font-size-md);
+    font-weight: 500;
+}
+
+.request-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.form-group label {
+    color: var(--color-white);
+    font-size: var(--font-size-md);
+    font-weight: 500;
+}
+
+.form-group input {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-md);
+    color: var(--color-white);
+    font-size: var(--font-size-md);
+    transition: all 0.3s ease;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--color-white);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.form-group input::placeholder {
+    color: var(--color-white);
+    opacity: 0.5;
+}
+
+.error-message {
+    background: rgba(255, 59, 48, 0.1);
+    border: 1px solid rgba(255, 59, 48, 0.2);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-md);
+    color: var(--color-error);
+    font-size: var(--font-size-sm);
+}
+
+.form-actions {
+    display: flex;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-lg);
+}
+
+.cancel-button,
+.submit-button {
+    flex: 1;
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-md);
+    font-size: var(--font-size-md);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.cancel-button {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--color-white);
+}
+
+.cancel-button:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.submit-button {
+    background: var(--color-accent);
+    border: none;
+    color: var(--color-white);
+}
+
+.submit-button:hover {
+    background: var(--color-accent-dark);
+    transform: translateY(-2px);
+}
+
+.submit-button:disabled,
+.cancel-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+@media (max-width: 768px) {
+    .request-form-container {
+        padding: var(--spacing-md);
+    }
+
+    .request-form-card {
+        padding: var(--spacing-lg);
+    }
+
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+}

@@ -1,130 +1,236 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ethers } from 'ethers';
-import { contractConfig } from '../contractConfig';
+import contractABI from '../contracts/abi.json';
+import NavBar from './navbar';
+import './RequestForm.css';
 
-const LoanRequestForm = () => {
+const contractAddress = '0x776fbF8c1b3A64a48EE8976b6825E1Ec76de7B4F';
+
+const RequestForm = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  
-  // Retrieve lender data passed from BorrowerDashboard
   const lender = location.state?.lender;
-  if (!lender) {
-    return <p>Error: Lender data not found. Please go back and select a lender.</p>;
-  }
-  
   const [formData, setFormData] = useState({
-    amountNeeded: '',
-    repaymentPeriod: '',
-    repaymentSchedule: ''  // For UI only; not stored on-chain.
+    amount: '',
+    duration: '',
   });
-  
-  // Generate a random UI reference ID (for display/logging only)
-  const [uiLoanId, setUiLoanId] = useState('');
+  const [error, setError] = useState('');
+  const [processing, setProcessing] = useState(false);
+  const [account, setAccount] = useState(null);
+
   useEffect(() => {
-    const randomPart = Math.floor(1000 + Math.random() * 9000);
-    setUiLoanId(`${Date.now()}-${randomPart}`);
-  }, []);
-  
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-  
+    const checkConnection = async () => {
+      try {
+        if (!window.ethereum) {
+          throw new Error("Please install MetaMask to use this application");
+        }
+
+        // Check if already connected
+        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+        if (accounts.length > 0) {
+          setAccount(accounts[0]);
+        } else {
+          // Request connection
+          const newAccounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+          if (newAccounts.length > 0) {
+            setAccount(newAccounts[0]);
+          }
+        }
+
+        // Listen for account changes
+        window.ethereum.on('accountsChanged', (newAccounts) => {
+          if (newAccounts.length > 0) {
+            setAccount(newAccounts[0]);
+          } else {
+            setAccount(null);
+            navigate('/borrowerDashboard');
+          }
+        });
+
+        // Listen for chain changes
+        window.ethereum.on('chainChanged', () => {
+          window.location.reload();
+        });
+      } catch (error) {
+        console.error("Error checking connection:", error);
+        setError(error.message || "Failed to connect to wallet");
+      }
+    };
+
+    checkConnection();
+  }, [navigate]);
+
+  useEffect(() => {
+    if (!lender || !account) {
+      navigate('/borrowerDashboard');
+    }
+  }, [lender, account, navigate]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    setProcessing(true);
+
     try {
-      // Connect to MetaMask and get the signer (borrower's account)
+      // Validate form data
+      if (!formData.amount || !formData.duration) {
+        throw new Error('Please fill in all fields');
+      }
+
+      const amount = ethers.parseEther(formData.amount);
+      const duration = parseInt(formData.duration);
+
+      // Validate against lender's maximum loan amount
+      const maxAmount = lender.maxLoanAmount;
+      if (amount > maxAmount) {
+        throw new Error(`Amount exceeds maximum loan amount of ${ethers.formatEther(maxAmount)} ETH`);
+      }
+
+      // Validate duration
+      if (duration < 1) {
+        throw new Error('Duration must be at least 1 day');
+      }
+
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
-  
-      // Create contract instance using the signer for write access.
-      const contract = new ethers.Contract(contractConfig.contractAddress, contractConfig.abi, signer);
-  
-      // Call the blockchain function requestLoan to store the loan data.
+      const contract = new ethers.Contract(contractAddress, contractABI, signer);
+
+      // Check if user is already a borrower
+      const borrower = await contract.borrowers(account);
+      if (!borrower.isRegistered) {
+        throw new Error('Please register as a borrower first');
+      }
+
       const tx = await contract.requestLoan(
-        ethers.parseUnits(formData.amountNeeded, 'ether'),
-        parseInt(formData.repaymentPeriod),
-        lender.walletAddress
+        lender.address,
+        amount,
+        duration
       );
-  
-      // Wait for transaction confirmation
+
       await tx.wait();
-  
-      // Fetch nextLoanId and subtract 1 to get the loan just stored.
-      const nextLoanIdBN = await contract.nextLoanId();
-      const loanId = Number(nextLoanIdBN) - 1;
-      const loan = await contract.loans(loanId);
-      console.log("Stored Loan Data:", {
-        loanId: loan.loanId.toString(),
-        borrower: loan.borrower,
-        lender: loan.lender,
-        amount: ethers.formatEther(loan.amount) + " ETH",
-        repaymentPeriod: loan.repaymentPeriod.toString() + " months",
-        status: Number(loan.status), // 0 for Pending
-        interestRate: loan.interestRate.toString(),
-      });
-  
-      console.log("Loan request submitted on-chain. UI Loan Reference ID:", uiLoanId);
-      alert("Loan request submitted successfully!");
-      navigate("/borrowerDashboard");
+      navigate('/borrowerDashboard');
     } catch (error) {
-      console.error("Error submitting loan request:", error);
-      alert("Failed to submit loan request. Check the console for details.");
+      console.error('Error requesting loan:', error);
+      setError(error.message || 'Failed to request loan. Please try again.');
+    } finally {
+      setProcessing(false);
     }
   };
-  
-  
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  if (!lender || !account) {
+    return (
+      <>
+        <NavBar />
+        <div className="request-form-container">
+          <div className="request-form-card">
+            <div className="error-state">
+              <p>Please connect your wallet and select a lender to continue</p>
+              <button onClick={() => navigate('/borrowerDashboard')}>Go Back</button>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
   return (
-    <div className="loan-request-container">
-      <h2>Loan Request Form</h2>
-      
-      <p><strong>Lender Address:</strong> {lender.walletAddress}</p>
-      <p><strong>Lender Interest Rate:</strong> {lender.interestRate}</p>
-      <p><strong>Your UI Loan Reference ID:</strong> {uiLoanId}</p>
-      
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label>Amount Needed (in ETH):</label>
-          <input
-            type="number"
-            name="amountNeeded"
-            value={formData.amountNeeded}
-            onChange={handleInputChange}
-            required
-          />
+    <>
+      <NavBar />
+      <div className="request-form-container">
+        <div className="request-form-card">
+          <div className="request-form-header">
+            <h1>Request Loan</h1>
+            <p>Submit your loan request to {lender.name}</p>
+          </div>
+
+          <div className="lender-info">
+            <h3>Lender Details</h3>
+            <div className="info-grid">
+              <div className="info-item">
+                <span className="info-label">Name</span>
+                <span className="info-value">{lender.name}</span>
+              </div>
+              <div className="info-item">
+                <span className="info-label">Interest Rate</span>
+                <span className="info-value">{lender.interestRate}%</span>
+              </div>
+              <div className="info-item">
+                <span className="info-label">Max Loan Amount</span>
+                <span className="info-value">{ethers.formatEther(lender.maxLoanAmount)} ETH</span>
+              </div>
+              <div className="info-item">
+                <span className="info-label">Contact</span>
+                <span className="info-value">{lender.email}</span>
+              </div>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="request-form">
+            <div className="form-group">
+              <label htmlFor="amount">Loan Amount (ETH)</label>
+              <input
+                type="number"
+                id="amount"
+                name="amount"
+                value={formData.amount}
+                onChange={handleChange}
+                placeholder="Enter amount in ETH"
+                step="0.000000000000000001"
+                min="0"
+                max={ethers.formatEther(lender.maxLoanAmount)}
+                required
+                disabled={processing}
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="duration">Duration (days)</label>
+              <input
+                type="number"
+                id="duration"
+                name="duration"
+                value={formData.duration}
+                onChange={handleChange}
+                placeholder="Enter duration in days"
+                min="1"
+                required
+                disabled={processing}
+              />
+            </div>
+
+            {error && <div className="error-message">{error}</div>}
+
+            <div className="form-actions">
+              <button
+                type="button"
+                className="cancel-button"
+                onClick={() => navigate('/borrowerDashboard')}
+                disabled={processing}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="submit-button"
+                disabled={processing}
+              >
+                {processing ? 'Processing...' : 'Submit Request'}
+              </button>
+            </div>
+          </form>
         </div>
-        
-        <div className="form-group">
-          <label>Repayment Period (in months):</label>
-          <input
-            type="number"
-            name="repaymentPeriod"
-            value={formData.repaymentPeriod}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-        
-        <div className="form-group">
-          <label>Repayment Schedule:</label>
-          <select
-            name="repaymentSchedule"
-            value={formData.repaymentSchedule}
-            onChange={handleInputChange}
-            required
-          >
-            <option value="">Select Schedule</option>
-            <option value="weekly">Weekly</option>
-            <option value="biweekly">Biweekly</option>
-            <option value="monthly">Monthly</option>
-          </select>
-        </div>
-        
-        <button type="submit">Submit Loan Request</button>
-      </form>
-    </div>
+      </div>
+    </>
   );
 };
 
-export default LoanRequestForm;
+export default RequestForm;
