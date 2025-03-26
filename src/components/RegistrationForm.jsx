@@ -29,20 +29,20 @@ const RegistrationForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     try {
       if (!window.ethereum) {
         alert("MetaMask is required to register.");
         return;
       }
-  
+
       // Connect to MetaMask
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
-  
+
       // Initialize contract correctly
       const contract = new ethers.Contract(contractAddress, contractABI, signer);
-  
+
       let tx;
       if (formData.userType === "borrower") {
         tx = await contract.registerBorrower(
@@ -59,17 +59,17 @@ const RegistrationForm = () => {
           formData.monthlyIncome.toString()
         );
       }
-  
+
       await tx.wait();
       alert("Registration successful!");
-  
+
       navigate(formData.userType === "lender" ? "/lenderDashboard" : "/borrowerDashboard");
     } catch (error) {
       console.error("Error in registration:", error);
       alert("Registration failed!");
     }
   };
-  
+
 
   return (
     <div className="login-container">
@@ -120,16 +120,6 @@ const RegistrationForm = () => {
                   name="interestRate"
                   placeholder="Interest Rate"
                   value={formData.interestRate}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <input
-                  type="number"
-                  name="monthlyIncome"
-                  placeholder="Monthly Income"
-                  value={formData.monthlyIncome}
                   onChange={handleInputChange}
                   required
                 />

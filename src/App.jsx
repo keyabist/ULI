@@ -22,7 +22,6 @@ function App() {
   return (
     <Router>
       <div className="App">
-        
         <Routes>
           <Route path="/" element={<WalletConnect />} />
           <Route path="/registrationForm" element={<RegistrationForm />} />
@@ -35,7 +34,7 @@ function App() {
           <Route path="/completeProfile" element={<CompleteProfile />} />
           <Route path="/activeLoans" element={<ActiveLoans />} />
           <Route path="/pendingRequests" element={<PendingRequests />} />
-          <Route path="/transactionPage" element={<TransactionPage/>} />
+          <Route path="/transactionPage" element={<TransactionPage />} />
           <Route path="/loanStatus/:loanId" element={<LoanStatus />} />
           <Route path='/requestStatusPage' element={<RequestStatusPage />} />
           <Route path='/rejectedLoansPage' element={<RejectedLoansPage />} />
@@ -46,4 +45,4 @@ function App() {
   )
 }
 
-export default App
+export default App;

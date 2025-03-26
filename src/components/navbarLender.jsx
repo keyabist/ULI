@@ -1,28 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material';
-import { Link } from 'react-router-dom';
-import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
+import { AppBar, Toolbar, Typography, IconButton, Box } from '@mui/material';
+import LogoutIcon from '@mui/icons-material/Logout';
+import { Link, useNavigate } from 'react-router-dom';
 import ProfileIcon from './ProfileIcon.jsx';
 
 const Navbar = () => {
     const [account, setAccount] = useState('');
     const [isConnected, setIsConnected] = useState(false);
-
-    // const connectWallet = async () => {
-    //     if (window.ethereum) {
-    //         try {
-    //             const accounts = await window.ethereum.request({
-    //                 method: 'eth_requestAccounts',
-    //             });
-    //             setAccount(accounts[0]);
-    //             setIsConnected(true);
-    //         } catch (error) {
-    //             console.error('Error connecting to MetaMask:', error);
-    //         }
-    //     } else {
-    //         alert('Please install MetaMask to use this application!');
-    //     }
-    // };
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (window.ethereum) {
@@ -38,30 +23,41 @@ const Navbar = () => {
         }
     }, []);
 
+    const handleLogout = () => {
+        // Clear any global wallet/account state if needed.
+        navigate("/"); // Reroute to the connect wallet page.
+    };
+
     return (
         <AppBar position="fixed" sx={{ top: 0, zIndex: 1100 }}>
             <Toolbar>
-                <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                     Lender Dashboard
+                <Typography variant="h6" sx={{ flexGrow: 1 }}>
+                    Lender Dashboard
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 2 }}>
-                    <Button color="inherit" component={Link} to="/lenderDashboard">
+                    <IconButton color="inherit" component={Link} to="/lenderDashboard">
                         Dashboard
-                    </Button>
-                    <Button color="inherit" component={Link} to="/activeLoans">
+                    </IconButton>
+                    <IconButton color="inherit" component={Link} to="/activeLoans">
                         Active Loans
-                    </Button>
-                    <Button color="inherit" component={Link} to="/pendingRequests">
+                    </IconButton>
+                    <IconButton color="inherit" component={Link} to="/pendingRequests">
                         Pending Requests
-                    </Button>
-                    <Button color='inherit' component={Link} to="/rejectedLoansPage"> Rejected Loans</Button>
-                    <Button color='inherit' component={Link} to="/completedLoansPage"> Completed Loans</Button>
+                    </IconButton>
+                    <IconButton color="inherit" component={Link} to="/rejectedLoansPage">
+                        Rejected Loans
+                    </IconButton>
+                    <IconButton color="inherit" component={Link} to="/completedLoansPage">
+                        Completed Loans
+                    </IconButton>
                     <ProfileIcon />
-                    
+                    <IconButton color="inherit" onClick={handleLogout}>
+                        <LogoutIcon />
+                    </IconButton>
                 </Box>
             </Toolbar>
         </AppBar>
     );
 };
 
-export default Navbar; 
+export default Navbar;

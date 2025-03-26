@@ -3,14 +3,14 @@ import { ethers } from "ethers";
 import { useLocation, useNavigate } from "react-router-dom";
 import contractABI from "../contracts/abi.json";
 
-const contractAddress = "0x3C749Fa9984369506F10c18869E7c51488D8134f"; 
+const contractAddress = "0x3C749Fa9984369506F10c18869E7c51488D8134f";
 
 const WalletConnect = () => {
   const [account, setAccount] = useState(null);
   const [balance, setBalance] = useState(null);
   const [status, setStatus] = useState("No Wallet Connected");
   const [contractMessage, setContractMessage] = useState("");
-  
+
   const navigate = useNavigate();
   const location = useLocation();
   const params = new URLSearchParams(location.search);
@@ -26,11 +26,11 @@ const WalletConnect = () => {
     }
   };
 
-  // This function is optional—remove it if your contract doesn’t provide getMessage.
+  // Optionally fetch a message from the contract
   const fetchContractMessage = async (signer) => {
     try {
       const contract = new ethers.Contract(contractAddress, contractABI, signer);
-      if (contract.getMessage) { // ensure the function exists
+      if (contract.getMessage) {
         const message = await contract.getMessage();
         setContractMessage(message);
       } else {
@@ -54,15 +54,15 @@ const WalletConnect = () => {
       const signer = await provider.getSigner();
       const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
       const connectedAccount = accounts[0];
-      
+
       setAccount(connectedAccount);
       setStatus("Wallet Connected");
 
-      // Fetch balance and contract message as in your base logic
+      // Fetch balance and contract message
       await fetchBalance(provider, connectedAccount);
       await fetchContractMessage(signer);
 
-      // Now query the contract for registration status:
+      // Query contract for registration status
       const contract = new ethers.Contract(contractAddress, contractABI, signer);
       const borrowerData = await contract.borrowers(connectedAccount);
       const lenderData = await contract.lenders(connectedAccount);
@@ -70,23 +70,28 @@ const WalletConnect = () => {
       console.log("Borrower Data:", borrowerData);
       console.log("Lender Data:", lenderData);
 
-      // Use ethers.constants.AddressZero to compare against the zero address
+      // Redirect based on registration status
       if (borrowerData.isRegistered) {
         navigate("/borrowerDashboard");
-      } else if (
-        lenderData.isRegistered && 
-        lenderData.lenderAddress !== ethers.ZeroAddress // ethers.ZeroAddress is equivalent to "0x0000000000000000000000000000000000000000"
-      ) {
+      } else if (lenderData.isRegistered && lenderData.lenderAddress !== ethers.ZeroAddress) {
         navigate("/lenderDashboard");
       } else {
         navigate("/registrationForm");
       }
-      
+
     } catch (error) {
       console.error("Error connecting to MetaMask:", error);
       setStatus("Error connecting to Wallet");
     }
   }, [navigate, role]);
+
+  // Logout clears wallet state and routes back to connect wallet page
+  const logout = () => {
+    setAccount(null);
+    setBalance(null);
+    setStatus("No Wallet Connected");
+    navigate("/"); // Reroute to the connect wallet page
+  };
 
   useEffect(() => {
     if (window.ethereum) {
@@ -102,14 +107,23 @@ const WalletConnect = () => {
     <div className="wallet-container">
       <h1>MetaMask Wallet Connection</h1>
       <p className={`status ${status.replace(/ /g, "-").toLowerCase()}`}>{status}</p>
-      <button className="connect-button" onClick={connectWallet}>
-        {account ? "Reconnect Wallet" : "Connect Wallet"}
-      </button>
-      {account && (
-        <div className="wallet-info">
-          <p>Wallet Address: {account}</p>
-          <p>Balance: {balance ? `${balance} ETH` : "Fetching balance..."}</p>
-          <p>Contract Message: {contractMessage || "Fetching data..."}</p>
+      {!account ? (
+        <button className="connect-button" onClick={connectWallet}>
+          Connect Wallet
+        </button>
+      ) : (
+        <div>
+          <div className="wallet-info">
+            <p>Wallet Address: {account}</p>
+            <p>Balance: {balance ? `${balance} ETH` : "Fetching balance..."}</p>
+            <p>Contract Message: {contractMessage || "Fetching data..."}</p>
+          </div>
+          <button
+            onClick={logout}
+            className="logout-button bg-red-500 text-white p-2 rounded mt-4"
+          >
+            Logout
+          </button>
         </div>
       )}
     </div>
