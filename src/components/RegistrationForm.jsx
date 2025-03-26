@@ -80,7 +80,7 @@ const RegistrationForm = () => {
             <input
               type="text"
               name="fullName"
-              placeholder="Full Name"
+              placeholder="User Name"
               value={formData.fullName}
               onChange={handleInputChange}
               required

@@ -1,5 +1,5 @@
 export const contractConfig = {
-    contractAddress: "0x776fbF8c1b3A64a48EE8976b6825E1Ec76de7B4F",  // Replace with actual contract address
+    contractAddress: "0x3C749Fa9984369506F10c18869E7c51488D8134f",  // Replace with actual contract address
     rpcUrl: "https://eth-sepolia.alchemyapi.io/v2/0djlRuL7g5qo-i8QYdXMsoGX7jSySmkm",  // Replace with actual RPC URL
     abi: [
       {
@@ -226,11 +226,6 @@ export const contractConfig = {
             "internalType": "string",
             "name": "signatureCID",
             "type": "string"
-          },
-          {
-            "internalType": "bool",
-            "name": "verified",
-            "type": "bool"
           }
         ],
         "stateMutability": "view",
@@ -273,44 +268,56 @@ export const contractConfig = {
         "name": "getBorrowerProfile",
         "outputs": [
           {
-            "internalType": "string",
-            "name": "name",
-            "type": "string"
-          },
-          {
-            "internalType": "string",
-            "name": "phone",
-            "type": "string"
-          },
-          {
-            "internalType": "string",
-            "name": "email",
-            "type": "string"
-          },
-          {
-            "internalType": "uint256",
-            "name": "creditScore",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "monthlyIncome",
-            "type": "uint256"
-          },
-          {
-            "internalType": "string",
-            "name": "govidCID",
-            "type": "string"
-          },
-          {
-            "internalType": "string",
-            "name": "signatureCID",
-            "type": "string"
-          },
-          {
-            "internalType": "bool",
-            "name": "verified",
-            "type": "bool"
+            "components": [
+              {
+                "internalType": "address",
+                "name": "borrowerAddress",
+                "type": "address"
+              },
+              {
+                "internalType": "string",
+                "name": "name",
+                "type": "string"
+              },
+              {
+                "internalType": "string",
+                "name": "phone",
+                "type": "string"
+              },
+              {
+                "internalType": "string",
+                "name": "email",
+                "type": "string"
+              },
+              {
+                "internalType": "uint256",
+                "name": "creditScore",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "monthlyIncome",
+                "type": "uint256"
+              },
+              {
+                "internalType": "bool",
+                "name": "isRegistered",
+                "type": "bool"
+              },
+              {
+                "internalType": "string",
+                "name": "govidCID",
+                "type": "string"
+              },
+              {
+                "internalType": "string",
+                "name": "signatureCID",
+                "type": "string"
+              }
+            ],
+            "internalType": "struct UnifiedLending.Borrower",
+            "name": "",
+            "type": "tuple"
           }
         ],
         "stateMutability": "view",
@@ -327,44 +334,61 @@ export const contractConfig = {
         "name": "getLenderProfile",
         "outputs": [
           {
-            "internalType": "string",
-            "name": "name",
-            "type": "string"
-          },
-          {
-            "internalType": "string",
-            "name": "phone",
-            "type": "string"
-          },
-          {
-            "internalType": "string",
-            "name": "email",
-            "type": "string"
-          },
-          {
-            "internalType": "uint256",
-            "name": "interestRate",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "monthlyIncome",
-            "type": "uint256"
-          },
-          {
-            "internalType": "string",
-            "name": "govidCID",
-            "type": "string"
-          },
-          {
-            "internalType": "string",
-            "name": "signatureCID",
-            "type": "string"
-          },
-          {
-            "internalType": "bool",
-            "name": "verified",
-            "type": "bool"
+            "components": [
+              {
+                "internalType": "address",
+                "name": "lenderAddress",
+                "type": "address"
+              },
+              {
+                "internalType": "string",
+                "name": "name",
+                "type": "string"
+              },
+              {
+                "internalType": "string",
+                "name": "phone",
+                "type": "string"
+              },
+              {
+                "internalType": "string",
+                "name": "email",
+                "type": "string"
+              },
+              {
+                "internalType": "uint256",
+                "name": "interestRate",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "monthlyIncome",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "creditScore",
+                "type": "uint256"
+              },
+              {
+                "internalType": "bool",
+                "name": "isRegistered",
+                "type": "bool"
+              },
+              {
+                "internalType": "string",
+                "name": "govidCID",
+                "type": "string"
+              },
+              {
+                "internalType": "string",
+                "name": "signatureCID",
+                "type": "string"
+              }
+            ],
+            "internalType": "struct UnifiedLending.Lender",
+            "name": "",
+            "type": "tuple"
           }
         ],
         "stateMutability": "view",
@@ -476,6 +500,11 @@ export const contractConfig = {
             "type": "uint256"
           },
           {
+            "internalType": "uint256",
+            "name": "creditScore",
+            "type": "uint256"
+          },
+          {
             "internalType": "bool",
             "name": "isRegistered",
             "type": "bool"
@@ -489,11 +518,6 @@ export const contractConfig = {
             "internalType": "string",
             "name": "signatureCID",
             "type": "string"
-          },
-          {
-            "internalType": "bool",
-            "name": "verified",
-            "type": "bool"
           }
         ],
         "stateMutability": "view",
@@ -746,6 +770,11 @@ export const contractConfig = {
               },
               {
                 "internalType": "uint256",
+                "name": "interestRate",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
                 "name": "monthlyIncome",
                 "type": "uint256"
               },
@@ -758,14 +787,9 @@ export const contractConfig = {
                 "internalType": "string",
                 "name": "signatureCID",
                 "type": "string"
-              },
-              {
-                "internalType": "bool",
-                "name": "verified",
-                "type": "bool"
               }
             ],
-            "internalType": "struct UnifiedLending.BorrowerProfileData",
+            "internalType": "struct UnifiedLending.ProfileData",
             "name": "profileData",
             "type": "tuple"
           }
@@ -796,6 +820,11 @@ export const contractConfig = {
               },
               {
                 "internalType": "uint256",
+                "name": "creditScore",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
                 "name": "interestRate",
                 "type": "uint256"
               },
@@ -813,14 +842,9 @@ export const contractConfig = {
                 "internalType": "string",
                 "name": "signatureCID",
                 "type": "string"
-              },
-              {
-                "internalType": "bool",
-                "name": "verified",
-                "type": "bool"
               }
             ],
-            "internalType": "struct UnifiedLending.LenderProfileData",
+            "internalType": "struct UnifiedLending.ProfileData",
             "name": "profileData",
             "type": "tuple"
           }
@@ -830,5 +854,4 @@ export const contractConfig = {
         "stateMutability": "nonpayable",
         "type": "function"
       }
-    ],
-    }
+    ]}

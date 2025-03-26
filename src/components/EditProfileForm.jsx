@@ -6,7 +6,7 @@ import Navbar from './navbar';
 import ContractABI from "../contracts/abi.json";
 import NavbarLender from './navbarLender';
 
-const CONTRACT_ADDRESS = "0x776fbF8c1b3A64a48EE8976b6825E1Ec76de7B4F";
+const CONTRACT_ADDRESS = "0x3C749Fa9984369506F10c18869E7c51488D8134f";
 
 const EditProfileForm = () => {
   // Role: "borrower" or "lender"

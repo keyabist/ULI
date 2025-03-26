@@ -4,7 +4,7 @@ pragma solidity ^0.8.19;
 contract UnifiedLending {
     enum LoanStatus { Pending, Approved, Rejected, Completed }
     
-    // Updated Borrower struct with document fields and verified flag
+    // Borrower struct with document fields and credit score
     struct Borrower {
         address borrowerAddress;
         string name;
@@ -15,10 +15,9 @@ contract UnifiedLending {
         bool isRegistered;
         string govidCID;       // CID for government ID document
         string signatureCID;   // CID for signature document
-        bool verified;         // Verification flag (to be updated later)
     }
     
-    // Updated Lender struct with document fields and verified flag
+    // Lender struct with document fields, credit score and interest rate
     struct Lender {
         address lenderAddress;
         string name;
@@ -26,10 +25,10 @@ contract UnifiedLending {
         string email;
         uint interestRate;
         uint monthlyIncome;
+        uint creditScore;
         bool isRegistered;
         string govidCID;       // CID for government ID document
         string signatureCID;   // CID for signature document
-        bool verified;         // Verification flag (to be updated later)
     }
     
     struct Loan {
@@ -90,7 +89,8 @@ contract UnifiedLending {
         _;
     }
     
-    // Registration functions (document fields are initialized as empty and verified flag as false)
+    // --- Registration functions ---
+    // Borrower registration now includes monthly income as an input.
     function registerBorrower(
         string memory _name,
         string memory _phone,
@@ -101,17 +101,17 @@ contract UnifiedLending {
             _name,
             _phone,
             _email,
-            0,
-            0,
+            0,              // creditScore initially 0
+            0, // monthlyIncome provided at registration
             true,
-            "",     // govidCID (empty initially)
-            "",     // signatureCID (empty initially)
-            false   // verified flag
+            "",             // govidCID (empty initially)
+            ""              // signatureCID (empty initially)
         );
         borrowerList.push(msg.sender);
         emit BorrowerRegistered(msg.sender, _name);
     }
     
+    // Lender registration now initializes creditScore to 0.
     function registerLender(
         string memory _name,
         string memory _phone,
@@ -126,16 +126,16 @@ contract UnifiedLending {
             _email,
             _interestRate,
             _monthlyIncome,
+            0,              // creditScore initially 0 for lender
             true,
-            "",     // govidCID (empty initially)
-            "",     // signatureCID (empty initially)
-            false   // verified flag
+            "",             // govidCID (empty initially)
+            ""              // signatureCID (empty initially)
         );
         lenderList.push(msg.sender);
         emit LenderRegistered(msg.sender, _name);
     }
     
-    // Loan functions
+    // --- Loan functions ---
     function requestLoan(uint _amount, uint _repaymentPeriod, address _lender) external onlyRegisteredBorrower {
         require(lenders[_lender].isRegistered, "Lender not found");
         loans[nextLoanId] = Loan(
@@ -192,80 +192,32 @@ contract UnifiedLending {
     }
     
     // --- Profile Management ---
-    // To prevent "stack too deep", we group profile update fields into structs.
-
-    struct BorrowerProfileData {
+    // Merged ProfileData struct for both borrowers and lenders.
+    // Note: For borrowers, interestRate is unused; for lenders, creditScore is updated.
+    struct ProfileData {
         string name;
         string phone;
         string email;
         uint creditScore;
-        uint monthlyIncome;
-        string govidCID;
-        string signatureCID;
-        bool verified;
-    }
-    
-    struct LenderProfileData {
-        string name;
-        string phone;
-        string email;
         uint interestRate;
         uint monthlyIncome;
         string govidCID;
         string signatureCID;
-        bool verified;
     }
     
-    function getBorrowerProfile(address _borrower) external view returns (
-        string memory name,
-        string memory phone,
-        string memory email,
-        uint creditScore,
-        uint monthlyIncome,
-        string memory govidCID,
-        string memory signatureCID,
-        bool verified
-    ) {
+    // Instead of returning individual fields, we now return the entire struct.
+    function getBorrowerProfile(address _borrower) external view returns (Borrower memory) {
         require(borrowers[_borrower].isRegistered, "Borrower not registered");
-        Borrower memory b = borrowers[_borrower];
-        return (
-            b.name,
-            b.phone,
-            b.email,
-            b.creditScore,
-            b.monthlyIncome,
-            b.govidCID,
-            b.signatureCID,
-            b.verified
-        );
+        return borrowers[_borrower];
     }
     
-    function getLenderProfile(address _lender) external view returns (
-        string memory name,
-        string memory phone,
-        string memory email,
-        uint interestRate,
-        uint monthlyIncome,
-        string memory govidCID,
-        string memory signatureCID,
-        bool verified
-    ) {
+    function getLenderProfile(address _lender) external view returns (Lender memory) {
         require(lenders[_lender].isRegistered, "Lender not registered");
-        Lender memory l = lenders[_lender];
-        return (
-            l.name,
-            l.phone,
-            l.email,
-            l.interestRate,
-            l.monthlyIncome,
-            l.govidCID,
-            l.signatureCID,
-            l.verified
-        );
+        return lenders[_lender];
     }
     
-    // Use grouped struct for profile update to avoid stack too deep error.
-    function updateBorrowerProfile(BorrowerProfileData calldata profileData) external onlyRegisteredBorrower {
+    // Profile update for borrowers
+    function updateBorrowerProfile(ProfileData calldata profileData) external onlyRegisteredBorrower {
         Borrower storage b = borrowers[msg.sender];
         b.name = profileData.name;
         b.phone = profileData.phone;
@@ -274,18 +226,18 @@ contract UnifiedLending {
         b.monthlyIncome = profileData.monthlyIncome;
         b.govidCID = profileData.govidCID;
         b.signatureCID = profileData.signatureCID;
-        b.verified = profileData.verified;
     }
     
-    function updateLenderProfile(LenderProfileData calldata profileData) external onlyRegisteredLender {
+    // Profile update for lenders now updates creditScore as well.
+    function updateLenderProfile(ProfileData calldata profileData) external onlyRegisteredLender {
         Lender storage l = lenders[msg.sender];
         l.name = profileData.name;
         l.phone = profileData.phone;
         l.email = profileData.email;
         l.interestRate = profileData.interestRate;
         l.monthlyIncome = profileData.monthlyIncome;
+        l.creditScore = profileData.creditScore;
         l.govidCID = profileData.govidCID;
         l.signatureCID = profileData.signatureCID;
-        l.verified = profileData.verified;
     }
 }

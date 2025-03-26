@@ -3,7 +3,7 @@ import { ethers } from "ethers";
 import { useLocation, useNavigate } from "react-router-dom";
 import contractABI from "../contracts/abi.json";
 
-const contractAddress = "0x776fbF8c1b3A64a48EE8976b6825E1Ec76de7B4F"; 
+const contractAddress = "0x3C749Fa9984369506F10c18869E7c51488D8134f"; 
 
 const WalletConnect = () => {
   const [account, setAccount] = useState(null);

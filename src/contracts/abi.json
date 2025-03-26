@@ -223,11 +223,6 @@
         "internalType": "string",
         "name": "signatureCID",
         "type": "string"
-      },
-      {
-        "internalType": "bool",
-        "name": "verified",
-        "type": "bool"
       }
     ],
     "stateMutability": "view",
@@ -270,44 +265,56 @@
     "name": "getBorrowerProfile",
     "outputs": [
       {
-        "internalType": "string",
-        "name": "name",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "phone",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "email",
-        "type": "string"
-      },
-      {
-        "internalType": "uint256",
-        "name": "creditScore",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "monthlyIncome",
-        "type": "uint256"
-      },
-      {
-        "internalType": "string",
-        "name": "govidCID",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "signatureCID",
-        "type": "string"
-      },
-      {
-        "internalType": "bool",
-        "name": "verified",
-        "type": "bool"
+        "components": [
+          {
+            "internalType": "address",
+            "name": "borrowerAddress",
+            "type": "address"
+          },
+          {
+            "internalType": "string",
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "phone",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "email",
+            "type": "string"
+          },
+          {
+            "internalType": "uint256",
+            "name": "creditScore",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "monthlyIncome",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "isRegistered",
+            "type": "bool"
+          },
+          {
+            "internalType": "string",
+            "name": "govidCID",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "signatureCID",
+            "type": "string"
+          }
+        ],
+        "internalType": "struct UnifiedLending.Borrower",
+        "name": "",
+        "type": "tuple"
       }
     ],
     "stateMutability": "view",
@@ -324,44 +331,61 @@
     "name": "getLenderProfile",
     "outputs": [
       {
-        "internalType": "string",
-        "name": "name",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "phone",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "email",
-        "type": "string"
-      },
-      {
-        "internalType": "uint256",
-        "name": "interestRate",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "monthlyIncome",
-        "type": "uint256"
-      },
-      {
-        "internalType": "string",
-        "name": "govidCID",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "signatureCID",
-        "type": "string"
-      },
-      {
-        "internalType": "bool",
-        "name": "verified",
-        "type": "bool"
+        "components": [
+          {
+            "internalType": "address",
+            "name": "lenderAddress",
+            "type": "address"
+          },
+          {
+            "internalType": "string",
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "phone",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "email",
+            "type": "string"
+          },
+          {
+            "internalType": "uint256",
+            "name": "interestRate",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "monthlyIncome",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "creditScore",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "isRegistered",
+            "type": "bool"
+          },
+          {
+            "internalType": "string",
+            "name": "govidCID",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "signatureCID",
+            "type": "string"
+          }
+        ],
+        "internalType": "struct UnifiedLending.Lender",
+        "name": "",
+        "type": "tuple"
       }
     ],
     "stateMutability": "view",
@@ -473,6 +497,11 @@
         "type": "uint256"
       },
       {
+        "internalType": "uint256",
+        "name": "creditScore",
+        "type": "uint256"
+      },
+      {
         "internalType": "bool",
         "name": "isRegistered",
         "type": "bool"
@@ -486,11 +515,6 @@
         "internalType": "string",
         "name": "signatureCID",
         "type": "string"
-      },
-      {
-        "internalType": "bool",
-        "name": "verified",
-        "type": "bool"
       }
     ],
     "stateMutability": "view",
@@ -743,6 +767,11 @@
           },
           {
             "internalType": "uint256",
+            "name": "interestRate",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
             "name": "monthlyIncome",
             "type": "uint256"
           },
@@ -755,14 +784,9 @@
             "internalType": "string",
             "name": "signatureCID",
             "type": "string"
-          },
-          {
-            "internalType": "bool",
-            "name": "verified",
-            "type": "bool"
           }
         ],
-        "internalType": "struct UnifiedLending.BorrowerProfileData",
+        "internalType": "struct UnifiedLending.ProfileData",
         "name": "profileData",
         "type": "tuple"
       }
@@ -793,6 +817,11 @@
           },
           {
             "internalType": "uint256",
+            "name": "creditScore",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
             "name": "interestRate",
             "type": "uint256"
           },
@@ -810,14 +839,9 @@
             "internalType": "string",
             "name": "signatureCID",
             "type": "string"
-          },
-          {
-            "internalType": "bool",
-            "name": "verified",
-            "type": "bool"
           }
         ],
-        "internalType": "struct UnifiedLending.LenderProfileData",
+        "internalType": "struct UnifiedLending.ProfileData",
         "name": "profileData",
         "type": "tuple"
       }
