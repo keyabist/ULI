@@ -12,7 +12,6 @@ Unified Lending Interface (ULI) is a blockchain-based decentralized lending plat
 
 ## Tech Stack
 - **Frontend**: React.js (with TailwindCSS for styling)
-- **Backend**: Node.js, Express.js
 - **Blockchain**: Solidity, Hardhat, Ethereum (Sepolia test network)
 - **Authentication**: MetaMask Wallet
 
