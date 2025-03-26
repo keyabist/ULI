@@ -14,6 +14,9 @@ import PendingRequests from './components/PendingRequests';
 import TransactionPage from './components/TransactionPage';
 import LoanStatus from './components/LoanStatus.jsx';
 import ViewProfile from './components/ViewProfile.jsx';
+import RequestStatusPage from './components/RequestStatusPage.jsx';
+import RejectedLoansPage from './components/RejectedLoans.jsx';
+import CompletedLoansPage from './components/CompletedLoans.jsx';
 
 function App() {
   return (
@@ -34,6 +37,9 @@ function App() {
           <Route path="/pendingRequests" element={<PendingRequests />} />
           <Route path="/transactionPage" element={<TransactionPage/>} />
           <Route path="/loanStatus/:loanId" element={<LoanStatus />} />
+          <Route path='/requestStatusPage' element={<RequestStatusPage />} />
+          <Route path='/rejectedLoansPage' element={<RejectedLoansPage />} />
+          <Route path='/completedLoansPage' element={<CompletedLoansPage />} />
         </Routes>
       </div>
     </Router>

@@ -32,77 +32,86 @@ const RequestStatusPage = () => {
 
   useEffect(() => {
     const fetchLoanRequests = async () => {
-      if (contract && signer) {
-        try {
-          const userAddress = (await signer.getAddress()).toLowerCase();
-          // Replace with your method to fetch borrower requests:
-          // const requests = await contract.getRequestsByBorrower(userAddress);
-          const requests = [
-            { loanId: 1, amount: "1 ETH", status: "Pending" },
-            { loanId: 2, amount: "2 ETH", status: "Approved" },
-            { loanId: 3, amount: "0.5 ETH", status: "Rejected" },
-          ];
-          setLoanRequests(requests);
-          setFilteredRequests(requests);
-        } catch (error) {
-          console.error("Error fetching loan requests:", error);
+      if (!contract || !signer) return;
+
+      try {
+        const userAddress = (await signer.getAddress()).toLowerCase();
+        const loanCount = await contract.nextLoanId();
+
+        let loans = [];
+        for (let i = 1; i < loanCount; i++) {
+          const loan = await contract.loans(i);
+          const status = getLoanStatus(loan.status);
+
+          if (loan.borrower.toLowerCase() === userAddress && status !== "Completed") {
+            loans.push({
+              loanId: loan.loanId.toString(),
+              amount: ethers.formatUnits(loan.amount, 18) + " ETH",
+              interestRate: loan.interestRate.toString() + "%",
+              repaymentPeriod: loan.repaymentPeriod.toString() + " months",
+              status: status,
+            });
+          }
         }
+
+        setLoanRequests(loans);
+        setFilteredRequests(loans);
+      } catch (error) {
+        console.error("Error fetching loans:", error);
       }
     };
 
     fetchLoanRequests();
   }, [contract, signer]);
 
+  const getLoanStatus = (status) => {
+    const statuses = ["Pending", "Accepted", "Rejected", "Completed"];
+    return statuses[status] || "Unknown";
+  };
+
   const filterRequests = (status) => {
     setActiveFilter(status);
     if (status === "all") {
       setFilteredRequests(loanRequests);
+    } else if (status === "accepted_rejected") {
+      setFilteredRequests(loanRequests.filter((req) => req.status === "Accepted" || req.status === "Rejected"));
     } else {
-      const filtered = loanRequests.filter((req) => {
-        // Adjust status names as needed (e.g., "Approved" might correspond to accepted)
-        if (status === "accepted") return req.status === "Approved";
-        return req.status.toLowerCase() === status;
-      });
-      setFilteredRequests(filtered);
+      setFilteredRequests(loanRequests.filter((req) => req.status.toLowerCase() === status));
     }
   };
 
   return (
     <div className="p-6 max-w-4xl mx-auto bg-white rounded-xl shadow-md">
       <h2 className="text-xl font-bold mb-4">Your Loan Requests</h2>
-      <div className="mb-4">
-        <button
-          className={`p-2 ${activeFilter === "all" ? "bg-blue-500 text-white" : "bg-gray-200"}`}
-          onClick={() => filterRequests("all")}
-        >
-          All
-        </button>
-        <button
-          className={`p-2 ml-2 ${activeFilter === "pending" ? "bg-blue-500 text-white" : "bg-gray-200"}`}
-          onClick={() => filterRequests("pending")}
-        >
-          Pending
-        </button>
-        <button
-          className={`p-2 ml-2 ${activeFilter === "accepted" ? "bg-blue-500 text-white" : "bg-gray-200"}`}
-          onClick={() => filterRequests("accepted")}
-        >
-          Accepted
-        </button>
-        <button
-          className={`p-2 ml-2 ${activeFilter === "rejected" ? "bg-blue-500 text-white" : "bg-gray-200"}`}
-          onClick={() => filterRequests("rejected")}
-        >
-          Rejected
-        </button>
+      
+      {/* Filter Buttons */}
+      <div className="mb-4 flex gap-2">
+        {["all", "pending", "accepted", "rejected", "accepted_rejected"].map((filter) => (
+          <button
+            key={filter}
+            className={`p-2 rounded ${activeFilter === filter ? "bg-blue-500 text-white" : "bg-gray-200"}`}
+            onClick={() => filterRequests(filter)}
+          >
+            {filter === "accepted_rejected" ? "Accepted & Rejected" : filter.charAt(0).toUpperCase() + filter.slice(1)}
+          </button>
+        ))}
       </div>
+
+      {/* Loan Requests List */}
       {filteredRequests.length === 0 ? (
         <p>No requests found for this filter.</p>
       ) : (
-        <ul>
+        <ul className="mt-4">
           {filteredRequests.map((req) => (
-            <li key={req.loanId}>
-              <strong>Loan ID:</strong> {req.loanId} – <strong>Amount:</strong> {req.amount} – <strong>Status:</strong> {req.status}
+            <li key={req.loanId} className="border p-3 mb-2 rounded shadow-sm">
+              <strong>Loan ID:</strong> {req.loanId} <br />
+              <strong>Amount:</strong> {req.amount} <br />
+              <strong>Interest Rate:</strong> {req.interestRate} <br />
+              <strong>Repayment Period:</strong> {req.repaymentPeriod} <br />
+              <strong>Status:</strong>{" "}
+              <span className={req.status === "Accepted" ? "text-green-600 font-bold" : req.status === "Rejected" ? "text-red-600 font-bold" : ""}>
+                {req.status}
+              </span>
             </li>
           ))}
         </ul>

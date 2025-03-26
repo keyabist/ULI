@@ -1,3 +1,4 @@
+// ViewProfile.js
 import React, { useEffect, useState } from 'react';
 import { Container, Typography, Paper, Button, Grid, Link as MuiLink } from '@mui/material';
 import { Link } from 'react-router-dom';
@@ -20,12 +21,10 @@ const ViewProfile = () => {
           const address = await signer.getAddress();
           const contract = new ethers.Contract(contractAddress, contractABI, signer);
 
-          // First, check if the user is registered as a borrower.
+          // Check if the user is registered as a borrower.
           const borrowerData = await contract.borrowers(address);
-          // For Borrower struct: index6 is isRegistered.
-          if (borrowerData[6]) { 
+          if (borrowerData[6]) {  // index 6 corresponds to isRegistered in Borrower struct.
             const profileData = await contract.getBorrowerProfile(address);
-            // Expected order: [0]: borrowerAddress, [1]: name, [2]: phone, [3]: email, [4]: creditScore, [5]: monthlyIncome, [6]: isRegistered, [7]: govidCID, [8]: signatureCID
             setProfile({
               role: 'borrower',
               name: profileData[1],
@@ -39,10 +38,8 @@ const ViewProfile = () => {
           } else {
             // Otherwise, check if the user is registered as a lender.
             const lenderData = await contract.lenders(address);
-            // For Lender struct: index7 is isRegistered.
-            if (lenderData[7]) { 
+            if (lenderData[7]) { // index 7 corresponds to isRegistered in Lender struct.
               const profileData = await contract.getLenderProfile(address);
-              // Expected order: [0]: lenderAddress, [1]: name, [2]: phone, [3]: email, [4]: interestRate, [5]: monthlyIncome, [6]: creditScore, [7]: isRegistered, [8]: govidCID, [9]: signatureCID
               setProfile({
                 role: 'lender',
                 name: profileData[1],
@@ -96,31 +93,22 @@ const ViewProfile = () => {
               <strong>Phone:</strong> {profile.phone}
             </Typography>
           </Grid>
-          {profile.role === 'borrower' && (
-            <Grid item xs={12}>
-              <Typography variant="subtitle1">
-                <strong>Credit Score:</strong> {profile.creditScore}
-              </Typography>
-            </Grid>
-          )}
-          {profile.role === 'lender' && (
-            <>
-              <Grid item xs={12}>
-                <Typography variant="subtitle1">
-                  <strong>Interest Rate:</strong> {profile.interestRate}
-                </Typography>
-              </Grid>
-              <Grid item xs={12}>
-                <Typography variant="subtitle1">
-                  <strong>Credit Score:</strong> {profile.creditScore}
-                </Typography>
-              </Grid>
-            </>
-          )}
+          <Grid item xs={12}>
+            <Typography variant="subtitle1">
+              <strong>Credit Score:</strong> {profile.creditScore}
+            </Typography>
+          </Grid>
           {profile.monthlyIncome !== undefined && (
             <Grid item xs={12}>
               <Typography variant="subtitle1">
                 <strong>Monthly Income:</strong> {profile.monthlyIncome}
+              </Typography>
+            </Grid>
+          )}
+          {profile.role === 'lender' && profile.interestRate !== undefined && (
+            <Grid item xs={12}>
+              <Typography variant="subtitle1">
+                <strong>Interest Rate:</strong> {profile.interestRate}
               </Typography>
             </Grid>
           )}

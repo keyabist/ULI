@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import contractABI from "../contracts/abi.json";
+import NavbarLender from "./navbarLender";
+import NavBar from "./navbar";
 
 const CONTRACT_ADDRESS = "0x3C749Fa9984369506F10c18869E7c51488D8134f";
 
 const CompletedLoansPage = () => {
   const [completedLoans, setCompletedLoans] = useState([]);
   const [provider, setProvider] = useState(null);
+  const [userRole, setUserRole] = useState(false);
   const [signer, setSigner] = useState(null);
   const [contract, setContract] = useState(null);
 
@@ -30,28 +33,66 @@ const CompletedLoansPage = () => {
 
   useEffect(() => {
     const fetchCompletedLoans = async () => {
-      if (contract && signer) {
-        try {
-          const userAddress = (await signer.getAddress()).toLowerCase();
-          // Replace the following with your method to fetch loans, for example:
-          // const loans = await contract.getLoansByStatus(userAddress, 3); // 3 for Completed
-          // For demo, we assume an empty list or hardcoded data:
-          const loans = [
-            { loanId: 1, amount: "1.5 ETH", borrower: "0x...", status: "Completed" },
-            { loanId: 2, amount: "2 ETH", borrower: "0x...", status: "Completed" },
-          ];
-          setCompletedLoans(loans);
-        } catch (error) {
-          console.error("Error fetching completed loans:", error);
+      if (!contract || !signer) return;
+      try {
+        const userAddress = (await signer.getAddress()).toLowerCase();
+        const loanCount = await contract.nextLoanId();
+
+        let loans = [];
+        for (let i = 1; i < loanCount; i++) {
+          const loan = await contract.loans(i);
+          
+          const [borrower, lender] = await Promise.all([
+            contract.borrowers(userAddress),
+            contract.lenders(userAddress),
+          ]);
+
+          
+          if ((loan.lender.toLowerCase() === userAddress || loan.borrower.toLowerCase() === userAddress)  && loan.status.toString() === "3") {
+            loans.push({
+              loanId: loan.loanId.toString(),
+              amount: ethers.formatUnits(loan.amount, 18) + " ETH",
+              interestRate: loan.interestRate.toString() + "%",
+              repaymentPeriod: loan.repaymentPeriod.toString() + " months",
+              status: "Completed",
+              borrower: loan.borrower
+            });
+          }
+
         }
+        
+        const borrowerData = await contract.borrowers(userAddress);
+        const lenderData = await contract.lenders(userAddress);
+        const role = borrowerData.isRegistered
+          ? "borrower"
+          : lenderData.isRegistered
+          ? "lender"
+          : "unknown";
+          
+        setUserRole(role);
+        setCompletedLoans(loans);
+      } catch (error) {
+        console.error("Error fetching completed loans:", error);
       }
     };
 
     fetchCompletedLoans();
   }, [contract, signer]);
 
+  const getLoanStatus = (status) => {
+    const statuses = ["Pending", "Accepted", "Rejected", "Completed"];
+    return statuses[status] || "Unknown";
+  };
+
+  if (userRole === "unknown") {
+    throw new Error("User role could not be determined.");
+  }
+
   return (
     <div className="p-6 max-w-4xl mx-auto bg-white rounded-xl shadow-md">
+
+      {userRole === 'borrower' ? <NavBar /> :<NavbarLender /> }
+      
       <h2 className="text-xl font-bold mb-4">Completed Loans</h2>
       {completedLoans.length === 0 ? (
         <p>No completed loans found.</p>

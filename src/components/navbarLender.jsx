@@ -54,6 +54,8 @@ const Navbar = () => {
                     <Button color="inherit" component={Link} to="/pendingRequests">
                         Pending Requests
                     </Button>
+                    <Button color='inherit' component={Link} to="/rejectedLoansPage"> Rejected Loans</Button>
+                    <Button color='inherit' component={Link} to="/completedLoansPage"> Completed Loans</Button>
                     <ProfileIcon />
                     
                 </Box>

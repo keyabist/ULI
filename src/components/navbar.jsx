@@ -11,6 +11,8 @@ const NavBar = () => {
           Borrower Dashboard
         </Typography>
         <Button color="inherit" component={Link} to="/borrowerDashboard">Borrower</Button>
+        <Button color='inherit' component={Link} to="/completedLoansPage">Completed Loans</Button>
+        <Button color='inherit' component={Link} to="/requestStatusPage"> Requests History</Button>
         <ProfileIcon />
       </Toolbar>
     </AppBar>
