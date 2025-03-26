@@ -1,13 +1,12 @@
-// ViewProfile.js
 import React, { useEffect, useState } from 'react';
 import { Container, Typography, Paper, Button, Grid, Link as MuiLink } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { ethers } from 'ethers';
 import contractABI from "../contracts/abi.json";
 import Navbar from "./navbar";
-import NavbarLender from "./navbarLender"
+import NavbarLender from "./navbarLender";
 
-const contractAddress = "0x776fbF8c1b3A64a48EE8976b6825E1Ec76de7B4F";
+const contractAddress = "0x3C749Fa9984369506F10c18869E7c51488D8134f";
 
 const ViewProfile = () => {
   const [profile, setProfile] = useState(null);
@@ -23,34 +22,37 @@ const ViewProfile = () => {
 
           // First, check if the user is registered as a borrower.
           const borrowerData = await contract.borrowers(address);
-          if (borrowerData[6]) { // index 6 corresponds to isRegistered in Borrower struct.
+          // For Borrower struct: index6 is isRegistered.
+          if (borrowerData[6]) { 
             const profileData = await contract.getBorrowerProfile(address);
+            // Expected order: [0]: borrowerAddress, [1]: name, [2]: phone, [3]: email, [4]: creditScore, [5]: monthlyIncome, [6]: isRegistered, [7]: govidCID, [8]: signatureCID
             setProfile({
               role: 'borrower',
-              name: profileData[0],
-              phone: profileData[1],
-              email: profileData[2],
-              creditScore: profileData[3],
-              monthlyIncome: profileData[4],
-              govidCID: profileData[5],
-              signatureCID: profileData[6],
-              verified: profileData[7]
+              name: profileData[1],
+              phone: profileData[2],
+              email: profileData[3],
+              creditScore: profileData[4].toString(),
+              monthlyIncome: profileData[5].toString(),
+              govidCID: profileData[7],
+              signatureCID: profileData[8]
             });
           } else {
             // Otherwise, check if the user is registered as a lender.
             const lenderData = await contract.lenders(address);
-            if (lenderData[6]) { // index 6 corresponds to isRegistered in Lender struct.
+            // For Lender struct: index7 is isRegistered.
+            if (lenderData[7]) { 
               const profileData = await contract.getLenderProfile(address);
+              // Expected order: [0]: lenderAddress, [1]: name, [2]: phone, [3]: email, [4]: interestRate, [5]: monthlyIncome, [6]: creditScore, [7]: isRegistered, [8]: govidCID, [9]: signatureCID
               setProfile({
                 role: 'lender',
-                name: profileData[0],
-                phone: profileData[1],
-                email: profileData[2],
-                interestRate: profileData[3],
-                monthlyIncome: profileData[4],
-                govidCID: profileData[5],
-                signatureCID: profileData[6],
-                verified: profileData[7]
+                name: profileData[1],
+                phone: profileData[2],
+                email: profileData[3],
+                interestRate: profileData[4].toString(),
+                monthlyIncome: profileData[5].toString(),
+                creditScore: profileData[6].toString(),
+                govidCID: profileData[8],
+                signatureCID: profileData[9]
               });
             } else {
               console.error("User not registered as either borrower or lender");
@@ -73,8 +75,8 @@ const ViewProfile = () => {
 
   return (
     <Container maxWidth="sm" style={{ marginTop: '2rem' }}>
-      {profile && profile.role === 'borrower' ? <Navbar /> : <NavbarLender />}
-      <Paper elevation={3} style={{ padding: '2rem', borderRadius: 20}}>
+      {profile.role === 'borrower' ? <Navbar /> : <NavbarLender />}
+      <Paper elevation={3} style={{ padding: '2rem', borderRadius: 20 }}>
         <Typography variant="h4" gutterBottom>
           Profile ({profile.role})
         </Typography>
@@ -101,17 +103,24 @@ const ViewProfile = () => {
               </Typography>
             </Grid>
           )}
+          {profile.role === 'lender' && (
+            <>
+              <Grid item xs={12}>
+                <Typography variant="subtitle1">
+                  <strong>Interest Rate:</strong> {profile.interestRate}
+                </Typography>
+              </Grid>
+              <Grid item xs={12}>
+                <Typography variant="subtitle1">
+                  <strong>Credit Score:</strong> {profile.creditScore}
+                </Typography>
+              </Grid>
+            </>
+          )}
           {profile.monthlyIncome !== undefined && (
             <Grid item xs={12}>
               <Typography variant="subtitle1">
                 <strong>Monthly Income:</strong> {profile.monthlyIncome}
-              </Typography>
-            </Grid>
-          )}
-          {profile.role === 'lender' && profile.interestRate !== undefined && (
-            <Grid item xs={12}>
-              <Typography variant="subtitle1">
-                <strong>Interest Rate:</strong> {profile.interestRate}
               </Typography>
             </Grid>
           )}
@@ -147,26 +156,24 @@ const ViewProfile = () => {
               )}
             </Typography>
           </Grid>
-          
         </Grid>
         <Grid container spacing={2} style={{ marginTop: '1rem' }}>
-  <Grid item xs={6}>
-    <Button
-      variant="contained"
-      fullWidth
-      component={Link}
-      to={profile.role === 'borrower' ? "/borrowerDashboard" : "/lenderDashboard"}
-    >
-      Back
-    </Button>
-  </Grid>
-  <Grid item xs={6}>
-    <Button variant="contained" color="primary" fullWidth component={Link} to="/edit-profile">
-      Edit Profile
-    </Button>
-  </Grid>
-</Grid>
-
+          <Grid item xs={6}>
+            <Button
+              variant="contained"
+              fullWidth
+              component={Link}
+              to={profile.role === 'borrower' ? "/borrowerDashboard" : "/lenderDashboard"}
+            >
+              Back
+            </Button>
+          </Grid>
+          <Grid item xs={6}>
+            <Button variant="contained" color="primary" fullWidth component={Link} to="/edit-profile">
+              Edit Profile
+            </Button>
+          </Grid>
+        </Grid>
       </Paper>
     </Container>
   );
