@@ -69,7 +69,8 @@ const LoanStatus = () => {
       state: { 
         loanId: loan.loanId, 
         installmentAmount: loan.nextInstallment, 
-        lender: loan.lender 
+        recipient: loan.lender, 
+        role: 'borrower'
       } 
     });
   };

@@ -76,15 +76,15 @@ const PendingRequests = () => {
     fetchPendingLoans();
   }, []);
 
+  // Updated: Instead of calling approveLoan on-chain here,
+  // we fetch the loan details and then navigate to TransactionPage for processing.
   const handleApproveLoan = async (loanId) => {
     try {
       if (!window.ethereum) {
         alert("Please install MetaMask to proceed.");
         return;
       }
-  
-      setProcessing(loanId); // Show loading state for the loan being approved
-  
+      setProcessing(loanId);
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
       const contract = new ethers.Contract(
@@ -92,18 +92,21 @@ const PendingRequests = () => {
         contractConfig.abi,
         signer
       );
-  
-      const tx = await contract.approveLoan(loanId);
-      await tx.wait(); // Wait for transaction confirmation
-  
-      alert(`Loan ${loanId} has been approved successfully.`);
-  
-      // Remove the approved loan from pending list
-      setPendingLoans((prevLoans) =>
-        prevLoans.filter((loan) => loan.loanId !== loanId)
-      );
+
+      const loan = await contract.loans(loanId);
+      // Navigate to TransactionPage, passing along the necessary state.
+      navigate("/transactionPage", {
+        state: {
+          loanId: loan.loanId.toString(),
+          // installmentAmount here is the total loan amount (in ETH) – adjust if needed
+          installmentAmount: ethers.formatUnits(loan.amount, "ether"),
+          // For lenders, the payment goes to the borrower.
+          recipient: loan.borrower,
+          role: "lender",
+        },
+      });
     } catch (error) {
-      console.error("Error approving loan:", error);
+      console.error("Error in approve loan redirect:", error);
       alert("Failed to approve the loan.");
     } finally {
       setProcessing(null);
@@ -134,7 +137,7 @@ const PendingRequests = () => {
 
       // Remove the rejected loan from pending list
       setPendingLoans((prevLoans) =>
-        prevLoans.filter((loan) => loan.loanId !== loanId)
+        prevLoans.filter((l) => l.loanId !== loanId)
       );
     } catch (error) {
       console.error("Error rejecting loan:", error);
@@ -159,7 +162,7 @@ const PendingRequests = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Loan ID</TableCell> {/* Added Loan ID column */}
+              <TableCell>Loan ID</TableCell>
               <TableCell>Borrower</TableCell>
               <TableCell align="right">Amount</TableCell>
               <TableCell align="right">Interest Rate</TableCell>
@@ -171,7 +174,7 @@ const PendingRequests = () => {
           <TableBody>
             {pendingLoans.map((loan) => (
               <TableRow key={loan.loanId}>
-                <TableCell>{loan.loanId}</TableCell> {/* Display Loan ID */}
+                <TableCell>{loan.loanId}</TableCell>
                 <TableCell>{loan.borrower}</TableCell>
                 <TableCell align="right">{loan.amount}</TableCell>
                 <TableCell align="right">{loan.interestRate}</TableCell>

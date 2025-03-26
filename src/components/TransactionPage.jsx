@@ -8,8 +8,8 @@ const CONTRACT_ADDRESS = "0x776fbF8c1b3A64a48EE8976b6825E1Ec76de7B4F";
 const TransactionPage = () => {
   const { state } = useLocation();
   const navigate = useNavigate();
-  // Expecting state to contain: loanId, installmentAmount, and lender (as recipient)
-  const { loanId, installmentAmount, lender } = state || {};
+  // Now expect state to include: loanId, installmentAmount, recipient (instead of lender), and role ("lender" or "borrower")
+  const { loanId, installmentAmount, recipient, role } = state || {};
 
   const [loading, setLoading] = useState(false);
   const [provider, setProvider] = useState(null);
@@ -41,17 +41,14 @@ const TransactionPage = () => {
       if (!loanId && provider && signer && contract) {
         try {
           const userAddress = (await signer.getAddress()).toLowerCase();
-          // Check if the user is a registered borrower
-          const borrower = await contract.borrowers(userAddress);
-          if (borrower.isRegistered) {
+          const borrowerData = await contract.borrowers(userAddress);
+          if (borrowerData.isRegistered) {
             navigate("/borrowerDashboard");
           } else {
-            // Otherwise check if they are a registered lender
             const lenderData = await contract.lenders(userAddress);
             if (lenderData.isRegistered) {
               navigate("/lenderDashboard");
             } else {
-              // Fallback: if not registered, send to registration page
               navigate("/register");
             }
           }
@@ -71,34 +68,39 @@ const TransactionPage = () => {
     }
     try {
       setLoading(true);
-      // We already have provider, signer, and contract from our initialization
       const amountInWei = ethers.parseEther(installmentAmount.toString());
 
-      // Send ETH to the recipient (lender)
+      // Send ETH to the recipient (now using the variable "recipient")
       const txPayment = await signer.sendTransaction({
-        to: lender,
+        to: recipient,
         value: amountInWei,
       });
       await txPayment.wait();
       alert("Transaction Successful! Recording payment...");
 
-      // Record the payment in the contract. recordPayment will update amountPaid and, if paid in full, mark as Completed.
-      const txRecord = await contract.recordPayment(loanId, amountInWei);
-      await txRecord.wait();
-      alert("Payment recorded! Loan status updated accordingly.");
-
-      navigate("/borrowerDashboard");
+      if (role === "lender") {
+        // For lenders: after payment, update status to Approved
+        const txApprove = await contract.approveLoan(loanId);
+        await txApprove.wait();
+        alert("Loan Approved!");
+        navigate("/lenderDashboard");
+      } else {
+        // For borrowers: record the payment
+        const txRecord = await contract.recordPayment(loanId, amountInWei);
+        await txRecord.wait();
+        alert("Payment recorded! Loan status updated accordingly.");
+        navigate("/borrowerDashboard");
+      }
     } catch (error) {
       console.error("Transaction Error:", error);
       alert("Transaction Failed!");
-      // If transaction fails, attempt to reject the loan
-      try {
-        const txReject = await contract.rejectLoan(loanId);
-        await txReject.wait();
-        alert("Loan Declined!");
-      } catch (err) {
-        console.error("Error declining loan:", err);
-      }
+      // try {
+      //   const txReject = await contract.rejectLoan(loanId);
+      //   await txReject.wait();
+      //   alert("Loan Declined!");
+      // } catch (err) {
+      //   console.error("Error declining loan:", err);
+      // }
     } finally {
       setLoading(false);
     }
@@ -109,7 +111,7 @@ const TransactionPage = () => {
       <h2 className="text-xl font-bold mb-4">Confirm Loan Transaction</h2>
       <p><b>Loan ID:</b> {loanId}</p>
       <p><b>Amount (ETH):</b> {installmentAmount}</p>
-      <p><b>Recipient Address:</b> {lender}</p>
+      <p><b>Recipient Address:</b> {recipient}</p>
       <button
         onClick={handleTransaction}
         className="bg-blue-500 text-white p-2 rounded mt-4"
