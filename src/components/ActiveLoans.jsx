@@ -1,54 +1,54 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ethers } from 'ethers';
-import { contractConfig } from '../contractConfig';
-import { Typography, Paper, List, ListItem, Container } from '@mui/material';
-import Navbar from './navbarLender';
+import { useEffect, useState } from "react";
+import { ethers } from "ethers";
+import { Box, Typography, Alert } from "@mui/material";
+import { Link } from "react-router-dom";
+import contractABI from "../contracts/abi.json";
+import CustomTable from "./CustomTable";
+import CustomLoader from "./CustomLoader";
+import Navbar from "./navbarLender";
+
+const CONTRACT_ADDRESS = "0x3C749Fa9984369506F10c18869E7c51488D8134f";
 
 const ActiveLoans = () => {
   const [activeLoans, setActiveLoans] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate(); // React Router navigation
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchActiveLoans = async () => {
-      if (!window.ethereum) {
-        console.error('MetaMask not installed');
-        return;
-      }
       try {
-        setLoading(true);
+        if (!window.ethereum) throw new Error("MetaMask not installed");
+
         const provider = new ethers.BrowserProvider(window.ethereum);
         const signer = await provider.getSigner();
+        const contract = new ethers.Contract(CONTRACT_ADDRESS, contractABI, signer);
         const userAddress = (await signer.getAddress()).toLowerCase();
-        const contract = new ethers.Contract(
-          contractConfig.contractAddress,
-          contractConfig.abi,
-          signer
-        );
+        const loanCount = await contract.nextLoanId();
 
-        const totalLoansBN = await contract.nextLoanId();
-        const totalLoans = Number(totalLoansBN);
-
-        const tempActive = [];
-
-        for (let loanId = 1; loanId < totalLoans; loanId++) {
-          const loan = await contract.loans(loanId);
-          if (
-            loan.lender.toLowerCase() === userAddress &&
-            Number(loan.status) === 1
-          ) {
-            tempActive.push({
-              loanId: loan.loanId.toString(),
-              borrower: loan.borrower,
-              amount: ethers.formatUnits(loan.amount, 'ether') + ' ETH',
-              repaymentPeriod: Number(loan.repaymentPeriod) + ' months',
+        const loans = [];
+        for (let i = 1; i < loanCount; i++) {
+          const loan = await contract.loans(i);
+          if (loan.lender.toLowerCase() === userAddress && loan.status.toString() === "1") {
+            loans.push({
+              loanId: i.toString(),
+              borrower: (
+                <Link
+                  to={`/view-profile/${loan.borrower}`}
+                  style={{ color: "#d4af37", textDecoration: "none", fontWeight: "bold" }}
+                >
+                  {loan.borrower}
+                </Link>
+              ),
+              amount: ethers.formatUnits(loan.amount, 18) + " ETH",
+              interestRate: loan.interestRate.toString() + "%",
+              term: loan.repaymentPeriod.toString() + " months",
             });
           }
         }
-        setActiveLoans(tempActive);
+        setActiveLoans(loans);
+        setError("");
       } catch (err) {
-        console.error('Error fetching active loans:', err);
+        setError(err.message);
       } finally {
         setLoading(false);
       }
@@ -58,49 +58,31 @@ const ActiveLoans = () => {
   }, []);
 
   return (
-    <Container
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
-        width: '90%',
-        margin: 'auto',
-      }}
-    >
+    <Box sx={{ p: 2 }}>
       <Navbar />
       <Typography variant="h4" gutterBottom>
         Active Loans
       </Typography>
-      {loading && <Typography>Loading active loans...</Typography>}
-      <List sx={{ width: '100%' }}>
-        {activeLoans.map((loan, idx) => (
-          <Paper
-            key={idx}
-            sx={{
-              mb: 2,
-              p: 3,
-              width: '100%',
-              cursor: 'pointer',
-              transition: '0.2s',
-              '&:hover': { backgroundColor: '#f5f5f5' },
-            }}
-            onClick={() => navigate(`/loanStatus/${loan.loanId}`)}
-          >
-            <ListItem>
-              <div>
-                <Typography variant="body1">Loan ID: {loan.loanId}</Typography>
-                <Typography variant="body1">Borrower: {loan.borrower}</Typography>
-                <Typography variant="body1">Amount: {loan.amount}</Typography>
-                <Typography variant="body1">Repayment Period: {loan.repaymentPeriod}</Typography>
-              </div>
-            </ListItem>
-          </Paper>
-        ))}
-      </List>
-      {activeLoans.length === 0 && !loading && <Typography>No active loans found.</Typography>}
-    </Container>
+
+      {loading ? (
+        <CustomLoader />
+      ) : error ? (
+        <Alert severity="error">{error}</Alert>
+      ) : activeLoans.length === 0 ? (
+        <Typography>No active loans found.</Typography>
+      ) : (
+          <CustomTable
+            data={activeLoans}
+            columns={[
+              { label: "Loan ID", field: "loanId" },
+              { label: "Borrower", field: "borrower" },
+              { label: "Amount", field: "amount", align: "right" },
+              { label: "Interest Rate", field: "interestRate", align: "right" },
+              { label: "Term", field: "term", align: "right" },
+            ]}
+          />
+      )}
+    </Box>
   );
 };
 

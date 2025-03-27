@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ethers } from "ethers";
 import contractABI from "../contracts/abi.json";
 import NavBar from "./navbar";
+import "../styles/BorrowerDashboard.css"; // Import the new CSS file
 
 const contractAddress = "0x3C749Fa9984369506F10c18869E7c51488D8134f";
 
@@ -24,7 +25,6 @@ const BorrowerDashboard = ({ account }) => {
     handleSearch();
   }, [search, lenders]);
 
-  // Fetch all registered lenders using getAllLenders()
   const fetchLenders = async () => {
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
@@ -48,7 +48,6 @@ const BorrowerDashboard = ({ account }) => {
       );
 
       const filtered = lenderDetails.filter(Boolean);
-      // Sort by interest rate (ascending)
       filtered.sort((a, b) => a.interestRate - b.interestRate);
       setLenders(filtered);
       setFilteredLenders(filtered);
@@ -57,7 +56,6 @@ const BorrowerDashboard = ({ account }) => {
     }
   };
 
-  // Fetch loan requests (pending) sent by the borrower
   const fetchRequests = async () => {
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
@@ -71,11 +69,7 @@ const BorrowerDashboard = ({ account }) => {
       let borrowerRequests = [];
       for (let i = 1; i < nextLoanId; i++) {
         const loan = await contract.loans(i);
-        // Check if the loan was requested by the current user and is Pending (status = 0)
-        if (
-          loan.borrower.toLowerCase() === userAddress.toLowerCase() &&
-          Number(loan.status) === 0
-        ) {
+        if (loan.borrower.toLowerCase() === userAddress.toLowerCase() && Number(loan.status) === 0) {
           borrowerRequests.push({
             id: loan.loanId.toString(),
             lender: loan.lender,
@@ -89,7 +83,6 @@ const BorrowerDashboard = ({ account }) => {
     }
   };
 
-  // Fetch ongoing (approved) loans for the borrower
   const fetchOngoingLoans = async () => {
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
@@ -103,11 +96,7 @@ const BorrowerDashboard = ({ account }) => {
       let borrowerLoans = [];
       for (let i = 1; i < nextLoanId; i++) {
         const loan = await contract.loans(i);
-        // Check if the loan is from this borrower and has been approved (status = 1)
-        if (
-          loan.borrower.toLowerCase() === userAddress.toLowerCase() &&
-          Number(loan.status) === 1
-        ) {
+        if (loan.borrower.toLowerCase() === userAddress.toLowerCase() && Number(loan.status) === 1) {
           borrowerLoans.push({
             id: loan.loanId.toString(),
             amount: ethers.formatEther(loan.amount) + " ETH",
@@ -136,93 +125,30 @@ const BorrowerDashboard = ({ account }) => {
     setFilteredLenders(filtered);
   };
 
-  // Styles remain unchanged
-  const dashboardStyle = {
-    display: "grid",
-    gridTemplateColumns: "1.2fr 2fr",
-    gap: "40px",
-    padding: "40px",
-    paddingTop: "100px",
-    backgroundColor: "#1A3A6A",
-    color: "white",
-    height: "100vh",
-    width: "100vw",
-    overflowY: "auto",
-  };
-
-  const leftSectionStyle = {
-    display: "flex",
-    flexDirection: "column",
-    gap: "20px",
-    border: "3px solid #00d1b2",
-    padding: "20px",
-    borderRadius: "10px",
-    backgroundColor: "#27374D",
-    overflowY: "auto",
-    maxHeight: "80vh",
-  };
-
-  const rightSectionStyle = {
-    display: "grid",
-    gridTemplateRows: "1fr 1fr",
-    gap: "20px",
-    border: "3px solid #00d1b2",
-    padding: "20px",
-    borderRadius: "10px",
-    backgroundColor: "#27374D",
-    maxHeight: "80vh",
-    overflowY: "auto",
-  };
-
-  const listContainerStyle = {
-    overflowY: "auto",
-    maxHeight: "35vh",
-  };
-
-  const lenderBoxStyle = {
-    padding: "15px",
-    border: "2px solid #00d1b2",
-    backgroundColor: "#394867",
-    borderRadius: "10px",
-    marginBottom: "10px",
-    color: "white",
-  };
-
-  const buttonStyle = {
-    padding: "10px 14px",
-    backgroundColor: "#00d1b2",
-    color: "#fff",
-    border: "none",
-    borderRadius: "5px",
-    cursor: "pointer",
-    marginTop: "10px",
-    fontWeight: "bold",
-  };
-
   return (
     <>
       <NavBar />
-      <div style={dashboardStyle}>
-        <div style={leftSectionStyle}>
+      <div className="dashboard">
+        <div className="left-section">
           <h3>Available Lenders</h3>
           <input
             type="text"
             placeholder="Search by Name or Interest Rate..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            style={{ padding: "10px", borderRadius: "5px", width: "100%" }}
+            className="search-bar"
           />
           <div>
             {filteredLenders.length === 0 ? (
               <p>No Lenders Found</p>
             ) : (
               filteredLenders.map((lender, index) => (
-                <div key={index} style={lenderBoxStyle}>
+                <div key={index} className="lender-box">
                   <p>Name: {lender.name}</p>
                   <p>Email: {lender.email}</p>
                   <p>Phone: {lender.phone}</p>
                   <p>Interest Rate: {lender.interestRate}%</p>
-                  <button style={buttonStyle} onClick={() => handleRequest(lender)}>
+                  <button className="action-button" onClick={() => handleRequest(lender)}>
                     Request Loan
                   </button>
                 </div>
@@ -231,18 +157,14 @@ const BorrowerDashboard = ({ account }) => {
           </div>
         </div>
 
-        <div style={rightSectionStyle}>
-          <div style={listContainerStyle}>
+        <div className="right-section">
+          <div className="list-container">
             <h3>Generated Requests</h3>
             {requests.length === 0 ? (
               <p>No Requests Found</p>
             ) : (
               requests.map((loan, index) => (
-                <div
-                  key={index}
-                  style={lenderBoxStyle}
-                  onClick={() => navigate(`/loanStatus/${loan.id}`)}
-                >
+                <div key={index} className="lender-box" onClick={() => navigate(`/loanStatus/${loan.id}`)}>
                   <p>Loan ID: {loan.id}</p>
                   <p>Lender Address: {loan.lender}</p>
                   <p>Status: Pending</p>
@@ -251,17 +173,13 @@ const BorrowerDashboard = ({ account }) => {
             )}
           </div>
 
-          <div style={listContainerStyle}>
+          <div className="list-container">
             <h3>Ongoing Loans</h3>
             {ongoingLoans.length === 0 ? (
               <p>No Loans Found</p>
             ) : (
               ongoingLoans.map((loan, index) => (
-                <div
-                  key={index}
-                  style={lenderBoxStyle}
-                  onClick={() => navigate(`/loanStatus/${loan.id}`)}
-                >
+                <div key={index} className="lender-box" onClick={() => navigate(`/loanStatus/${loan.id}`)}>
                   <p>Loan ID: {loan.id}</p>
                   <p>Amount: {loan.amount}</p>
                   <p>Interest: {loan.interestRate}</p>

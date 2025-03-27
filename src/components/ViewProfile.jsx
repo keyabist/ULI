@@ -1,5 +1,5 @@
-// ViewProfile.js
 import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { Container, Typography, Paper, Button, Grid, Link as MuiLink } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { ethers } from 'ethers';
@@ -10,21 +10,20 @@ import NavbarLender from "./navbarLender";
 const contractAddress = "0x3C749Fa9984369506F10c18869E7c51488D8134f";
 
 const ViewProfile = () => {
+  const { userAddress } = useParams();
   const [profile, setProfile] = useState(null);
-  
+
   useEffect(() => {
     const fetchProfile = async () => {
       if (window.ethereum) {
         try {
           const provider = new ethers.BrowserProvider(window.ethereum);
           const signer = await provider.getSigner();
-          const address = await signer.getAddress();
           const contract = new ethers.Contract(contractAddress, contractABI, signer);
 
-          // Check if the user is registered as a borrower.
-          const borrowerData = await contract.borrowers(address);
-          if (borrowerData[6]) {  // index 6 corresponds to isRegistered in Borrower struct.
-            const profileData = await contract.getBorrowerProfile(address);
+          const borrowerData = await contract.borrowers(userAddress);
+          if (borrowerData[6]) {
+            const profileData = await contract.getBorrowerProfile(userAddress);
             setProfile({
               role: 'borrower',
               name: profileData[1],
@@ -36,10 +35,9 @@ const ViewProfile = () => {
               signatureCID: profileData[8]
             });
           } else {
-            // Otherwise, check if the user is registered as a lender.
-            const lenderData = await contract.lenders(address);
-            if (lenderData[7]) { // index 7 corresponds to isRegistered in Lender struct.
-              const profileData = await contract.getLenderProfile(address);
+            const lenderData = await contract.lenders(userAddress);
+            if (lenderData[7]) {
+              const profileData = await contract.getLenderProfile(userAddress);
               setProfile({
                 role: 'lender',
                 name: profileData[1],
@@ -56,7 +54,7 @@ const ViewProfile = () => {
             }
           }
         } catch (error) {
-          console.error("Error connecting to Ethereum:", error);
+          console.error("Error fetching profile:", error);
         }
       } else {
         console.error("Ethereum wallet not detected");
@@ -64,63 +62,47 @@ const ViewProfile = () => {
     };
 
     fetchProfile();
-  }, []);
+  }, [userAddress]);
 
   if (!profile) {
     return <Typography>Loading profile...</Typography>;
   }
 
   return (
-    <Container maxWidth="sm" style={{ marginTop: '2rem' }}>
+    <Container maxWidth="sm" style={{ marginTop: '2rem', backgroundColor: '#1a1a1a', padding: '2rem', borderRadius: 20 }}>
       {profile.role === 'borrower' ? <Navbar /> : <NavbarLender />}
-      <Paper elevation={3} style={{ padding: '2rem', borderRadius: 20 }}>
-        <Typography variant="h4" gutterBottom>
+      <Paper elevation={3} style={{ padding: '2rem', borderRadius: 20, backgroundColor: '#333', color: 'white' }}>
+        <Typography variant="h4" gutterBottom style={{ color: '#f0b90b' }}>
           Profile ({profile.role})
         </Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12}>
-            <Typography variant="subtitle1">
-              <strong>Name:</strong> {profile.name}
-            </Typography>
+        <Grid container spacing={2} direction="column" alignItems="flex-start">
+          <Grid item>
+            <Typography variant="subtitle1"><strong>Name:</strong> {profile.name}</Typography>
           </Grid>
-          <Grid item xs={12}>
-            <Typography variant="subtitle1">
-              <strong>Email:</strong> {profile.email}
-            </Typography>
+          <Grid item>
+            <Typography variant="subtitle1"><strong>Email:</strong> {profile.email}</Typography>
           </Grid>
-          <Grid item xs={12}>
-            <Typography variant="subtitle1">
-              <strong>Phone:</strong> {profile.phone}
-            </Typography>
+          <Grid item>
+            <Typography variant="subtitle1"><strong>Phone:</strong> {profile.phone}</Typography>
           </Grid>
-          <Grid item xs={12}>
-            <Typography variant="subtitle1">
-              <strong>Credit Score:</strong> {profile.creditScore}
-            </Typography>
+          <Grid item>
+            <Typography variant="subtitle1"><strong>Credit Score:</strong> {profile.creditScore}</Typography>
           </Grid>
           {profile.monthlyIncome !== undefined && (
-            <Grid item xs={12}>
-              <Typography variant="subtitle1">
-                <strong>Monthly Income:</strong> {profile.monthlyIncome}
-              </Typography>
+            <Grid item>
+              <Typography variant="subtitle1"><strong>Monthly Income:</strong> {profile.monthlyIncome}</Typography>
             </Grid>
           )}
           {profile.role === 'lender' && profile.interestRate !== undefined && (
-            <Grid item xs={12}>
-              <Typography variant="subtitle1">
-                <strong>Interest Rate:</strong> {profile.interestRate}
-              </Typography>
+            <Grid item>
+              <Typography variant="subtitle1"><strong>Interest Rate:</strong> {profile.interestRate}</Typography>
             </Grid>
           )}
-          <Grid item xs={12}>
+          <Grid item>
             <Typography variant="subtitle1">
               <strong>Government ID Document:</strong>{" "}
               {profile.govidCID ? (
-                <MuiLink
-                  href={`https://ipfs.io/ipfs/${profile.govidCID}`}
-                  target="_blank"
-                  rel="noopener"
-                >
+                <MuiLink href={`https://ipfs.io/ipfs/${profile.govidCID}`} target="_blank" rel="noopener" style={{ color: "#f0b90b" }}>
                   View Document
                 </MuiLink>
               ) : (
@@ -128,15 +110,11 @@ const ViewProfile = () => {
               )}
             </Typography>
           </Grid>
-          <Grid item xs={12}>
+          <Grid item>
             <Typography variant="subtitle1">
               <strong>Signature Document:</strong>{" "}
               {profile.signatureCID ? (
-                <MuiLink
-                  href={`https://ipfs.io/ipfs/${profile.signatureCID}`}
-                  target="_blank"
-                  rel="noopener"
-                >
+                <MuiLink href={`https://ipfs.io/ipfs/${profile.signatureCID}`} target="_blank" rel="noopener" style={{ color: "#f0b90b" }}>
                   View Document
                 </MuiLink>
               ) : (
@@ -147,12 +125,7 @@ const ViewProfile = () => {
         </Grid>
         <Grid container spacing={2} style={{ marginTop: '1rem' }}>
           <Grid item xs={6}>
-            <Button
-              variant="contained"
-              fullWidth
-              component={Link}
-              to={profile.role === 'borrower' ? "/borrowerDashboard" : "/lenderDashboard"}
-            >
+            <Button variant="contained" fullWidth component={Link} to={profile.role === 'borrower' ? "/borrowerDashboard" : "/lenderDashboard"}>
               Back
             </Button>
           </Grid>

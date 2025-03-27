@@ -1,38 +1,85 @@
-import React from 'react';
-import { AppBar, Toolbar, Typography, IconButton } from '@mui/material';
-import LogoutIcon from '@mui/icons-material/Logout';
-import { Link, useNavigate } from 'react-router-dom';
-import ProfileIcon from './ProfileIcon.jsx';
+import React, { useEffect, useState } from "react";
+import { AppBar, Toolbar, Typography, IconButton } from "@mui/material";
+import LogoutIcon from "@mui/icons-material/Logout";
+import { Link, useNavigate } from "react-router-dom";
+import ProfileIcon from "./ProfileIcon.jsx";
+import { styled } from "@mui/material/styles";
+
+// Styled Components
+const CustomAppBar = styled(AppBar)({
+  backgroundColor: "#000000",
+  borderBottom: "3px solid #f0b90b",
+});
+
+const CustomTypography = styled(Typography)({
+  color: "#f0b90b",
+  fontWeight: "bold",
+});
+
+const CustomIconButton = styled(IconButton)({
+  color: "#ffffff",
+  "&:hover": {
+    color: "#f0b90b",
+  },
+});
 
 const NavBar = () => {
   const navigate = useNavigate();
+  const [account, setAccount] = useState("");
+
+  useEffect(() => {
+    const fetchAccount = async () => {
+      if (window.ethereum) {
+        const accounts = await window.ethereum.request({
+          method: "eth_accounts",
+        });
+        if (accounts.length > 0) {
+          setAccount(accounts[0]);
+        }
+      }
+    };
+
+    fetchAccount();
+
+    window.ethereum?.on("accountsChanged", (accounts) => {
+      if (accounts.length > 0) {
+        setAccount(accounts[0]);
+      } else {
+        setAccount("");
+      }
+    });
+
+    return () => {
+      window.ethereum?.removeListener("accountsChanged", fetchAccount);
+    };
+  }, []);
 
   const handleLogout = () => {
-    // Clear any global wallet/account state if needed.
-    navigate("/"); // Reroute to the connect wallet page.
+    setAccount(""); // Clear account state
+    navigate("/"); // Reroute to the connect wallet page
   };
 
   return (
-    <AppBar position="fixed" sx={{ width: '100%' }}>
+    <CustomAppBar position="fixed">
       <Toolbar>
-        <Typography variant="h6" sx={{ flexGrow: 1 }}>
+        <CustomTypography variant="h6" sx={{ flexGrow: 1 }}>
           Borrower Dashboard
-        </Typography>
-        <IconButton color="inherit" component={Link} to="/borrowerDashboard">
+        </CustomTypography>
+        <CustomIconButton component={Link} to="/borrowerDashboard">
           Borrower
-        </IconButton>
-        <IconButton color="inherit" component={Link} to="/completedLoansPage">
+        </CustomIconButton>
+        <CustomIconButton component={Link} to="/completedLoansPage">
           Completed Loans
-        </IconButton>
-        <IconButton color="inherit" component={Link} to="/requestStatusPage">
+        </CustomIconButton>
+        <CustomIconButton component={Link} to="/requestStatusPage">
           Requests History
-        </IconButton>
-        <ProfileIcon />
-        <IconButton color="inherit" onClick={handleLogout}>
+        </CustomIconButton>
+        <ProfileIcon account={account} />
+        <CustomIconButton onClick={handleLogout}>
           <LogoutIcon />
-        </IconButton>
+        </CustomIconButton>
       </Toolbar>
-    </AppBar>
+    </CustomAppBar>
   );
 };
 

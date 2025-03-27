@@ -1,73 +1,54 @@
-import React, { useEffect, useState } from "react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Typography,
-  Button,
-  Box,
-  Chip,
-  CircularProgress,
-  Alert,
-} from "@mui/material";
+import { useEffect, useState } from "react";
 import { ethers } from "ethers";
-import { contractConfig } from "../contractConfig";
-import { useNavigate } from "react-router-dom";
+import { Box, Typography, Alert } from "@mui/material";
+import { Link } from "react-router-dom";
+import contractABI from "../contracts/abi.json";
+import CustomTable from "./CustomTable";
+import CustomLoader from "./CustomLoader";
 import Navbar from "./navbarLender";
+
+const CONTRACT_ADDRESS = "0x3C749Fa9984369506F10c18869E7c51488D8134f";
 
 const PendingRequests = () => {
   const [pendingLoans, setPendingLoans] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [processing, setProcessing] = useState(null); // Track loading per loan
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchPendingLoans = async () => {
-      if (!window.ethereum) {
-        setError("MetaMask is not installed.");
-        return;
-      }
       try {
-        setLoading(true);
+        if (!window.ethereum) throw new Error("MetaMask not installed");
+
         const provider = new ethers.BrowserProvider(window.ethereum);
         const signer = await provider.getSigner();
+        const contract = new ethers.Contract(CONTRACT_ADDRESS, contractABI, signer);
         const userAddress = (await signer.getAddress()).toLowerCase();
-        const contract = new ethers.Contract(
-          contractConfig.contractAddress,
-          contractConfig.abi,
-          signer
-        );
+        const loanCount = await contract.nextLoanId();
 
-        const nextLoanIdBN = await contract.nextLoanId();
-        const nextLoanId = Number(nextLoanIdBN);
-
-        const tempPending = [];
-
-        for (let loanId = 1; loanId < nextLoanId; loanId++) {
-          const loan = await contract.loans(loanId);
-          if (
-            loan.lender.toLowerCase() === userAddress &&
-            Number(loan.status) === 0 // Only fetch loans with "Pending" status
-          ) {
-            tempPending.push({
-              loanId: loan.loanId.toString(),
-              borrower: loan.borrower,
-              amount: ethers.formatUnits(loan.amount, "ether") + " ETH",
-              interestRate: loan.interestRate.toString() + " %",
+        const loans = [];
+        for (let i = 1; i < loanCount; i++) {
+          const loan = await contract.loans(i);
+          if (loan.lender.toLowerCase() === userAddress && loan.status.toString() === "0") {
+            loans.push({
+              loanId: i.toString(),
+              borrower: (
+                <Link
+                  to={`/view-profile/${loan.borrower}`}
+                  style={{ color: "#d4af37", textDecoration: "none", fontWeight: "bold" }}
+                >
+                  {loan.borrower}
+                </Link>
+              ),
+              amount: ethers.formatUnits(loan.amount, 18) + " ETH",
+              interestRate: loan.interestRate.toString() + "%",
               term: loan.repaymentPeriod.toString() + " months",
-              status: "Pending",
             });
           }
         }
-        setPendingLoans(tempPending);
+        setPendingLoans(loans);
+        setError("");
       } catch (err) {
-        console.error("Error fetching pending loans:", err);
-        setError("Error fetching pending loans.");
+        setError(err.message);
       } finally {
         setLoading(false);
       }
@@ -76,75 +57,14 @@ const PendingRequests = () => {
     fetchPendingLoans();
   }, []);
 
-  // Updated: Instead of calling approveLoan on-chain here,
-  // we fetch the loan details and then navigate to TransactionPage for processing.
-  const handleApproveLoan = async (loanId) => {
-    try {
-      if (!window.ethereum) {
-        alert("Please install MetaMask to proceed.");
-        return;
-      }
-      setProcessing(loanId);
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      const contract = new ethers.Contract(
-        contractConfig.contractAddress,
-        contractConfig.abi,
-        signer
-      );
-
-      const loan = await contract.loans(loanId);
-      // Navigate to TransactionPage, passing along the necessary state.
-      navigate("/transactionPage", {
-        state: {
-          loanId: loan.loanId.toString(),
-          // installmentAmount here is the total loan amount (in ETH) – adjust if needed
-          installmentAmount: ethers.formatUnits(loan.amount, "ether"),
-          // For lenders, the payment goes to the borrower.
-          recipient: loan.borrower,
-          role: "lender",
-        },
-      });
-    } catch (error) {
-      console.error("Error in approve loan redirect:", error);
-      alert("Failed to approve the loan.");
-    } finally {
-      setProcessing(null);
-    }
+  const handleApprove = (loan) => {
+    console.log("Approving loan:", loan.loanId);
+    // TODO: Implement blockchain interaction for approval
   };
 
-  const handleRejectLoan = async (loanId) => {
-    try {
-      if (!window.ethereum) {
-        alert("Please install MetaMask to proceed.");
-        return;
-      }
-
-      setProcessing(loanId); // Show loading state for the loan being rejected
-
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      const contract = new ethers.Contract(
-        contractConfig.contractAddress,
-        contractConfig.abi,
-        signer
-      );
-
-      const tx = await contract.rejectLoan(loanId);
-      await tx.wait(); // Wait for transaction confirmation
-
-      alert(`Loan ${loanId} has been rejected successfully.`);
-
-      // Remove the rejected loan from pending list
-      setPendingLoans((prevLoans) =>
-        prevLoans.filter((l) => l.loanId !== loanId)
-      );
-    } catch (error) {
-      console.error("Error rejecting loan:", error);
-      alert("Failed to reject the loan.");
-    } finally {
-      setProcessing(null);
-    }
+  const handleReject = (loan) => {
+    console.log("Rejecting loan:", loan.loanId);
+    // TODO: Implement blockchain interaction for rejection
   };
 
   return (
@@ -153,67 +73,29 @@ const PendingRequests = () => {
       <Typography variant="h4" gutterBottom>
         Pending Loan Requests
       </Typography>
-      {loading && <CircularProgress />}
-      {error && <Alert severity="error">{error}</Alert>}
-      {!loading && pendingLoans.length === 0 && (
-        <Typography>No pending loan requests found.</Typography>
+
+      {loading ? (
+        <CustomLoader />
+      ) : error ? (
+        <Alert severity="error">{error}</Alert>
+      ) : pendingLoans.length === 0 ? (
+        <Typography>No pending requests found.</Typography>
+      ) : (
+        <CustomTable
+          data={pendingLoans}
+          columns={[
+            { label: "Loan ID", field: "loanId" },
+            { label: "Borrower", field: "borrower" },
+            { label: "Amount", field: "amount", align: "right" },
+            { label: "Interest Rate", field: "interestRate", align: "right" },
+            { label: "Term", field: "term", align: "right" },
+          ]}
+          actions={[
+            { label: "Approve", onClick: handleApprove, color: "success" },
+            { label: "Reject", onClick: handleReject, color: "error" },
+          ]}
+        />
       )}
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Loan ID</TableCell>
-              <TableCell>Borrower</TableCell>
-              <TableCell align="right">Amount</TableCell>
-              <TableCell align="right">Interest Rate</TableCell>
-              <TableCell align="right">Term</TableCell>
-              <TableCell align="right">Status</TableCell>
-              <TableCell align="right">Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {pendingLoans.map((loan) => (
-              <TableRow key={loan.loanId}>
-                <TableCell>{loan.loanId}</TableCell>
-                <TableCell>{loan.borrower}</TableCell>
-                <TableCell align="right">{loan.amount}</TableCell>
-                <TableCell align="right">{loan.interestRate}</TableCell>
-                <TableCell align="right">{loan.term}</TableCell>
-                <TableCell align="right">
-                  <Chip label={loan.status} color="warning" size="small" />
-                </TableCell>
-                <TableCell align="right">
-                  <Button
-                    variant="contained"
-                    color="success"
-                    onClick={() => handleApproveLoan(loan.loanId)}
-                    disabled={processing === loan.loanId}
-                  >
-                    {processing === loan.loanId ? (
-                      <CircularProgress size={20} />
-                    ) : (
-                      "Approve"
-                    )}
-                  </Button>
-                  <Button
-                    variant="contained"
-                    color="error"
-                    onClick={() => handleRejectLoan(loan.loanId)}
-                    disabled={processing === loan.loanId}
-                    sx={{ ml: 1 }}
-                  >
-                    {processing === loan.loanId ? (
-                      <CircularProgress size={20} />
-                    ) : (
-                      "Reject"
-                    )}
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
     </Box>
   );
 };

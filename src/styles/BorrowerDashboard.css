@@ -1,0 +1,56 @@
+.dashboard {
+    display: grid;
+    grid-template-columns: 1.2fr 2fr;
+    gap: 40px;
+    padding: 40px;
+    padding-top: 100px;
+    background-color: #000000;
+    color: #ffffff;
+    height: 100vh;
+    width: 100vw;
+    overflow-y: auto;
+  }
+  
+  .left-section,
+  .right-section {
+    background-color: #111111;
+    border: 3px solid #f0b90b;
+    border-radius: 10px;
+    padding: 20px;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  
+  .list-container {
+    overflow-y: auto;
+    max-height: 35vh;
+  }
+  
+  .lender-box {
+    padding: 15px;
+    background-color: #1a1a1a;
+    border: 2px solid #f0b90b;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    color: #ffffff;
+  }
+  
+  .search-bar {
+    padding: 10px;
+    border-radius: 5px;
+    width: 100%;
+    background-color: #000000;
+    color: #ffffff;
+    border: 1px solid #f0b90b;
+  }
+  
+  .action-button {
+    padding: 10px 14px;
+    background-color: #f0b90b;
+    color: #000000;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  

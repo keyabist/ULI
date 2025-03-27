@@ -1,13 +1,17 @@
-import React from 'react';
-import { IconButton } from '@mui/material';
-import { AccountCircle } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import React from "react";
+import { IconButton } from "@mui/material";
+import { AccountCircle } from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
 
-const ProfileIcon = () => {
+const ProfileIcon = ({ account }) => {
   const navigate = useNavigate();
 
   const handleRedirect = () => {
-    navigate('/view-profile');
+    if (account) {
+      navigate(`/view-profile/${account}`);
+    } else {
+      navigate("/view-profile");
+    }
   };
 
   return (
