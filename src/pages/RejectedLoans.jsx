@@ -3,9 +3,9 @@ import { ethers } from "ethers";
 import { Box, Typography, Alert } from "@mui/material";
 import { Link } from "react-router-dom";
 import contractABI from "../contracts/abi.json";
-import CustomTable from "./CustomTable";
-import CustomLoader from "./CustomLoader";
-import Navbar from "./navbarLender";
+import CustomTable from "../components/CustomTable";
+import CustomLoader from "../components/CustomLoader";
+import Navbar from "../components/navbarLender";
 
 const CONTRACT_ADDRESS = "0x3C749Fa9984369506F10c18869E7c51488D8134f";
 

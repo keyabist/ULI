@@ -8,28 +8,27 @@
 html,
 body,
 #root {
-  height: 100%;
+  /* Allow the full page to scroll vertically */
+  min-height: 100%;
   width: 100%;
-  overflow: hidden;
+  overflow-x: hidden; /* horizontal scrolling disabled, vertical allowed */
   background-color: #000000; /* Black background */
   color: #ffffff; /* White text */
 }
 
+/* Remove the fixed sizing for the main App container */
 .App {
-  height: 100%;
+  min-height: 100vh;
   width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #000000; /* Full black background */
-  border-radius: 20px;
-  margin: 10px;
-  box-shadow: 0 0 30px rgba(240, 185, 11, 0.2); /* Yellow shadow effect */
+  display: block;
+  background-color: #000000;
+  margin: 0;
+  box-shadow: none;
 }
 
 #root {
   max-width: none;
-  margin: 0 auto;
+  margin: 0;
   padding: 2rem;
   text-align: center;
 }
@@ -41,12 +40,9 @@ body,
   transition: filter 300ms;
 }
 
-.logo:hover {
-  filter: drop-shadow(0 0 2em #f0b90baa); /* Yellow hover effect */
-}
-
+.logo:hover,
 .logo.react:hover {
-  filter: drop-shadow(0 0 2em #f0b90baa);
+  filter: drop-shadow(0 0 2em #39FF14); /* Neon green hover effect */
 }
 
 @keyframes logo-spin {
@@ -66,57 +62,58 @@ body,
 
 a {
   font-weight: 500;
-  color: #f0b90b; /* Binance Yellow */
+  color: #39FF14; /* Neon green */
   text-decoration: none;
 }
 
 a:hover {
-  color: #d9a208; /* Darker yellow on hover */
+  color: #32e00a; /* Slightly darker neon green on hover */
 }
 
+/* Card styles adjusted for a darker, neon green accented theme */
 .card {
   padding: 2em;
-  background: #111111; /* Slightly off-black for depth */
-  border: 1px solid #f0b90b; /* Yellow border */
+  background: #111111; /* Off-black for depth */
+  border: 1px solid #39FF14; /* Neon green border */
   border-radius: 10px;
-  box-shadow: 0 0 20px rgba(240, 185, 11, 0.2);
+  box-shadow: 0 0 20px rgba(57, 255, 20, 0.4);
 }
 
+/* Button styles with neon green accents */
 button {
   border-radius: 8px;
-  border: 1px solid #f0b90b;
+  border: 1px solid #39FF14;
   padding: 0.6em 1.2em;
   font-size: 1em;
   font-weight: 600;
-  font-family: inherit;
-  background-color: #f0b90b; /* Binance yellow */
-  color: #000000; /* Black text on button */
+  background-color: #39FF14;
+  color: #000000;
   cursor: pointer;
   transition: all 0.25s ease-in-out;
 }
 
 button:hover {
-  background-color: #d9a208; /* Darker yellow on hover */
-  border-color: #d9a208;
+  background-color: #32e00a;
+  border-color: #32e00a;
 }
 
 button:focus,
 button:focus-visible {
-  outline: 4px auto #f0b90b;
+  outline: 4px auto #39FF14;
 }
 
 .read-the-docs {
-  color: #f0b90b;
+  color: #39FF14;
 }
 
 .navbar {
-  background-color: #000000; /* Black */
-  border-bottom: 3px solid #f0b90b; /* Binance Gold */
+  background-color: #000000;
+  border-bottom: 3px solid #39FF14;
   padding: 8px 16px;
 }
 
 .navbar-title {
-  color: #f0b90b; /* Binance Gold */
+  color: #39FF14;
   font-weight: bold;
 }
 
@@ -126,7 +123,7 @@ button:focus-visible {
 }
 
 .navbar-link:hover {
-  color: #f0b90b;
+  color: #39FF14;
 }
 
 .logout-btn {
@@ -134,6 +131,5 @@ button:focus-visible {
 }
 
 .logout-btn:hover {
-  color: #f0b90b;
+  color: #39FF14;
 }
-

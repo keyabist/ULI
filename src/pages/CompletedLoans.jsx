@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import contractABI from "../contracts/abi.json";
-import NavbarLender from "./navbarLender";
-import NavBar from "./navbar";
-import CustomTable from "./CustomTable";
-import CustomLoader from "./CustomLoader"; // Assuming you have a loader component
+import NavbarLender from "../components/navbarLender";
+import NavBar from "../components/navbar";
+import CustomTable from "../components/CustomTable";
+import CustomLoader from "../components/CustomLoader"; // Assuming you have a loader component
 import { Alert, Typography } from "@mui/material";
 
 const CONTRACT_ADDRESS = "0x3C749Fa9984369506F10c18869E7c51488D8134f";

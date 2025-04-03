@@ -3,19 +3,19 @@ import { ethers } from "ethers";
 import { Box, Typography, Alert } from "@mui/material";
 import { Link } from "react-router-dom";
 import contractABI from "../contracts/abi.json";
-import CustomTable from "./CustomTable";
-import CustomLoader from "./CustomLoader";
-import Navbar from "./navbarLender";
+import CustomTable from "../components/CustomTable";
+import CustomLoader from "../components/CustomLoader";
+import Navbar from "../components/navbarLender";
 
 const CONTRACT_ADDRESS = "0x3C749Fa9984369506F10c18869E7c51488D8134f";
 
-const ActiveLoans = () => {
-  const [activeLoans, setActiveLoans] = useState([]);
+const PendingRequests = () => {
+  const [pendingLoans, setPendingLoans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchActiveLoans = async () => {
+    const fetchPendingLoans = async () => {
       try {
         if (!window.ethereum) throw new Error("MetaMask not installed");
 
@@ -28,7 +28,7 @@ const ActiveLoans = () => {
         const loans = [];
         for (let i = 1; i < loanCount; i++) {
           const loan = await contract.loans(i);
-          if (loan.lender.toLowerCase() === userAddress && loan.status.toString() === "1") {
+          if (loan.lender.toLowerCase() === userAddress && loan.status.toString() === "0") {
             loans.push({
               loanId: i.toString(),
               borrower: (
@@ -45,7 +45,7 @@ const ActiveLoans = () => {
             });
           }
         }
-        setActiveLoans(loans);
+        setPendingLoans(loans);
         setError("");
       } catch (err) {
         setError(err.message);
@@ -54,36 +54,50 @@ const ActiveLoans = () => {
       }
     };
 
-    fetchActiveLoans();
+    fetchPendingLoans();
   }, []);
+
+  const handleApprove = (loan) => {
+    console.log("Approving loan:", loan.loanId);
+    // TODO: Implement blockchain interaction for approval
+  };
+
+  const handleReject = (loan) => {
+    console.log("Rejecting loan:", loan.loanId);
+    // TODO: Implement blockchain interaction for rejection
+  };
 
   return (
     <Box sx={{ p: 2 }}>
       <Navbar />
       <Typography variant="h4" gutterBottom>
-        Active Loans
+        Pending Loan Requests
       </Typography>
 
       {loading ? (
         <CustomLoader />
       ) : error ? (
         <Alert severity="error">{error}</Alert>
-      ) : activeLoans.length === 0 ? (
-        <Typography>No active loans found.</Typography>
+      ) : pendingLoans.length === 0 ? (
+        <Typography>No pending requests found.</Typography>
       ) : (
-          <CustomTable
-            data={activeLoans}
-            columns={[
-              { label: "Loan ID", field: "loanId" },
-              { label: "Borrower", field: "borrower" },
-              { label: "Amount", field: "amount", align: "right" },
-              { label: "Interest Rate", field: "interestRate", align: "right" },
-              { label: "Term", field: "term", align: "right" },
-            ]}
-          />
+        <CustomTable
+          data={pendingLoans}
+          columns={[
+            { label: "Loan ID", field: "loanId" },
+            { label: "Borrower", field: "borrower" },
+            { label: "Amount", field: "amount", align: "right" },
+            { label: "Interest Rate", field: "interestRate", align: "right" },
+            { label: "Term", field: "term", align: "right" },
+          ]}
+          actions={[
+            { label: "Approve", onClick: handleApprove, color: "success" },
+            { label: "Reject", onClick: handleReject, color: "error" },
+          ]}
+        />
       )}
     </Box>
   );
 };
 
-export default ActiveLoans;
+export default PendingRequests;

@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Box, Button, TextField, Typography, Container, Paper, Grid } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { ethers } from 'ethers';
-import Navbar from './navbar';
+import Navbar from '../components/navbar';
 import ContractABI from "../contracts/abi.json";
-import NavbarLender from './navbarLender';
+import NavbarLender from '../components/navbarLender';
 
 const CONTRACT_ADDRESS = "0x3C749Fa9984369506F10c18869E7c51488D8134f";
 

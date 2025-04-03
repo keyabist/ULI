@@ -1,22 +1,22 @@
 import './App.css'
-import RegistrationForm from './components/RegistrationForm.jsx'
+import RegistrationForm from './pages/RegistrationForm.jsx'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import NavBar from './components/navbar';
-import LenderDashboard from './components/LenderDashboard';
-import BorrowerDashboard from './components/BorrowerDashboard';
-import EditProfileForm from './components/EditProfileForm';
-import WalletConnect from './components/connectWallet';
-import LoanRequestForm from './components/RequestForm';
-import CompleteProfile from './components/completeProfileBor';
+import NavBar from './components/navbar.jsx';
+import LenderDashboard from './pages/LenderDashboard';
+import BorrowerDashboard from './pages/BorrowerDashboard';
+import EditProfileForm from './pages/EditProfileForm';
+import WalletConnect from './pages/connectWallet';
+import LoanRequestForm from './pages/RequestForm';
+import CompleteProfile from './pages/completeProfileBor';
 import Navbar from './components/navbarLender.jsx';
-import ActiveLoans from './components/ActiveLoans';
-import PendingRequests from './components/PendingRequests';
-import TransactionPage from './components/TransactionPage';
-import LoanStatus from './components/LoanStatus.jsx';
-import ViewProfile from './components/ViewProfile.jsx';
-import RequestStatusPage from './components/RequestStatusPage.jsx';
-import RejectedLoansPage from './components/RejectedLoans.jsx';
-import CompletedLoansPage from './components/CompletedLoans.jsx';
+import ActiveLoans from './pages/ActiveLoans';
+import PendingRequests from './pages/PendingRequests';
+import TransactionPage from './pages/TransactionPage';
+import LoanStatus from './pages/LoanStatus.jsx';
+import ViewProfile from './pages/ViewProfile.jsx';
+import RequestStatusPage from './pages/RequestStatusPage.jsx';
+import RejectedLoansPage from './pages/RejectedLoans.jsx';
+import CompletedLoansPage from './pages/CompletedLoans.jsx';
 
 function App() {
   return (
