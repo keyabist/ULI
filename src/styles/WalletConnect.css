@@ -1,0 +1,74 @@
+/* WalletConnect.css */
+
+/* 
+  1. A full-height hero section 
+  2. Background image covers the entire screen
+  3. Overlay for darkening the background
+  4. Centered content
+*/
+
+/* The main container with the background image */
+.wallet-hero {
+    position: relative;
+    width: 100%;
+    height: 100vh; /* full viewport height */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden; /* hides any overflow if needed */
+  
+    /* Background image */
+    background: url("../assets/background.png") center center / cover no-repeat;
+    /* If the path doesn’t work, try url("/src/assets/background.png") */
+  }
+  
+  /* A semi-transparent overlay to darken the background image for readability */
+  .wallet-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5); /* 50% black overlay */
+    z-index: 1;
+  }
+  
+  /* The content container that sits above the overlay */
+  .wallet-content {
+    position: relative;
+    z-index: 2; /* above the overlay */
+    text-align: center;
+    color: #fff;
+    padding: 1rem; /* some spacing */
+  }
+  
+  /* Headline styling */
+  .wallet-content h1 {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 0 8px #00ff7f; /* neon glow */
+  }
+  
+  /* Status text styling */
+  .wallet-content .status-text {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+  }
+  
+  /* Buttons */
+  .wallet-content button {
+    background-color: #008000; /* dark green */
+    color: #fff;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 0 8px #00ff7f; /* neon glow */
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 1rem; /* space above button */
+  }
+  
+  /* Hover effect */
+  .wallet-content button:hover {
+    background-color: #00a000; /* slightly brighter green */
+  }
+  

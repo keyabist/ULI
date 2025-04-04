@@ -3,6 +3,9 @@ import { ethers } from "ethers";
 import { useLocation, useNavigate } from "react-router-dom";
 import contractABI from "../contracts/abi.json";
 
+// Import the CSS file
+import "../styles/WalletConnect.css";
+
 const contractAddress = "0x3C749Fa9984369506F10c18869E7c51488D8134f";
 
 const WalletConnect = () => {
@@ -26,7 +29,6 @@ const WalletConnect = () => {
     }
   };
 
-  // Optionally fetch a message from the contract
   const fetchContractMessage = async (signer) => {
     try {
       const contract = new ethers.Contract(contractAddress, contractABI, signer);
@@ -49,20 +51,19 @@ const WalletConnect = () => {
       return;
     }
     try {
-      // Connect to MetaMask
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
-      const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+      const accounts = await window.ethereum.request({
+        method: "eth_requestAccounts",
+      });
       const connectedAccount = accounts[0];
 
       setAccount(connectedAccount);
       setStatus("Wallet Connected");
 
-      // Fetch balance and contract message
       await fetchBalance(provider, connectedAccount);
       await fetchContractMessage(signer);
 
-      // Query contract for registration status
       const contract = new ethers.Contract(contractAddress, contractABI, signer);
       const borrowerData = await contract.borrowers(connectedAccount);
       const lenderData = await contract.lenders(connectedAccount);
@@ -70,27 +71,27 @@ const WalletConnect = () => {
       console.log("Borrower Data:", borrowerData);
       console.log("Lender Data:", lenderData);
 
-      // Redirect based on registration status
       if (borrowerData.isRegistered) {
         navigate("/borrowerDashboard");
-      } else if (lenderData.isRegistered && lenderData.lenderAddress !== ethers.ZeroAddress) {
+      } else if (
+        lenderData.isRegistered &&
+        lenderData.lenderAddress !== ethers.ZeroAddress
+      ) {
         navigate("/lenderDashboard");
       } else {
         navigate("/registrationForm");
       }
-
     } catch (error) {
       console.error("Error connecting to MetaMask:", error);
       setStatus("Error connecting to Wallet");
     }
   }, [navigate, role]);
 
-  // Logout clears wallet state and routes back to connect wallet page
   const logout = () => {
     setAccount(null);
     setBalance(null);
     setStatus("No Wallet Connected");
-    navigate("/"); // Reroute to the connect wallet page
+    navigate("/");
   };
 
   useEffect(() => {
@@ -104,28 +105,28 @@ const WalletConnect = () => {
   }, []);
 
   return (
-    <div className="wallet-container">
-      <h1>MetaMask Wallet Connection</h1>
-      <p className={`status ${status.replace(/ /g, "-").toLowerCase()}`}>{status}</p>
-      {!account ? (
-        <button className="connect-button" onClick={connectWallet}>
-          Connect Wallet
-        </button>
-      ) : (
-        <div>
-          <div className="wallet-info">
+    <div className="wallet-hero">
+      <div className="wallet-content">
+        <h1>UNIFIED LENDING INTERFACE</h1>
+
+        {/* Status text */}
+        <p className="status-text">{status}</p>
+
+        {!account ? (
+          <button className="connect-button" onClick={connectWallet}>
+            Connect MetaMask
+          </button>
+        ) : (
+          <div>
             <p>Wallet Address: {account}</p>
             <p>Balance: {balance ? `${balance} ETH` : "Fetching balance..."}</p>
             <p>Contract Message: {contractMessage || "Fetching data..."}</p>
+            <button className="logout-button" onClick={logout}>
+              Logout
+            </button>
           </div>
-          <button
-            onClick={logout}
-            className="logout-button bg-red-500 text-white p-2 rounded mt-4"
-          >
-            Logout
-          </button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

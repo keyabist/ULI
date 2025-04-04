@@ -1,0 +1,130 @@
+/* Requestform.css */
+
+/* Base container styling with a neon-ish background */
+.request-form-container {
+    max-width: 500px;
+    margin: 40px auto;
+    padding: 30px;
+    background: linear-gradient(135deg, #0a0a0a, #222); /* Subtle dark gradient */
+    color: #d4edda;
+    border-radius: 12px;
+    border: 2px solid #00ff80; /* Neon green border */
+    box-shadow: 0 0 20px 5px rgba(0, 255, 128, 0.6); /* Neon glow effect */
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Heading styles */
+.request-form-container h2 {
+    text-align: center;
+    color: #00ff80;
+    margin-bottom: 20px;
+    font-size: 2rem;
+}
+
+/* Info text styles */
+.info-text {
+    text-align: center;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+/* Form group styling */
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 6px;
+    font-size: 14px;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #00ff80;
+    background: #1a1f1f;
+    color: #d4edda;
+    border-radius: 6px;
+    font-size: 16px;
+    transition: border 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: #00cc66;
+    outline: none;
+}
+
+/* Buttons container */
+.buttons-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10px;
+    gap: 8px;
+}
+
+/* General button styling */
+button {
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+/* Updated Verify button styling */
+.verify-button {
+    background-color: #00cc66;
+    color: #fff;
+    padding: 6px 12px;
+    font-size: 14px;
+    line-height: 1.2;
+    min-width: 110px;
+    border-radius: 6px;
+    margin-top: 10px;  /* Extra space above the button */
+    text-align: center;
+}
+
+.verify-button:hover {
+    background-color: #00994d;
+    transform: scale(1.03);
+}
+
+/* Submit button styling */
+.submit-button {
+    padding: 12px;
+    font-size: 16px;
+    background-color: #28a745;
+    color: #fff;
+}
+
+.submit-button:hover {
+    background-color: #1e7e34;
+}
+
+/* Verification status text */
+.verification-status {
+    text-align: center;
+    font-size: 14px;
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+.verification-status.verified {
+    color: lime;
+}
+
+.verification-status.not-verified {
+    color: red;
+}
+
+/* Error message styling */
+.error-message {
+    text-align: center;
+    color: red;
+    font-weight: bold;
+    margin-top: 20px;
+}

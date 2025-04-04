@@ -129,26 +129,27 @@ const EditProfileForm = () => {
       }
 
       if (role === 'borrower') {
-        // For borrowers: updateBorrowerProfile expects: { name, phone, email, creditScore, monthlyIncome, govidCID, signatureCID }
+        // For borrowers: updateBorrowerProfile expects 8 fields.
         const tx = await contract.updateBorrowerProfile({
           name,
           phone,
           email,
           creditScore: parseInt(creditScore) || 0,
+          interestRate: 0, // Added dummy field for interest rate
           monthlyIncome: parseInt(monthlyIncome) || 0,
           govidCID: newGovidCID,
           signatureCID: newSignatureCID
         });
         await tx.wait();
       } else if (role === 'lender') {
-        // For lenders: updateLenderProfile expects: { name, phone, email, interestRate, monthlyIncome, creditScore, govidCID, signatureCID }
+        // For lenders: updateLenderProfile expects all 8 fields
         const tx = await contract.updateLenderProfile({
           name,
           phone,
           email,
+          creditScore: parseInt(creditScore) || 0,
           interestRate: parseInt(interestRate) || 0,
           monthlyIncome: parseInt(monthlyIncome) || 0,
-          creditScore: parseInt(creditScore) || 0,
           govidCID: newGovidCID,
           signatureCID: newSignatureCID
         });
