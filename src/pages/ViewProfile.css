@@ -1,0 +1,184 @@
+/* Global settings */
+html, body {
+    margin: 0;
+    padding: 0;
+    height: auto;       /* Allow full page height */
+    overflow-y: auto;   /* Allow scrolling */
+}
+  
+/* Overall page background with dark gradient */
+.profile-page {
+    background: linear-gradient(135deg, #0a0a0a, #222);
+    min-height: 100vh;  /* Ensures at least full viewport height */
+    font-family: sans-serif;
+    /* No overflow hidden here */
+}
+  
+/* Outer big box with neon glow */
+.profile-container {
+    max-width: 1100px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: linear-gradient(135deg, #0a0a0a, #222); /* Dark gradient */
+    border-radius: 20px;
+    box-shadow: 0 0 20px 5px rgba(0, 255, 128, 0.6); /* Neon green glow */
+    color: #d4edda;
+}
+  
+/* Title styling */
+.profile-title {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+.profile-title h2 {
+    color: #00ff80; /* Neon green */
+    font-size: 2rem;
+    margin: 0;
+}
+  
+/* Two boxes side by side */
+.boxes-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+}
+  
+/* Left info box */
+.info-box {
+    flex: 1;
+    min-width: 280px;
+    background-color: #1a1f1f; /* Slightly lighter dark background */
+    border: 2px solid #00ff80;
+    border-radius: 10px;
+    padding: 1.5rem;
+}
+  
+/* Right docs box */
+.docs-box {
+    flex: 1;
+    min-width: 280px;
+    background-color: #1a1f1f;
+    border: 2px solid #00ff80;
+    border-radius: 10px;
+    padding: 1.5rem;
+}
+  
+/* Shared row styling */
+.info-row,
+.doc-row {
+    margin-bottom: 1rem;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+  
+/* Labels and values for info */
+.info-label {
+    color: #00ff80;
+    font-weight: 600;
+    width: 140px;
+    display: inline-block;
+}
+.info-value {
+    color: #d4edda;
+    font-weight: 400;
+}
+  
+/* Progress bar container */
+.progress-bar-wrapper {
+    position: relative;
+    background-color: #333;
+    border-radius: 10px;
+    height: 15px;
+    width: 80%;
+    margin-top: 0.5rem;
+}
+  
+/* Progress bar fill */
+.progress-bar-fill {
+    background-color: #00ff80;
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.3s ease;
+}
+  
+/* Document labels */
+.doc-label {
+    color: #00ff80;
+    font-weight: 600;
+    width: 180px;
+}
+  
+/* Document link button */
+.doc-link {
+    background-color: #00ff80;
+    color: #0a0a0a;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    padding: 0.3rem 0.7rem;
+    border-radius: 5px;
+    margin-left: 0.5rem;
+    transition: background-color 0.2s ease;
+}
+.doc-link:hover {
+    background-color: #00cc66;
+}
+  
+/* Not provided text */
+.doc-not-provided {
+    color: #aaa;
+    margin-left: 0.5rem;
+}
+  
+/* Inline doc preview (image) */
+.doc-preview {
+    margin-top: 1rem;
+    text-align: center;
+}
+.doc-image {
+    max-width: 100%;
+    max-height: 300px;  /* image won't exceed 300px in height */
+    object-fit: contain;
+    display: inline-block;
+}
+  
+/* Bottom row with edit profile button */
+.edit-profile-btn-row {
+    margin-top: 2rem;
+    text-align: center;
+}
+  
+/* Edit Profile button */
+.edit-profile-btn {
+    display: inline-block;
+    background-color: #00ff80;
+    color: #0a0a0a;
+    font-weight: 700;
+    text-decoration: none;
+    padding: 0.8rem 2rem;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+    width: 100%;
+    max-width: 300px;
+    text-align: center;
+}
+.edit-profile-btn:hover {
+    background-color: #00cc66;
+}
+  
+/* Responsive layout */
+@media (max-width: 768px) {
+    .boxes-row {
+      flex-direction: column;
+    }
+    .info-box, .docs-box {
+      min-width: 100%;
+    }
+    .info-label {
+      width: 120px;
+    }
+    .doc-label {
+      width: 150px;
+    }
+}

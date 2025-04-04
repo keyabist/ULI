@@ -1,0 +1,128 @@
+/* Entire Page Styling */
+.edit-profile-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+    font-family: 'Poppins', sans-serif;
+    color: #d4edda;
+    background: linear-gradient(135deg, #0a0a0a, #222); /* Dark background */
+  }
+  
+  /* Edit Profile Container */
+  .edit-profile-container {
+    width: 600px; /* Adjust as needed */
+    max-width: 90%;
+    padding: 30px;
+    background: #111 !important; /* Dark background */
+    border: 2px solid #00ff80;
+    border-radius: 12px;
+    box-shadow: 0 0 20px 5px rgba(0, 255, 128, 0.6);
+    text-align: center;
+    margin: 50px auto; /* Centers horizontally */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* Title Styling */
+  .edit-profile-title {
+    text-align: center;
+    color: #00ff80;
+    margin-bottom: 20px;
+    font-size: 2rem;
+  }
+  
+  /* Form Styling */
+  .edit-profile-form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  /* Label Styling */
+  .edit-profile-form label {
+    font-size: 1rem;
+    color: #00ff80;
+    margin-bottom: 5px;
+    text-align: left;
+  }
+  
+  /* Input Fields */
+  .edit-profile-form input {
+    width: 100%;
+    padding: 10px;
+    font-size: 1rem;
+    background: #000;
+    border: 2px solid #00ff80;
+    border-radius: 6px;
+    color: #d4edda;
+    outline: none;
+  }
+  
+  /* Input Focus Effect */
+  .edit-profile-form input:focus {
+    border-color: #00ff80;
+    box-shadow: 0 0 10px rgba(0, 255, 128, 0.8);
+  }
+  
+  /* Upload Buttons */
+  .upload-button {
+    width: 100%;
+    padding: 10px;
+    font-size: 1rem;
+    background: #00ff80;
+    color: #000;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  
+  .upload-button:hover {
+    background: #00cc66;
+  }
+  
+  /* Save Changes Button */
+  .save-changes-button {
+    width: 100%;
+    padding: 12px;
+    font-size: 1.2rem;
+    background: #00ff80;
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+    margin-top: 10px;
+  }
+  
+  .save-changes-button:hover {
+    background: #00cc66;
+  }
+  
+  /* View Document Links */
+  .view-document {
+    color: #00ff80;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  
+  .view-document:hover {
+    color: #00cc66;
+  }
+  
+  /* Remove Default Material UI Paper Background */
+  .edit-profile-paper {
+    background-color: transparent !important;
+    box-shadow: none !important;
+  }
+  
+  /* Override MUI Label Focus Color */
+  .MuiInputLabel-root.Mui-focused {
+    color: #00ff80 !important;
+  }
+  

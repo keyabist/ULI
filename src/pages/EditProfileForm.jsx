@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, TextField, Typography, Container, Paper, Grid } from '@mui/material';
+import { Box, Button, TextField, Typography, Paper, Grid } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { ethers } from 'ethers';
-import Navbar from '../components/navbar';
 import ContractABI from "../contracts/abi.json";
-import NavbarLender from '../components/navbarLender';
+import "./EditProfile.css"; // Import the CSS file
 
 const CONTRACT_ADDRESS = "0x3C749Fa9984369506F10c18869E7c51488D8134f";
 
@@ -18,7 +17,7 @@ const EditProfileForm = () => {
   const [email, setEmail] = useState('');
   const [monthlyIncome, setMonthlyIncome] = useState('');
 
-  // Credit Score is used for both borrowers and lenders.
+  // Credit Score (fetched from contract, no edit option)
   const [creditScore, setCreditScore] = useState('');
 
   // Lender-only field: Interest Rate
@@ -50,7 +49,6 @@ const EditProfileForm = () => {
           // Try borrower mapping first
           try {
             const borrowerData = await contract.borrowers(account);
-            // borrowerData.isRegistered is at index 6
             if (borrowerData.isRegistered) {
               setRole('borrower');
               setName(borrowerData.name);
@@ -69,7 +67,6 @@ const EditProfileForm = () => {
           // Try lender mapping if borrower lookup failed
           try {
             const lenderData = await contract.lenders(account);
-            // lenderData.isRegistered is at index 7
             if (lenderData.isRegistered) {
               setRole('lender');
               setName(lenderData.name);
@@ -101,8 +98,8 @@ const EditProfileForm = () => {
       method: 'POST',
       body: formData,
       headers: {
-        'pinata_api_key': "631aba7bba8a85658b57", // Replace with your API key
-        'pinata_secret_api_key': "ed236116b957abe0293ab4e1101662b755cb01051d78719021b7c9c3114cc693" // Replace with your secret key
+        'pinata_api_key': "631aba7bba8a85658b57", 
+        'pinata_secret_api_key': "ed236116b957abe0293ab4e1101662b755cb01051d78719021b7c9c3114cc693" 
       }
     });
     const data = await response.json();
@@ -129,20 +126,18 @@ const EditProfileForm = () => {
       }
 
       if (role === 'borrower') {
-        // For borrowers: updateBorrowerProfile expects 8 fields.
         const tx = await contract.updateBorrowerProfile({
           name,
           phone,
           email,
           creditScore: parseInt(creditScore) || 0,
-          interestRate: 0, // Added dummy field for interest rate
+          interestRate: 0,
           monthlyIncome: parseInt(monthlyIncome) || 0,
           govidCID: newGovidCID,
           signatureCID: newSignatureCID
         });
         await tx.wait();
       } else if (role === 'lender') {
-        // For lenders: updateLenderProfile expects all 8 fields
         const tx = await contract.updateLenderProfile({
           name,
           phone,
@@ -157,7 +152,6 @@ const EditProfileForm = () => {
       }
       alert('Profile updated successfully!');
       navigate('/view-profile');
-      
     } catch (error) {
       console.error('Error updating profile:', error);
       alert('Error updating profile');
@@ -166,103 +160,133 @@ const EditProfileForm = () => {
   }
 
   return (
-    <Box
-      sx={{
-        height: "100vh",
-        width: "100vw",
-      }}
-    >
-      {role === 'borrower' ? <Navbar /> : <NavbarLender />}
-      <Box
-        sx={{
-          width: "90%",
-          margin: "auto",
-          pt: 8,
-          pb: 10,
-          mb: 10
-        }}
-      >
-        <Paper elevation={3} sx={{ p: 4, maxHeight: '85vh', borderRadius: 5, overflowY: 'auto' }}>
-          <Typography variant="h4" gutterBottom>
-            Edit Profile
-          </Typography>
-          <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 2 }}>
-            <Grid container spacing={2}>
+    <div className="edit-profile-page">
+      {/* Navbar component removed */}
+
+      <div className="edit-profile-container">
+        <Typography className="edit-profile-title" variant="h4" gutterBottom>
+          Edit Profile
+        </Typography>
+
+        <Paper elevation={0} className="edit-profile-paper">
+          <Box 
+            component="form" 
+            onSubmit={handleSubmit} 
+            noValidate 
+            sx={{ mt: 2 }}
+          >
+            <Grid container spacing={3}>
               {/* Name */}
               <Grid item xs={12}>
-                <TextField 
-                  fullWidth 
-                  label="Name" 
-                  variant="outlined" 
-                  value={name} 
+                <TextField
+                  fullWidth
+                  label="Name"
+                  variant="outlined"
+                  value={name}
                   onChange={(e) => setName(e.target.value)}
+                  margin="normal"
+                  sx={{
+                    '& .MuiOutlinedInput-root': { backgroundColor: '#111' },
+                    '& .MuiOutlinedInput-notchedOutline': { borderColor: '#00ff80' },
+                    '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#00cc66' },
+                    '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#00ff80' },
+                    '& .MuiInputLabel-root': { color: '#00ff80' },
+                    '& .MuiInputLabel-root.Mui-focused': { color: '#00ff80' },
+                    '& .MuiOutlinedInput-input': { color: '#ffffff' }
+                  }}
                 />
               </Grid>
 
               {/* Email */}
               <Grid item xs={12}>
-                <TextField 
-                  fullWidth 
-                  label="Email" 
-                  variant="outlined" 
-                  type="email" 
-                  value={email} 
+                <TextField
+                  fullWidth
+                  label="Email"
+                  variant="outlined"
+                  type="email"
+                  value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  margin="normal"
+                  sx={{
+                    '& .MuiOutlinedInput-root': { backgroundColor: '#111' },
+                    '& .MuiOutlinedInput-notchedOutline': { borderColor: '#00ff80' },
+                    '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#00cc66' },
+                    '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#00ff80' },
+                    '& .MuiInputLabel-root': { color: '#00ff80' },
+                    '& .MuiInputLabel-root.Mui-focused': { color: '#00ff80' },
+                    '& .MuiOutlinedInput-input': { color: '#ffffff' }
+                  }}
                 />
               </Grid>
 
               {/* Phone */}
               <Grid item xs={12}>
-                <TextField 
-                  fullWidth 
-                  label="Phone" 
-                  variant="outlined" 
-                  value={phone} 
+                <TextField
+                  fullWidth
+                  label="Phone"
+                  variant="outlined"
+                  value={phone}
                   onChange={(e) => setPhone(e.target.value)}
+                  margin="normal"
+                  sx={{
+                    '& .MuiOutlinedInput-root': { backgroundColor: '#111' },
+                    '& .MuiOutlinedInput-notchedOutline': { borderColor: '#00ff80' },
+                    '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#00cc66' },
+                    '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#00ff80' },
+                    '& .MuiInputLabel-root': { color: '#00ff80' },
+                    '& .MuiInputLabel-root.Mui-focused': { color: '#00ff80' },
+                    '& .MuiOutlinedInput-input': { color: '#ffffff' }
+                  }}
                 />
               </Grid>
-
-              {/* Borrower-only: Credit Score (read-only) */}
-              {role === 'borrower' && (
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Credit Score"
-                    variant="outlined"
-                    value={creditScore}
-                    onChange={() => {}}
-                    disabled
-                  />
-                </Grid>
-              )}
 
               {/* Lender-only: Interest Rate */}
               {role === 'lender' && (
                 <Grid item xs={12}>
-                  <TextField 
-                    fullWidth 
-                    label="Interest Rate" 
-                    variant="outlined" 
-                    value={interestRate} 
+                  <TextField
+                    fullWidth
+                    label="Interest Rate"
+                    variant="outlined"
+                    value={interestRate}
                     onChange={(e) => setInterestRate(e.target.value)}
+                    margin="normal"
+                    sx={{
+                      '& .MuiOutlinedInput-root': { backgroundColor: '#111' },
+                      '& .MuiOutlinedInput-notchedOutline': { borderColor: '#00ff80' },
+                      '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#00cc66' },
+                      '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#00ff80' },
+                      '& .MuiInputLabel-root': { color: '#00ff80' },
+                      '& .MuiInputLabel-root.Mui-focused': { color: '#00ff80' },
+                      '& .MuiOutlinedInput-input': { color: '#ffffff' }
+                    }}
                   />
                 </Grid>
               )}
 
               {/* Monthly Income */}
               <Grid item xs={12}>
-                <TextField 
-                  fullWidth 
-                  label="Monthly Income" 
-                  variant="outlined" 
-                  value={monthlyIncome} 
+                <TextField
+                  fullWidth
+                  label="Monthly Income"
+                  variant="outlined"
+                  value={monthlyIncome}
                   onChange={(e) => setMonthlyIncome(e.target.value)}
+                  margin="normal"
+                  sx={{
+                    '& .MuiOutlinedInput-root': { backgroundColor: '#111' },
+                    '& .MuiOutlinedInput-notchedOutline': { borderColor: '#00ff80' },
+                    '& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#00cc66' },
+                    '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#00ff80' },
+                    '& .MuiInputLabel-root': { color: '#00ff80' },
+                    '& .MuiInputLabel-root.Mui-focused': { color: '#00ff80' },
+                    '& .MuiOutlinedInput-input': { color: '#ffffff' }
+                  }}
                 />
               </Grid>
 
               {/* Documents */}
               <Grid item xs={12}>
-                <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
+                <Typography variant="h6" gutterBottom sx={{ mt: 2, color: '#00ff80' }}>
                   Documents
                 </Typography>
               </Grid>
@@ -270,7 +294,7 @@ const EditProfileForm = () => {
               {/* Government ID CID */}
               <Grid item xs={12}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Typography variant="body2">
+                  <Typography variant="body2" sx={{ color: '#d4edda' }}>
                     Current Government ID CID: {govidCID || "Not uploaded"}
                   </Typography>
                   {govidCID && (
@@ -280,6 +304,7 @@ const EditProfileForm = () => {
                       href={`https://gateway.pinata.cloud/ipfs/${govidCID}`}
                       target="_blank"
                       rel="noopener noreferrer"
+                      sx={{ color: '#00ff80', fontWeight: 'bold' }}
                     >
                       View
                     </Button>
@@ -289,8 +314,16 @@ const EditProfileForm = () => {
 
               {/* Government ID Upload */}
               <Grid item xs={12}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Button variant="outlined" component="label">
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Button
+                    variant="outlined"
+                    component="label"
+                    sx={{
+                      borderColor: '#00ff80',
+                      color: '#00ff80',
+                      '&:hover': { borderColor: '#00cc66', color: '#00cc66' }
+                    }}
+                  >
                     Upload New Government ID
                     <input
                       type="file"
@@ -303,7 +336,7 @@ const EditProfileForm = () => {
                     />
                   </Button>
                   {govidFile && (
-                    <Typography variant="body2">
+                    <Typography variant="body2" sx={{ color: '#d4edda' }}>
                       {govidFile.name}
                     </Typography>
                   )}
@@ -313,7 +346,7 @@ const EditProfileForm = () => {
               {/* Signature CID */}
               <Grid item xs={12}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 2 }}>
-                  <Typography variant="body2">
+                  <Typography variant="body2" sx={{ color: '#d4edda' }}>
                     Current Signature CID: {signatureCID || "Not uploaded"}
                   </Typography>
                   {signatureCID && (
@@ -323,6 +356,7 @@ const EditProfileForm = () => {
                       href={`https://gateway.pinata.cloud/ipfs/${signatureCID}`}
                       target="_blank"
                       rel="noopener noreferrer"
+                      sx={{ color: '#00ff80', fontWeight: 'bold' }}
                     >
                       View
                     </Button>
@@ -332,8 +366,16 @@ const EditProfileForm = () => {
 
               {/* Signature Upload */}
               <Grid item xs={12}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Button variant="outlined" component="label">
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Button
+                    variant="outlined"
+                    component="label"
+                    sx={{
+                      borderColor: '#00ff80',
+                      color: '#00ff80',
+                      '&:hover': { borderColor: '#00cc66', color: '#00cc66' }
+                    }}
+                  >
                     Upload New Signature
                     <input
                       type="file"
@@ -346,7 +388,7 @@ const EditProfileForm = () => {
                     />
                   </Button>
                   {signatureFile && (
-                    <Typography variant="body2">
+                    <Typography variant="body2" sx={{ color: '#d4edda' }}>
                       {signatureFile.name}
                     </Typography>
                   )}
@@ -355,12 +397,18 @@ const EditProfileForm = () => {
 
               {/* Submit Button */}
               <Grid item xs={12}>
-                <Button 
-                  type="submit" 
-                  variant="contained" 
-                  color="primary" 
+                <Button
+                  type="submit"
+                  variant="contained"
                   fullWidth
                   disabled={loading}
+                  sx={{
+                    backgroundColor: '#00ff80',
+                    color: '#0a0a0a',
+                    fontWeight: 'bold',
+                    mt: 3,
+                    '&:hover': { backgroundColor: '#00cc66' }
+                  }}
                 >
                   {loading ? 'Updating...' : 'Save Changes'}
                 </Button>
@@ -368,8 +416,8 @@ const EditProfileForm = () => {
             </Grid>
           </Box>
         </Paper>
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 };
 

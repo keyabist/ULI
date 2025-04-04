@@ -1,17 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { Container, Typography, Paper, Button, Grid, Link as MuiLink } from '@mui/material';
-import { Link } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { ethers } from 'ethers';
 import contractABI from "../contracts/abi.json";
-import Navbar from "../components/navbar";
-import NavbarLender from "../components/navbarLender";
+import "./ViewProfile.css";
 
 const contractAddress = "0x3C749Fa9984369506F10c18869E7c51488D8134f";
 
 const ViewProfile = () => {
   const { userAddress } = useParams();
   const [profile, setProfile] = useState(null);
+
+  // For toggling inline document previews
+  const [showGovDoc, setShowGovDoc] = useState(false);
+  const [showSignDoc, setShowSignDoc] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -21,6 +22,7 @@ const ViewProfile = () => {
           const signer = await provider.getSigner();
           const contract = new ethers.Contract(contractAddress, contractABI, signer);
 
+          // Check if user is a borrower
           const borrowerData = await contract.borrowers(userAddress);
           if (borrowerData[6]) {
             const profileData = await contract.getBorrowerProfile(userAddress);
@@ -35,6 +37,7 @@ const ViewProfile = () => {
               signatureCID: profileData[8]
             });
           } else {
+            // Otherwise, check if user is a lender
             const lenderData = await contract.lenders(userAddress);
             if (lenderData[7]) {
               const profileData = await contract.getLenderProfile(userAddress);
@@ -65,78 +68,133 @@ const ViewProfile = () => {
   }, [userAddress]);
 
   if (!profile) {
-    return <Typography>Loading profile...</Typography>;
+    return (
+      <div style={{ color: 'white', textAlign: 'center', marginTop: '2rem' }}>
+        Loading profile...
+      </div>
+    );
   }
 
+  // Convert credit score to a number and clamp between 0 and 100
+  const creditScoreValue = parseInt(profile.creditScore) || 0;
+  const creditScorePercent = Math.min(Math.max(creditScoreValue, 0), 100);
+
   return (
-    <Container maxWidth="sm" style={{ marginTop: '2rem', backgroundColor: '#1a1a1a', padding: '2rem', borderRadius: 20 }}>
-      {profile.role === 'borrower' ? <Navbar /> : <NavbarLender />}
-      <Paper elevation={3} style={{ padding: '2rem', borderRadius: 20, backgroundColor: '#333', color: 'white' }}>
-        <Typography variant="h4" gutterBottom style={{ color: '#f0b90b' }}>
-          Profile ({profile.role})
-        </Typography>
-        <Grid container spacing={2} direction="column" alignItems="flex-start">
-          <Grid item>
-            <Typography variant="subtitle1"><strong>Name:</strong> {profile.name}</Typography>
-          </Grid>
-          <Grid item>
-            <Typography variant="subtitle1"><strong>Email:</strong> {profile.email}</Typography>
-          </Grid>
-          <Grid item>
-            <Typography variant="subtitle1"><strong>Phone:</strong> {profile.phone}</Typography>
-          </Grid>
-          <Grid item>
-            <Typography variant="subtitle1"><strong>Credit Score:</strong> {profile.creditScore}</Typography>
-          </Grid>
-          {profile.monthlyIncome !== undefined && (
-            <Grid item>
-              <Typography variant="subtitle1"><strong>Monthly Income:</strong> {profile.monthlyIncome}</Typography>
-            </Grid>
-          )}
-          {profile.role === 'lender' && profile.interestRate !== undefined && (
-            <Grid item>
-              <Typography variant="subtitle1"><strong>Interest Rate:</strong> {profile.interestRate}</Typography>
-            </Grid>
-          )}
-          <Grid item>
-            <Typography variant="subtitle1">
-              <strong>Government ID Document:</strong>{" "}
+    <div className="profile-page">
+      {/* We removed the navbar to "remove that bar thingy on top" */}
+
+      {/* Outer container */}
+      <div className="profile-container">
+        <div className="profile-title">
+          <h2>Profile</h2>
+        </div>
+
+        <div className="boxes-row">
+          {/* Left box: Info */}
+          <div className="info-box">
+            <div className="info-row">
+              <span className="info-label">Full Name:</span>
+              <span className="info-value">{profile.name}</span>
+            </div>
+            <div className="info-row">
+              <span className="info-label">Email:</span>
+              <span className="info-value">{profile.email}</span>
+            </div>
+            <div className="info-row">
+              <span className="info-label">Phone:</span>
+              <span className="info-value">{profile.phone}</span>
+            </div>
+            {profile.monthlyIncome && (
+              <div className="info-row">
+                <span className="info-label">Monthly Income:</span>
+                <span className="info-value">{profile.monthlyIncome}</span>
+              </div>
+            )}
+            {/* Lender-specific interest rate */}
+            {profile.role === 'lender' && profile.interestRate && (
+              <div className="info-row">
+                <span className="info-label">Interest Rate:</span>
+                <span className="info-value">{profile.interestRate}</span>
+              </div>
+            )}
+
+            {/* Credit Score with hoverable progress bar */}
+            <div className="info-row">
+              <span className="info-label">Credit Score:</span>
+            </div>
+            <div 
+              className="progress-bar-wrapper" 
+              title={`Credit Score: ${profile.creditScore}`}
+            >
+              <div 
+                className="progress-bar-fill" 
+                style={{ width: `${creditScorePercent}%` }}
+              ></div>
+            </div>
+          </div>
+
+          {/* Right box: Documents */}
+          <div className="docs-box">
+            {/* Government ID Document */}
+            <div className="doc-row">
+              <span className="doc-label">Government ID Document:</span>
               {profile.govidCID ? (
-                <MuiLink href={`https://ipfs.io/ipfs/${profile.govidCID}`} target="_blank" rel="noopener" style={{ color: "#f0b90b" }}>
-                  View Document
-                </MuiLink>
+                <button
+                  className="doc-link"
+                  onClick={() => setShowGovDoc(!showGovDoc)}
+                >
+                  {showGovDoc ? "Hide Document" : "View Document"}
+                </button>
               ) : (
-                "Not Provided"
+                <span className="doc-not-provided">Not Provided</span>
               )}
-            </Typography>
-          </Grid>
-          <Grid item>
-            <Typography variant="subtitle1">
-              <strong>Signature Document:</strong>{" "}
+            </div>
+            {/* Inline preview if showGovDoc is true (as an image) */}
+            {showGovDoc && profile.govidCID && (
+              <div className="doc-preview">
+                <img
+                  src={`https://ipfs.io/ipfs/${profile.govidCID}`}
+                  alt="Government ID"
+                  className="doc-image"
+                />
+              </div>
+            )}
+
+            {/* Signature Document */}
+            <div className="doc-row">
+              <span className="doc-label">Signature Document:</span>
               {profile.signatureCID ? (
-                <MuiLink href={`https://ipfs.io/ipfs/${profile.signatureCID}`} target="_blank" rel="noopener" style={{ color: "#f0b90b" }}>
-                  View Document
-                </MuiLink>
+                <button
+                  className="doc-link"
+                  onClick={() => setShowSignDoc(!showSignDoc)}
+                >
+                  {showSignDoc ? "Hide Document" : "View Document"}
+                </button>
               ) : (
-                "Not Provided"
+                <span className="doc-not-provided">Not Provided</span>
               )}
-            </Typography>
-          </Grid>
-        </Grid>
-        <Grid container spacing={2} style={{ marginTop: '1rem' }}>
-          <Grid item xs={6}>
-            <Button variant="contained" fullWidth component={Link} to={profile.role === 'borrower' ? "/borrowerDashboard" : "/lenderDashboard"}>
-              Back
-            </Button>
-          </Grid>
-          <Grid item xs={6}>
-            <Button variant="contained" color="primary" fullWidth component={Link} to="/edit-profile">
-              Edit Profile
-            </Button>
-          </Grid>
-        </Grid>
-      </Paper>
-    </Container>
+            </div>
+            {/* Inline preview if showSignDoc is true (as an image) */}
+            {showSignDoc && profile.signatureCID && (
+              <div className="doc-preview">
+                <img
+                  src={`https://ipfs.io/ipfs/${profile.signatureCID}`}
+                  alt="Signature Document"
+                  className="doc-image"
+                />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Bottom: Edit Profile Button */}
+        <div className="edit-profile-btn-row">
+          <Link to="/edit-profile" className="edit-profile-btn">
+            Edit Profile
+          </Link>
+        </div>
+      </div>
+    </div>
   );
 };
 
