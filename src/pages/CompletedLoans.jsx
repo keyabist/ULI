@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { ethers } from "ethers";
+import { Link, useNavigate } from "react-router-dom";
 import contractABI from "../contracts/abi.json";
 import NavbarLender from "../components/navbarLender";
 import NavBar from "../components/navbar";
@@ -14,6 +15,7 @@ const CompletedLoansPage = () => {
   const [userRole, setUserRole] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchCompletedLoans = async () => {
@@ -52,13 +54,26 @@ const CompletedLoansPage = () => {
             (loan.lender.toLowerCase() === userAddress || loan.borrower.toLowerCase() === userAddress) &&
             loan.status.toString() === "3"
           ) {
+            // Fetch borrower profile for username and credit score
+            const borrowerProfile = await contract.getBorrowerProfile(loan.borrower);
+            const username = borrowerProfile.name;
+            const creditScore = borrowerProfile.creditScore.toString();
+
             loans.push({
               loanId: loan.loanId.toString(),
+              borrower: (
+                <Link
+                  to={`/view-profile/${loan.borrower}`}
+                  onClick={(e) => e.stopPropagation()} // Prevent row click event
+                  style={{ color: "#28a745", textDecoration: "none", fontWeight: "bold" }}
+                >
+                  {username}
+                </Link>
+              ),
+              creditScore, // New column for credit score
               amount: ethers.formatUnits(loan.amount, 18) + " ETH",
               interestRate: loan.interestRate.toString() + "%",
               repaymentPeriod: loan.repaymentPeriod.toString() + " months",
-              status: "Completed",
-              borrower: loan.borrower,
             });
           }
         }
@@ -74,6 +89,11 @@ const CompletedLoansPage = () => {
     fetchCompletedLoans();
   }, []);
 
+  const handleRowClick = (row) => {
+    // Navigate to loan status page when row (except borrower link) is clicked
+    navigate(`/loanStatus/${row.loanId}`);
+  };
+
   return (
     <div className="p-6 max-w-4xl mx-auto bg-white rounded-xl shadow-md">
       {userRole === "borrower" ? <NavBar /> : <NavbarLender />}
@@ -83,20 +103,21 @@ const CompletedLoansPage = () => {
       {loading ? (
         <CustomLoader />
       ) : error ? (
-       <Alert severity="error">{error}</Alert>
+        <Alert severity="error">{error}</Alert>
       ) : completedLoans.length === 0 ? (
-        <Typography> No Completed Loans Found </Typography>
+        <Typography>No Completed Loans Found</Typography>
       ) : (
         <CustomTable
           data={completedLoans}
           columns={[
             { label: "Loan ID", field: "loanId" },
             { label: "Borrower", field: "borrower" },
+            { label: "Credit Score", field: "creditScore", align: "right" },
             { label: "Amount", field: "amount", align: "right" },
             { label: "Interest Rate", field: "interestRate", align: "right" },
             { label: "Repayment Period", field: "repaymentPeriod", align: "right" },
-            
           ]}
+          onRowClick={handleRowClick}
         />
       )}
     </div>

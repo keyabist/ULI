@@ -1,13 +1,13 @@
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button } from "@mui/material";
 
-const CustomTable = ({ data, columns, actions }) => {
+const CustomTable = ({ data, columns, actions, onRowClick }) => {
   return (
     <TableContainer
       component={Paper}
       sx={{
         backgroundColor: "#121212", // Dark Binance-style background
         color: "#EAECEF", // Light text
-        boxShadow: "0px 4px 10px rgba(255, 196, 0, 0.2)", // Binance-style glow
+        boxShadow: "0px 4px 10px rgba(40, 167, 69, 0.2)", // Green glow
         borderRadius: "10px",
       }}
     >
@@ -18,13 +18,13 @@ const CustomTable = ({ data, columns, actions }) => {
               <TableCell
                 key={index}
                 align={col.align || "left"}
-                sx={{ color: "#F0B90B", fontWeight: "bold" }} // Binance gold for headers
+                sx={{ color: "#28a745", fontWeight: "bold" }} // Green for headers
               >
                 {col.label}
               </TableCell>
             ))}
             {actions && (
-              <TableCell align="right" sx={{ color: "#F0B90B", fontWeight: "bold" }}>
+              <TableCell align="right" sx={{ color: "#28a745", fontWeight: "bold" }}>
                 Actions
               </TableCell>
             )}
@@ -34,9 +34,11 @@ const CustomTable = ({ data, columns, actions }) => {
           {data.map((row, rowIndex) => (
             <TableRow
               key={rowIndex}
+              onClick={() => onRowClick && onRowClick(row)}
               sx={{
                 "&:hover": { backgroundColor: "#222" },
                 transition: "background 0.2s",
+                cursor: onRowClick ? "pointer" : "default",
               }}
             >
               {columns.map((col, colIndex) => (
@@ -49,7 +51,10 @@ const CustomTable = ({ data, columns, actions }) => {
                   {actions.map((action, actionIndex) => (
                     <Button
                       key={actionIndex}
-                      onClick={() => action.onClick(row)}
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent row click when action button is clicked
+                        action.onClick(row);
+                      }}
                       sx={{
                         mx: 0.5,
                         backgroundColor: action.color === "error" ? "#ff4d4d" : "#28a745", // Greenish for Approve

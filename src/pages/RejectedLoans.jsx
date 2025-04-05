@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import { Box, Typography, Alert } from "@mui/material";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import contractABI from "../contracts/abi.json";
 import CustomTable from "../components/CustomTable";
 import CustomLoader from "../components/CustomLoader";
@@ -13,6 +13,7 @@ const RejectedLoans = () => {
   const [rejectedLoans, setRejectedLoans] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchRejectedLoans = async () => {
@@ -30,13 +31,23 @@ const RejectedLoans = () => {
         for (let i = 1; i < loanCount; i++) {
           const loan = await contract.loans(i);
           if (loan.lender.toLowerCase() === userAddress && loan.status.toString() === "2") {
+            // Fetch borrower profile for username and credit score
+            const borrowerProfile = await contract.getBorrowerProfile(loan.borrower);
+            const username = borrowerProfile.name;
+            const creditScore = borrowerProfile.creditScore.toString();
+
             loans.push({
               loanId: loan.loanId.toString(),
               borrower: (
-                <Link to={`/view-profile/${loan.borrower}`} style={{ color: "#d4af37", textDecoration: "none", fontWeight: "bold" }}>
-                  {loan.borrower}
+                <Link
+                  to={`/view-profile/${loan.borrower}`}
+                  onClick={(e) => e.stopPropagation()} // Prevent row click event
+                  style={{ color: "#28a745", textDecoration: "none", fontWeight: "bold" }}
+                >
+                  {username}
                 </Link>
               ),
+              creditScore, // New column for credit score
               amount: ethers.formatUnits(loan.amount, 18) + " ETH",
               interestRate: loan.interestRate.toString() + "%",
               term: loan.repaymentPeriod.toString() + " months",
@@ -56,6 +67,11 @@ const RejectedLoans = () => {
     fetchRejectedLoans();
   }, []);
 
+  const handleRowClick = (row) => {
+    // Navigate to loan status page when row (except borrower link) is clicked
+    navigate(`/loanStatus/${row.loanId}`);
+  };
+
   return (
     <Box sx={{ p: 2 }}>
       <Navbar />
@@ -74,10 +90,12 @@ const RejectedLoans = () => {
           columns={[
             { label: "Loan ID", field: "loanId" },
             { label: "Borrower", field: "borrower" },
+            { label: "Credit Score", field: "creditScore", align: "right" },
             { label: "Amount", field: "amount", align: "right" },
             { label: "Interest Rate", field: "interestRate", align: "right" },
             { label: "Term", field: "term", align: "right" },
           ]}
+          onRowClick={handleRowClick}
         />
       )}
     </Box>

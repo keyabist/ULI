@@ -9,12 +9,27 @@ const contractAddress = "0x3C749Fa9984369506F10c18869E7c51488D8134f";
 const ViewProfile = () => {
   const { userAddress } = useParams();
   const [profile, setProfile] = useState(null);
+  const [currentUserAddress, setCurrentUserAddress] = useState(null);
 
   // For toggling inline document previews
   const [showGovDoc, setShowGovDoc] = useState(false);
   const [showSignDoc, setShowSignDoc] = useState(false);
 
   useEffect(() => {
+    const fetchCurrentUser = async () => {
+      if (window.ethereum) {
+        try {
+          // Get the current user's address
+          const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+          if (accounts && accounts.length > 0) {
+            setCurrentUserAddress(accounts[0].toLowerCase());
+          }
+        } catch (error) {
+          console.error("Error getting current user:", error);
+        }
+      }
+    };
+
     const fetchProfile = async () => {
       if (window.ethereum) {
         try {
@@ -64,6 +79,7 @@ const ViewProfile = () => {
       }
     };
 
+    fetchCurrentUser();
     fetchProfile();
   }, [userAddress]);
 
@@ -78,6 +94,9 @@ const ViewProfile = () => {
   // Convert credit score to a number and clamp between 0 and 100
   const creditScoreValue = parseInt(profile.creditScore) || 0;
   const creditScorePercent = Math.min(Math.max(creditScoreValue, 0), 100);
+  
+  // Check if current user is the profile owner
+  const isProfileOwner = currentUserAddress && userAddress.toLowerCase() === currentUserAddress;
 
   return (
     <div className="profile-page">
@@ -121,6 +140,7 @@ const ViewProfile = () => {
             {/* Credit Score with hoverable progress bar */}
             <div className="info-row">
               <span className="info-label">Credit Score:</span>
+              <span className="info-value">{profile.creditScore}</span>
             </div>
             <div 
               className="progress-bar-wrapper" 
@@ -187,12 +207,14 @@ const ViewProfile = () => {
           </div>
         </div>
 
-        {/* Bottom: Edit Profile Button */}
-        <div className="edit-profile-btn-row">
-          <Link to="/edit-profile" className="edit-profile-btn">
-            Edit Profile
-          </Link>
-        </div>
+        {/* Bottom: Edit Profile Button - only shown to profile owner */}
+        {isProfileOwner && (
+          <div className="edit-profile-btn-row">
+            <Link to="/edit-profile" className="edit-profile-btn">
+              Edit Profile
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );

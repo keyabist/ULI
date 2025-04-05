@@ -6,6 +6,7 @@ import contractABI from "../contracts/abi.json";
 const CONTRACT_ADDRESS = "0x3C749Fa9984369506F10c18869E7c51488D8134f";
 
 const TransactionPage = () => {
+  // ... existing state and logic remains unchanged ...
   const { state } = useLocation();
   const navigate = useNavigate();
   // Expected state: loanId, installmentAmount, recipient, role ("lender" or "borrower")
@@ -198,17 +199,79 @@ const TransactionPage = () => {
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto bg-white rounded-xl shadow-md">
-      <h2 className="text-xl font-bold mb-4">Confirm Loan Transaction</h2>
-      <p><b>Loan ID:</b> {loanId}</p>
-      <p><b>Amount (ETH):</b> {installmentAmount}</p>
-      <p><b>Recipient Address:</b> {recipient}</p>
+    <div style={{
+      maxWidth: '600px',
+      margin: '40px auto',
+      padding: '30px',
+      background: 'linear-gradient(135deg, #0a0a0a, #222)',
+      borderRadius: '12px',
+      border: '2px solid #00ff80',
+      boxShadow: '0 0 20px 5px rgba(0, 255, 128, 0.3)',
+      color: '#d4edda',
+      fontFamily: 'Poppins, sans-serif'
+    }}>
+      <h2 style={{
+        textAlign: 'center',
+        color: '#00ff80',
+        fontSize: '1.8rem',
+        marginBottom: '25px',
+        textShadow: '0 0 10px rgba(0,255,128,0.5)'
+      }}>
+        Confirm Loan Transaction
+      </h2>
+
+      <div style={{ marginBottom: '15px' }}>
+        <p style={{ margin: '10px 0' }}>
+          <span style={{ color: '#00ff80', fontWeight: 'bold' }}>Loan ID:</span> 
+          <span style={{ marginLeft: '10px' }}>{loanId}</span>
+        </p>
+        <p style={{ margin: '10px 0' }}>
+          <span style={{ color: '#00ff80', fontWeight: 'bold' }}>Amount (ETH):</span> 
+          <span style={{ marginLeft: '10px' }}>{installmentAmount}</span>
+        </p>
+        <p style={{ margin: '10px 0' }}>
+          <span style={{ color: '#00ff80', fontWeight: 'bold' }}>Recipient:</span> 
+          <span style={{ 
+            marginLeft: '10px',
+            wordBreak: 'break-all',
+            fontFamily: 'monospace',
+            color: '#00cc66'
+          }}>
+            {recipient}
+          </span>
+        </p>
+      </div>
+
       <button
         onClick={handleTransaction}
-        className="bg-blue-500 text-white p-2 rounded mt-4"
         disabled={loading}
+        style={{
+          display: 'block',
+          width: '100%',
+          padding: '12px',
+          background: loading ? '#1a1f1f' : '#00cc66',
+          color: '#fff',
+          border: '1px solid #00ff80',
+          borderRadius: '6px',
+          fontSize: '1rem',
+          fontWeight: 'bold',
+          cursor: loading ? 'not-allowed' : 'pointer',
+          transition: 'all 0.3s ease',
+          marginTop: '20px',
+          ...(!loading && {
+            ':hover': {
+              background: '#00994d',
+              transform: 'scale(1.02)',
+              boxShadow: '0 0 15px rgba(0,255,128,0.5)'
+            }
+          })
+        }}
       >
-        {loading ? "Processing..." : "Confirm & Pay"}
+        {loading ? (
+          <span style={{ color: '#00ff80' }}>Processing Transaction...</span>
+        ) : (
+          'Confirm & Pay'
+        )}
       </button>
     </div>
   );

@@ -113,6 +113,7 @@ const EditProfileForm = () => {
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
+      const address = await signer.getAddress(); // Get current user's address
       const contract = new ethers.Contract(CONTRACT_ADDRESS, ContractABI, signer);
 
       // If new files were chosen, upload them; otherwise use the existing CID
@@ -151,7 +152,7 @@ const EditProfileForm = () => {
         await tx.wait();
       }
       alert('Profile updated successfully!');
-      navigate('/view-profile');
+      navigate(`/view-profile/${address}`);
     } catch (error) {
       console.error('Error updating profile:', error);
       alert('Error updating profile');

@@ -81,9 +81,9 @@ const RequestStatusPage = () => {
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto bg-white rounded-xl shadow-md">
+    <div className="p-6 max-w-6xl mx-auto bg-white rounded-xl shadow-md">
       <h2 className="text-xl font-bold mb-4">Your Loan Requests</h2>
-      
+
       {/* Filter Buttons */}
       <div className="mb-4 flex gap-2">
         {["all", "pending", "accepted", "rejected", "accepted_rejected"].map((filter) => (
@@ -97,24 +97,36 @@ const RequestStatusPage = () => {
         ))}
       </div>
 
-      {/* Loan Requests List */}
+      {/* Loan Requests Table */}
       {filteredRequests.length === 0 ? (
         <p>No requests found for this filter.</p>
       ) : (
-        <ul className="mt-4">
-          {filteredRequests.map((req) => (
-            <li key={req.loanId} className="border p-3 mb-2 rounded shadow-sm">
-              <strong>Loan ID:</strong> {req.loanId} <br />
-              <strong>Amount:</strong> {req.amount} <br />
-              <strong>Interest Rate:</strong> {req.interestRate} <br />
-              <strong>Repayment Period:</strong> {req.repaymentPeriod} <br />
-              <strong>Status:</strong>{" "}
-              <span className={req.status === "Accepted" ? "text-green-600 font-bold" : req.status === "Rejected" ? "text-red-600 font-bold" : ""}>
-                {req.status}
-              </span>
-            </li>
-          ))}
-        </ul>
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white border border-gray-200 shadow-md rounded-lg">
+            <thead>
+              <tr className="bg-gray-100 border-b">
+                <th className="p-2 text-left">Loan ID</th>
+                <th className="p-2 text-left">Amount</th>
+                <th className="p-2 text-left">Interest Rate</th>
+                <th className="p-2 text-left">Repayment Period</th>
+                <th className="p-2 text-left">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredRequests.map((req) => (
+                <tr key={req.loanId} className="border-b hover:bg-gray-50 cursor-pointer">
+                  <td className="p-2">{req.loanId}</td>
+                  <td className="p-2">{req.amount}</td>
+                  <td className="p-2">{req.interestRate}</td>
+                  <td className="p-2">{req.repaymentPeriod}</td>
+                  <td className={`p-2 font-bold ${req.status === "Accepted" ? "text-green-600" : req.status === "Rejected" ? "text-red-600" : "text-gray-700"}`}>
+                    {req.status}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );
