@@ -4,12 +4,14 @@ import { ethers } from "ethers";
 import contractABI from "../contracts/abi.json";
 import NavBar from "../components/navbar"; // For borrowers
 import NavbarLender from "../components/navbarLender"; // For lenders
+import AnimatedList from "../components/AnimatedList"; // New animated list component
 
 const contractAddress = "0x3C749Fa9984369506F10c18869E7c51488D8134f";
 
 const LoanStatus = () => {
   const { loanId } = useParams();
   const [loan, setLoan] = useState(null);
+  const [transactions, setTransactions] = useState([]);
   const [isBorrower, setIsBorrower] = useState(false);
   const navigate = useNavigate();
 
@@ -26,6 +28,7 @@ const LoanStatus = () => {
         const signerAddress = (await signer.getAddress()).toLowerCase();
         const contract = new ethers.Contract(contractAddress, contractABI, signer);
 
+        // Fetch loan details
         const loanData = await contract.loans(loanId);
         if (!loanData) {
           console.error("Loan data is undefined or empty!");
@@ -60,6 +63,34 @@ const LoanStatus = () => {
         });
 
         setIsBorrower(signerAddress === loanData.borrower.toLowerCase());
+
+        // Fetch transaction history for this loan (assuming your contract has a getTransactions function)
+        const txHistory = await contract.getTransactions(loanId);
+        if (txHistory && txHistory.length > 0) {
+          const formattedTransactions = txHistory.map((tx, index) => {
+            // Convert timestamp from seconds to milliseconds and create a date string
+            const date = new Date(Number(tx.timestamp) * 1000).toLocaleString();
+            const amountEth = parseFloat(ethers.formatEther(tx.amount)).toFixed(6);
+            return (
+              <div key={index} style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "4px",
+                border: "1px solid #00ff80",
+                borderRadius: "8px",
+                padding: "10px",
+                backgroundColor: "#1a1a1a"
+              }}>
+                <p style={{ margin: 0 }}><strong>Loan ID:</strong> {tx.loanId.toString()}</p>
+                <p style={{ margin: 0 }}><strong>From:</strong> {tx.from}</p>
+                <p style={{ margin: 0 }}><strong>To:</strong> {tx.to}</p>
+                <p style={{ margin: 0 }}><strong>Amount:</strong> {amountEth} ETH</p>
+                <p style={{ margin: 0 }}><strong>Timestamp:</strong> {date}</p>
+              </div>
+            );
+          });
+          setTransactions(formattedTransactions);
+        }
       } catch (error) {
         console.error("Error fetching loan details:", error);
       }
@@ -84,7 +115,7 @@ const LoanStatus = () => {
       maxWidth: "500px",
       margin: "40px auto",
       padding: "30px",
-      background: "linear-gradient(135deg, #0a0a0a, #222)",
+      background: "#2E2E2E",  // Dark grey background
       border: "2px solid #00ff80",
       borderRadius: "12px",
       boxShadow: "0 0 20px 5px rgba(0, 255, 128, 0.6)",
@@ -171,6 +202,43 @@ const LoanStatus = () => {
           Loading Loan Details...
         </p>
       )}
+
+      <div style={{ marginTop: "40px" }}>
+        <h3 style={{
+          textAlign: "center",
+          color: "#00ff80",
+          marginBottom: "20px",
+          fontSize: "1.8rem"
+        }}>
+          Transaction History
+        </h3>
+        <div style={{
+          maxHeight: "300px",
+          overflowY: "auto",
+          padding: "10px",
+          border: "1px solid #00ff80",
+          borderRadius: "8px",
+          backgroundColor: "#1a1a1a"
+        }}>
+          {transactions.length > 0 ? (
+            <AnimatedList
+              items={transactions}
+              onItemSelect={(item, index) => console.log(item, index)}
+              showGradients={true}
+              enableArrowNavigation={true}
+              displayScrollbar={true}
+            />
+          ) : (
+            <p style={{
+              textAlign: "center",
+              color: "#d4edda",
+              fontSize: "16px"
+            }}>
+              No transactions found for this loan.
+            </p>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
