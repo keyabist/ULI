@@ -5,6 +5,7 @@ import contractABI from "../contracts/abi.json";
 
 // Import the CSS file
 import "../styles/WalletConnect.css";
+import ParallaxBackground from "../components/ParallaxBG";
 
 const contractAddress = "0x3C749Fa9984369506F10c18869E7c51488D8134f";
 
@@ -105,8 +106,9 @@ const WalletConnect = () => {
   }, []);
 
   return (
-    <div className="wallet-hero">
-      <div className="wallet-content">
+    <div className="wallet-hero" style={{position: "relative", zIndex: 1}}>
+      <ParallaxBackground />
+      <div className="wallet-content" style={{position: "relative", zIndex: 2}}>
         <h1>UNIFIED LENDING INTERFACE</h1>
 
         {/* Status text */}
