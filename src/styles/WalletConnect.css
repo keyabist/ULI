@@ -1,4 +1,4 @@
-/* WalletConnect.css */
+WalletConnect.css
 
 /* 
   1. A full-height hero section 
@@ -16,6 +16,7 @@
     align-items: center;
     justify-content: center;
     overflow: hidden; /* hides any overflow if needed */
+    z-index: 3;
   
     /* Background image */
     background: url("../assets/background.png") center center / cover no-repeat;
