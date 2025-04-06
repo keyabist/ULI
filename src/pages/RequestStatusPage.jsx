@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 import contractABI from "../contracts/abi.json";
 import CustomTable from "../components/CustomTable";
 import CustomLoader from "../components/CustomLoader";
-import Navbar from "../components/navbar";
 
 const CONTRACT_ADDRESS = "0x3C749Fa9984369506F10c18869E7c51488D8134f";
 
@@ -99,7 +98,6 @@ const RequestStatusPage = () => {
 
   return (
     <Box sx={{ p: 2 }}>
-      <Navbar />
       <Typography variant="h4" gutterBottom sx={{ color: "#EAECEF" }}>
         Your Loan Requests
       </Typography>

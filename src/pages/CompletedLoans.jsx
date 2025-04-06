@@ -2,10 +2,8 @@ import { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import { Link, useNavigate } from "react-router-dom";
 import contractABI from "../contracts/abi.json";
-import NavbarLender from "../components/navbarLender";
-import NavBar from "../components/navbar";
 import CustomTable from "../components/CustomTable";
-import CustomLoader from "../components/CustomLoader"; // Assuming you have a loader component
+import CustomLoader from "../components/CustomLoader";
 import { Alert, Typography } from "@mui/material";
 
 const CONTRACT_ADDRESS = "0x3C749Fa9984369506F10c18869E7c51488D8134f";
@@ -96,8 +94,6 @@ const CompletedLoansPage = () => {
 
   return (
     <div className="p-6 max-w-4xl mx-auto bg-white rounded-xl shadow-md">
-      {userRole === "borrower" ? <NavBar /> : <NavbarLender />}
-
       <h2 className="text-xl font-bold mb-4">Completed Loans</h2>
 
       {loading ? (

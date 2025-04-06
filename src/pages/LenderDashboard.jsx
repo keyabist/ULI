@@ -6,7 +6,6 @@ import PendingActionsIcon from '@mui/icons-material/PendingActions';
 import CancelIcon from '@mui/icons-material/Cancel';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { ethers } from 'ethers';
-import Navbar from '../components/navbarLender';
 import { contractConfig } from '../contractConfig';
 import "../App.css";
 
@@ -113,11 +112,7 @@ const LenderDashboard = () => {
 
   return (
     <Box sx={{ backgroundColor: '#000', minHeight: '100vh' }}>
-      {/* Navbar */}
-      <Navbar />
-
-      {/* Main Content */}
-      <Box sx={{ p: 3,  mt: { xs: 8, md: 15 }}}>
+      <Box sx={{ p: 3, mt: { xs: 2, md: 2 }}}>
         {/* Heading & Description */}
         <Box sx={{ mb: 3, textAlign: 'left', minHeight: 100}}>
           <Typography variant="h4" sx={{ color: '#39FF14' }}>

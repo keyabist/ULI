@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ethers } from "ethers";
 import contractABI from "../contracts/abi.json";
-import NavBar from "../components/navbar";
-import "../styles/BorrowerDashboard.css"; // Import the new CSS file
+import SidebarLayout from "../components/SidebarLayout";
+import "../styles/BorrowerDashboard.css";
 
 const contractAddress = "0x3C749Fa9984369506F10c18869E7c51488D8134f";
 
@@ -126,8 +126,7 @@ const BorrowerDashboard = ({ account }) => {
   };
 
   return (
-    <>
-      <NavBar />
+    <SidebarLayout>
       <div className="dashboard">
         <div className="left-section">
           <h3>Available Lenders</h3>
@@ -190,7 +189,7 @@ const BorrowerDashboard = ({ account }) => {
           </div>
         </div>
       </div>
-    </>
+    </SidebarLayout>
   );
 };
 
