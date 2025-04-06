@@ -1,5 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { Grid, Paper, Typography, Box } from '@mui/material';
+import {
+  Grid,
+  Typography,
+  Box,
+  CircularProgress,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody
+} from '@mui/material';
 import { Link } from 'react-router-dom';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import PendingActionsIcon from '@mui/icons-material/PendingActions';
@@ -8,7 +18,8 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { ethers } from 'ethers';
 import Navbar from '../components/navbarLender';
 import { contractConfig } from '../contractConfig';
-import "../App.css";
+import '../App.css';
+import './LenderDashboard.css';
 
 const LenderDashboard = () => {
   const [stats, setStats] = useState({
@@ -16,21 +27,25 @@ const LenderDashboard = () => {
     totalPendingRequests: 0,
     totalLentAmount: '0 ETH',
     totalPendingAmount: '0 ETH',
-    totalLendingVolume: '0 ETH', // Recommended Stat: Total Lending Volume
-    averageInterestRate: '0%',   // Recommended Stat: Average Interest Rate
-    topLender: 'N/A',            // Recommended Stat: Top Lender (or Top Borrower)
+    totalLendingVolume: '0 ETH',
+    averageInterestRate: '0%',
+    topLender: 'N/A',
   });
 
   const [activeLoans, setActiveLoans] = useState([]);
   const [pendingRequests, setPendingRequests] = useState([]);
 
+  // For Borrowers Leaderboard
+  const [borrowerBoard, setBorrowerBoard] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch loans for this lender and compute stats
   useEffect(() => {
     const fetchLoansForLender = async () => {
       if (!window.ethereum) {
         console.error('MetaMask is not installed.');
         return;
       }
-
       try {
         const provider = new ethers.BrowserProvider(window.ethereum);
         const signer = await provider.getSigner();
@@ -56,10 +71,12 @@ const LenderDashboard = () => {
             const status = Number(loan.status);
             const amount = parseFloat(ethers.formatUnits(loan.amount, 'ether'));
             lendingVolume += amount;
+
             if (loan.interestRate) {
               interestTotal += Number(loan.interestRate);
               interestCount++;
             }
+
             if (status === 0) {
               tempPending.push(loan);
             } else if (status === 1) {
@@ -73,6 +90,7 @@ const LenderDashboard = () => {
 
         setPendingRequests(tempPending);
         setActiveLoans(tempActive);
+
         setStats({
           totalActiveLoans: tempActive.length,
           totalPendingRequests: tempPending.length,
@@ -92,221 +110,242 @@ const LenderDashboard = () => {
     fetchLoansForLender();
   }, []);
 
-  // Overview boxes for the non-clickable section
+  // Fetch and build the Borrowers Leaderboard
+  useEffect(() => {
+    const fetchBorrowers = async () => {
+      if (!window.ethereum) {
+        console.error('MetaMask is not installed.');
+        setLoading(false);
+        return;
+      }
+      try {
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+        const contract = new ethers.Contract(
+          contractConfig.contractAddress,
+          contractConfig.abi,
+          signer
+        );
+
+        const borrowers = await contract.getAllBorrowers();
+        const borrowerProfiles = await Promise.all(
+          borrowers.map(async (addr) => {
+            try {
+              const profile = await contract.getBorrowerProfile(addr);
+              return {
+                address: addr,
+                name: profile.name,
+                creditScore: Number(profile.creditScore),
+              };
+            } catch (error) {
+              console.error('Error fetching borrower profile:', error);
+              return null;
+            }
+          })
+        );
+
+        const validBorrowers = borrowerProfiles.filter((profile) => profile !== null);
+        const sortedBorrowers = validBorrowers
+          .sort((a, b) => b.creditScore - a.creditScore)
+          .slice(0, 5);
+
+        setBorrowerBoard(sortedBorrowers);
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching borrower data:', err);
+        setLoading(false);
+      }
+    };
+
+    fetchBorrowers();
+  }, []);
+
+  // Overview boxes for non-clickable section
   const overviewBoxes = [
     {
-      title: "Lending Volume",
+      title: 'Lending Volume',
       value: stats.totalLendingVolume,
-      description: "ETH Lent",
+      description: 'ETH Lent',
     },
     {
-      title: "Avg. Rate",
+      title: 'Avg. Rate',
       value: stats.averageInterestRate,
-      description: "Across Loans",
+      description: 'Across Loans',
     },
     {
-      title: "Top Lender",
+      title: 'Top Lender',
       value: stats.topLender,
-      description: "Your ID",
+      description: 'Your ID',
     },
   ];
 
   return (
-    <Box sx={{ backgroundColor: '#000', minHeight: '100vh' }}>
+    <div className="lender-dashboard">
       {/* Navbar */}
       <Navbar />
 
       {/* Main Content */}
-      <Box sx={{ p: 3,  mt: { xs: 8, md: 15 }}}>
+      <div className="dashboard-content">
         {/* Heading & Description */}
-        <Box sx={{ mb: 3, textAlign: 'left', minHeight: 100}}>
-          <Typography variant="h4" sx={{ color: '#39FF14' }}>
-            Unified Lending Interface
+        <div className="heading">
+          <Typography variant="h4">
+            Welcome to Lenders Dashboard
           </Typography>
-          <Typography variant="subtitle1" sx={{ color: '#fff', mt: 1 }}>
+          <Typography variant="subtitle1">
             A comprehensive overview of your loan portfolio and performance metrics.
           </Typography>
-        </Box>
+        </div>
 
-        {/* Row: Non-Clickable Boxes (Overview) and Stats Panel */}
-        <Grid container spacing={2} alignItems="flex-start">
-          {/* Non-Clickable Overview Boxes */}
+        {/* Row: Overview Boxes and Leaderboard Panel */}
+        <Grid container spacing={2}>
+          {/* Overview Boxes */}
           <Grid item xs={12} md={8}>
-            <Grid container spacing={2}>
+            <div className="overview-container">
               {overviewBoxes.map((box, idx) => (
-                <Grid item xs={12} sm={4} key={idx}>
-                  <Paper
-                    sx={{
-                      p: 1,
-                      backgroundColor: '#222',
-                      color: '#fff',
-                      textAlign: 'center',
-                    }}
-                    elevation={3}
-                  >
-                    <Typography variant="caption" sx={{ color: '#39FF14' }}>
-                      {box.title}
-                    </Typography>
-                    <Typography variant="h6">{box.value}</Typography>
-                    <Typography variant="caption">{box.description}</Typography>
-                  </Paper>
-                </Grid>
+                <div className="overview-box" key={idx}>
+                  <Typography className="title" variant="caption">
+                    {box.title}
+                  </Typography>
+                  <Typography className="value" variant="h6">
+                    {box.value}
+                  </Typography>
+                  <Typography className="description" variant="caption">
+                    {box.description}
+                  </Typography>
+                </div>
               ))}
-            </Grid>
+            </div>
           </Grid>
 
-          {/* Additional Stats Panel */}
+          {/* Leaderboard Box - same style as overview boxes */}
           <Grid item xs={12} md={4}>
-            <Paper
-              sx={{
-                p: 2,
-                backgroundColor: '#222',
-                color: '#fff',
-              }}
-              elevation={3}
-            >
-              <Typography variant="h6" gutterBottom>
-                Additional Statistics
+            <div className="overview-box" style={{ height: '100%' }}>
+              <Typography variant="h6" gutterBottom style={{ color: '#39FF14' }}>
+                Top Borrowers
               </Typography>
-              <Box sx={{ mb: 1 }}>
-                <Typography variant="caption">Total Lending Volume</Typography>
-                <Typography variant="subtitle1">{stats.totalLendingVolume}</Typography>
+              <Box sx={{ maxHeight: '250px', overflowY: 'auto' }}>
+                {loading ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+                    <CircularProgress sx={{ color: '#39FF14' }} />
+                  </Box>
+                ) : (
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell sx={{ color: '#39FF14', fontWeight: 'bold' }}>Rank</TableCell>
+                        <TableCell sx={{ color: '#39FF14', fontWeight: 'bold' }}>Name</TableCell>
+                        <TableCell align="right" sx={{ color: '#39FF14', fontWeight: 'bold' }}>
+                          Credit Score
+                        </TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {borrowerBoard.length > 0 ? (
+                        borrowerBoard.map((borrower, index) => (
+                          <TableRow key={index}>
+                            <TableCell sx={{ color: '#ccc' }}>{index + 1}</TableCell>
+                            <TableCell sx={{ color: '#ccc' }}>
+                              {borrower.name || 'Anonymous'}
+                            </TableCell>
+                            <TableCell align="right" sx={{ color: '#ccc' }}>
+                              {borrower.creditScore}
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={3} sx={{ textAlign: 'center', color: '#666' }}>
+                            No borrowers found
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                )}
               </Box>
-              <Box sx={{ mb: 1 }}>
-                <Typography variant="caption">Average Interest Rate</Typography>
-                <Typography variant="subtitle1">{stats.averageInterestRate}</Typography>
-              </Box>
-              <Box>
-                <Typography variant="caption">Top Lender</Typography>
-                <Typography variant="subtitle1">{stats.topLender}</Typography>
-              </Box>
-            </Paper>
+            </div>
           </Grid>
         </Grid>
 
         {/* Spacing */}
-        <Box sx={{ mt: 4 }} />
+        <div className="spacing" />
 
         {/* Row: Clickable Boxes */}
         <Grid container spacing={3}>
           {/* Active Loans */}
           <Grid item xs={12} sm={6} md={3}>
-            <Paper
-              sx={{
-                p: 2,
-                display: 'flex',
-                flexDirection: 'column',
-                cursor: 'pointer',
-                backgroundColor: '#222',
-                color: '#fff',
-                height: 130,
-                transition: 'transform 0.2s',
-                '&:hover': { transform: 'scale(1.05)' },
-              }}
-              component={Link}
-              to="/activeLoans"
-              elevation={3}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <AccountBalanceIcon sx={{ mr: 1, fontSize: 30, color: '#39FF14' }} />
-                <Typography variant="subtitle1">Active</Typography>
+            <div className="clickable-box" component={Link} to="/activeLoans">
+              <Box className="box-header">
+                <AccountBalanceIcon className="icon" />
+                <Typography variant="subtitle1" className="header-text">
+                  Active
+                </Typography>
               </Box>
-              <Typography variant="h5">{stats.totalActiveLoans}</Typography>
-              <Typography variant="caption" sx={{ mt: 'auto' }}>
+              <Typography className="value" variant="h5">
+                {stats.totalActiveLoans}
+              </Typography>
+              <Typography className="caption" variant="caption">
                 {stats.totalLentAmount}
               </Typography>
-            </Paper>
+            </div>
           </Grid>
 
           {/* Pending Requests */}
           <Grid item xs={12} sm={6} md={3}>
-            <Paper
-              sx={{
-                p: 2,
-                display: 'flex',
-                flexDirection: 'column',
-                cursor: 'pointer',
-                backgroundColor: '#222',
-                color: '#fff',
-                height: 130,
-                transition: 'transform 0.2s',
-                '&:hover': { transform: 'scale(1.05)' },
-              }}
-              component={Link}
-              to="/pendingRequests"
-              elevation={3}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <PendingActionsIcon sx={{ mr: 1, fontSize: 30, color: '#39FF14' }} />
-                <Typography variant="subtitle1">Pending</Typography>
+            <div className="clickable-box" component={Link} to="/pendingRequests">
+              <Box className="box-header">
+                <PendingActionsIcon className="icon" />
+                <Typography variant="subtitle1" className="header-text">
+                  Pending
+                </Typography>
               </Box>
-              <Typography variant="h5">{stats.totalPendingRequests}</Typography>
-              <Typography variant="caption" sx={{ mt: 'auto' }}>
+              <Typography className="value" variant="h5">
+                {stats.totalPendingRequests}
+              </Typography>
+              <Typography className="caption" variant="caption">
                 {stats.totalPendingAmount}
               </Typography>
-            </Paper>
+            </div>
           </Grid>
 
           {/* Rejected Loans */}
           <Grid item xs={12} sm={6} md={3}>
-            <Paper
-              sx={{
-                p: 2,
-                display: 'flex',
-                flexDirection: 'column',
-                cursor: 'pointer',
-                backgroundColor: '#222',
-                color: '#fff',
-                height: 130,
-                transition: 'transform 0.2s',
-                '&:hover': { transform: 'scale(1.05)' },
-              }}
-              component={Link}
-              to="/rejectedLoans"
-              elevation={3}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <CancelIcon sx={{ mr: 1, fontSize: 30, color: '#f44336' }} />
-                <Typography variant="subtitle1">Rejected</Typography>
+            <div className="clickable-box" component={Link} to="/rejectedLoans">
+              <Box className="box-header">
+                <CancelIcon className="icon" />
+                <Typography variant="subtitle1" className="header-text">
+                  Rejected
+                </Typography>
               </Box>
-              <Typography variant="h5">0</Typography>
-              <Typography variant="caption" sx={{ mt: 'auto' }}>
+              <Typography className="value" variant="h5">
+                0
+              </Typography>
+              <Typography className="caption" variant="caption">
                 0 ETH
               </Typography>
-            </Paper>
+            </div>
           </Grid>
 
           {/* Completed Loans */}
           <Grid item xs={12} sm={6} md={3}>
-            <Paper
-              sx={{
-                p: 2,
-                display: 'flex',
-                flexDirection: 'column',
-                cursor: 'pointer',
-                backgroundColor: '#222',
-                color: '#fff',
-                height: 130,
-                transition: 'transform 0.2s',
-                '&:hover': { transform: 'scale(1.05)' },
-              }}
-              component={Link}
-              to="/completedLoans"
-              elevation={3}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <CheckCircleIcon sx={{ mr: 1, fontSize: 30, color: '#4caf50' }} />
-                <Typography variant="subtitle1">Completed</Typography>
+            <div className="clickable-box" component={Link} to="/completedLoans">
+              <Box className="box-header">
+                <CheckCircleIcon className="icon" />
+                <Typography variant="subtitle1" className="header-text">
+                  Completed
+                </Typography>
               </Box>
-              <Typography variant="h5">0</Typography>
-              <Typography variant="caption" sx={{ mt: 'auto' }}>
+              <Typography className="value" variant="h5">
+                0
+              </Typography>
+              <Typography className="caption" variant="caption">
                 0 ETH
               </Typography>
-            </Paper>
+            </div>
           </Grid>
         </Grid>
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 };
 
