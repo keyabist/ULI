@@ -3,6 +3,15 @@ import { useNavigate } from "react-router-dom";
 import { ethers } from "ethers";
 import contractABI from "../contracts/abi.json";
 import NavBar from "../components/navbar";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+} from '@mui/material';
 import "../styles/BorrowerDashboard.css"; // Ensure the path is correct
 
 const contractAddress = "0x3C749Fa9984369506F10c18869E7c51488D8134f";
@@ -266,27 +275,53 @@ const BorrowerDashboard = ({ account }) => {
           </div>
 
           {/* Middle: Ongoing Loans */}
-          <div className="right-middle">
+          <div className="right-middle" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <h3>Ongoing Loans</h3>
-            <div className="list-container ongoing-list">
+            <div className="list-container ongoing-list" style={{ width: '80%' }}>
               {ongoingLoans.length === 0 ? (
                 <p>No Loans Found</p>
               ) : (
-                ongoingLoans.map((loan, index) => (
-                  <div
-                    key={index}
-                    className="lender-box"
-                    onClick={() => navigate(`/loanStatus/${loan.id}`)}
-                  >
-                    <p>Loan ID: {loan.id}</p>
-                    <p>Amount: {loan.amount}</p>
-                    <p>Interest: {loan.interestRate}</p>
-                    <p>Duration: {loan.duration}</p>
-                  </div>
-                ))
+                <TableContainer component={Paper} sx={{ backgroundColor: '#111', borderRadius: '12px' }}>
+                  <Table sx={{ minWidth: 400 }} aria-label="ongoing loans table">
+                    <TableHead>
+                      <TableRow>
+                        {['Loan ID', 'Amount', 'Interest', 'Duration'].map((heading, idx) => (
+                          <TableCell
+                            key={idx}
+                            sx={{
+                              color: '#0f0',
+                              border: '2px solid #0f0',
+                              textAlign: 'center',
+                              boxShadow: '0 0 8px #0f0',
+                            }}
+                          >
+                            {heading}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {ongoingLoans.map((loan, index) => (
+                        <TableRow
+                          key={index}
+                          hover
+                          sx={{ cursor: 'pointer' }}
+                          onClick={() => navigate(`/loanStatus/${loan.id}`)}
+                        >
+                          <TableCell sx={{ color: '#0f0', border: '2px solid #0f0', textAlign: 'center' }}>{loan.id}</TableCell>
+                          <TableCell sx={{ color: '#0f0', border: '2px solid #0f0', textAlign: 'center' }}>{loan.amount}</TableCell>
+                          <TableCell sx={{ color: '#0f0', border: '2px solid #0f0', textAlign: 'center' }}>{loan.interestRate}</TableCell>
+                          <TableCell sx={{ color: '#0f0', border: '2px solid #0f0', textAlign: 'center' }}>{loan.duration}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
               )}
             </div>
           </div>
+
+
 
           {/* Bottom: Two large boxes as buttons */}
           <div className="right-bottom">
