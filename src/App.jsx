@@ -29,13 +29,13 @@ function App() {
         <Routes>
           {/* Public Routes (No Sidebar) */}
           <Route path="/" element={<WalletConnect />} />
-          <Route path="/splash" element={<Intro />} />
           <Route path="/registrationForm" element={<RegistrationForm />} />
           <Route path="/requestForm" element={<LoanRequestForm />} />
           <Route path="/completeProfile" element={<CompleteProfile />} />
 
           {/* Routes with Sidebar */}
           <Route element={<SidebarLayout />}>
+            <Route path="/home" element={<Intro />} />
             <Route path="/lenderDashboard" element={<LenderDashboard />} />
             <Route path="/borrowerDashboard" element={<BorrowerDashboard />} />
             <Route path="/edit-profile" element={<EditProfileForm />} />

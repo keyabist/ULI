@@ -72,7 +72,7 @@ const WalletConnect = () => {
       console.log("Borrower Data:", borrowerData);
       console.log("Lender Data:", lenderData);
 
-      navigate('/splash');
+      navigate('/home');
     } catch (error) {
       console.error("Error connecting to MetaMask:", error);
       setStatus("Error connecting to Wallet");

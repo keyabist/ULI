@@ -33,8 +33,8 @@ const Sidebar = () => {
         <h2 className="sidebar-title">ULI</h2>
         <nav>
           <div 
-            className={`nav-item ${location.pathname === "/" ? "active-link" : ""}`}
-            onClick={() => handleNavigation("/")}
+            className={`nav-item ${location.pathname === "/home" ? "active-link" : ""}`}
+            onClick={() => handleNavigation("/home")}
           >
             <HomeIcon /> Home
           </div>

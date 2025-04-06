@@ -10,15 +10,7 @@ import {
   TableRow,
   TableCell,
   TableBody,
-  CircularProgress,
-  Drawer,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  Toolbar,
-  Divider
+  CircularProgress
 } from '@mui/material';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
@@ -31,8 +23,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ethers } from 'ethers';
 import { contractConfig } from '../contractConfig';
 
-const drawerWidth = 240;
-
 const Intro = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -41,7 +31,7 @@ const Intro = () => {
   const [activeLoans, setActiveLoans] = useState(0);
   const [borrowerBoard, setBorrowerBoard] = useState([]);
   const [lenderBoard, setLenderBoard] = useState([]);
-  const [userType, setUserType] = useState(null); // 'borrower', 'lender', or null
+  const [userType, setUserType] = useState(null);
 
   // Check if user is registered as borrower or lender
   useEffect(() => {
@@ -212,362 +202,104 @@ const Intro = () => {
   };
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', backgroundColor: '#000', color: '#fff' }}>
-      {/* Left Sidebar */}
-      <Drawer
-        variant="permanent"
-        sx={{
-          width: drawerWidth,
-          flexShrink: 0,
-          '& .MuiDrawer-paper': {
-            width: drawerWidth,
-            boxSizing: 'border-box',
-            backgroundColor: '#111',
-            color: '#fff',
-          },
-        }}
-      >
-        <Toolbar sx={{ justifyContent: 'center' }}>
-          <Typography variant="h6" sx={{ color: '#39FF14', fontWeight: 'bold' }}>
-            Dashboard
-          </Typography>
-        </Toolbar>
-        <Divider sx={{ backgroundColor: '#333' }} />
-        <List>
-          <ListItem disablePadding>
-            <ListItemButton component={Link} to="/">
-              <ListItemIcon>
-                <DashboardIcon sx={{ color: '#39FF14' }} />
-              </ListItemIcon>
-              <ListItemText primary="Dashboard" />
-            </ListItemButton>
-          </ListItem>
-          <ListItem disablePadding>
-            <ListItemButton onClick={handleFundManagementClick}>
-              <ListItemIcon>
-                <AccountBalanceIcon sx={{ color: '#39FF14' }} />
-              </ListItemIcon>
-              <ListItemText primary="Fund Management" />
-            </ListItemButton>
-          </ListItem>
-          <ListItem disablePadding>
-            <ListItemButton component={Link} to="/loans">
-              <ListItemIcon>
-                <AccountBalanceWalletIcon sx={{ color: '#39FF14' }} />
-              </ListItemIcon>
-              <ListItemText primary="Loans" />
-            </ListItemButton>
-          </ListItem>
-          <ListItem disablePadding>
-            <ListItemButton component={Link} to="/profile">
-              <ListItemIcon>
-                <PersonIcon sx={{ color: '#39FF14' }} />
-              </ListItemIcon>
-              <ListItemText primary="Profile" />
-            </ListItemButton>
-          </ListItem>
-          <ListItem disablePadding>
-            <ListItemButton component={Link} to="/analytics">
-              <ListItemIcon>
-                <AnalyticsIcon sx={{ color: '#39FF14' }} />
-              </ListItemIcon>
-              <ListItemText primary="Analytics" />
-            </ListItemButton>
-          </ListItem>
-          <ListItem disablePadding>
-            <ListItemButton component={Link} to="/settings">
-              <ListItemIcon>
-                <SettingsIcon sx={{ color: '#39FF14' }} />
-              </ListItemIcon>
-              <ListItemText primary="Settings" />
-            </ListItemButton>
-          </ListItem>
-        </List>
-      </Drawer>
-
-      {/* Main Content */}
-      <Box component="main" sx={{ flexGrow: 1, p: 3, ml: `${drawerWidth}px` }}>
-        {/* Blockchain Badge */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-          <LinkIcon sx={{ color: '#39FF14' }} />
-          <Typography variant="body2" sx={{ color: '#39FF14', fontWeight: 500 }}>
-            Blockchain Powered Lending
-          </Typography>
+    <Box sx={{ flexGrow: 1, p: 3 }}>
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+          <CircularProgress sx={{ color: '#39FF14' }} />
         </Box>
-
-        {/* Header Section */}
-        <Box sx={{ mb: 4 }}>
-          <Typography variant="h4" sx={{ color: '#39FF14', fontWeight: 'bold', mb: 1 }}>
-            ULI : <span style={{ fontWeight: 300, color: '#fff' }}>Transparency &amp; Trust</span>
+      ) : (
+        <>
+          {/* Platform Stats */}
+          <Typography variant="h4" sx={{ color: '#39FF14', mb: 3 }}>
+            Platform Overview
           </Typography>
-          <Typography variant="subtitle1" sx={{ mb: 3, maxWidth: 800 }}>
-            A decentralized platform that revolutionizes lending through transparent transactions and accountable
-            fund management on the blockchain. ULI leverages decentralized identity for secured loan transactions with smart contracts
-            automating disbursement and repayment schedules.
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <Button
-              variant="contained"
-              onClick={handleDashboardClick}
-              sx={{
-                backgroundColor: '#39FF14',
-                color: '#000',
-                fontWeight: 'bold',
-                '&:hover': { backgroundColor: '#2ecc71' },
-                px: 3,
-                py: 1,
-                borderRadius: 2,
-              }}
-            >
-              Dashboard
-            </Button>
-          </Box>
-        </Box>
-
-        {/* Public Treasury / Dynamic Stats Section */}
-        <Paper sx={{ p: 3, backgroundColor: '#111', mb: 4 }} elevation={3}>
-          <Typography variant="h6" sx={{ color: '#39FF14', mb: 2 }}>
-            Overall Stats
-          </Typography>
-          <Grid container spacing={2}>
+          <Grid container spacing={3} sx={{ mb: 4 }}>
             <Grid item xs={12} sm={4}>
-              <Paper sx={{ p: 2, backgroundColor: '#000', textAlign: 'center' }}>
-                <Typography variant="body1" sx={{ color: '#39FF14', fontWeight: 'bold' }}>
-                  Total Users
-                </Typography>
-                {loading ? (
-                  <CircularProgress size={40} sx={{ color: '#39FF14', mt: 2 }} />
-                ) : (
-                  <Typography variant="h4" sx={{ color: '#fff', mt: 1 }}>
-                    {totalUsers}
-                  </Typography>
-                )}
+              <Paper sx={{
+                p: 3,
+                backgroundColor: '#111',
+                color: '#fff',
+                textAlign: 'center'
+              }}>
+                <Typography variant="h6" sx={{ color: '#39FF14' }}>Total Users</Typography>
+                <Typography variant="h4">{totalUsers}</Typography>
               </Paper>
             </Grid>
             <Grid item xs={12} sm={4}>
-              <Paper sx={{ p: 2, backgroundColor: '#000', textAlign: 'center' }}>
-                <Typography variant="body1" sx={{ color: '#39FF14', fontWeight: 'bold' }}>
-                  Total Loans
-                </Typography>
-                {loading ? (
-                  <CircularProgress size={40} sx={{ color: '#39FF14', mt: 2 }} />
-                ) : (
-                  <Typography variant="h4" sx={{ color: '#fff', mt: 1 }}>
-                    {totalLoans}
-                  </Typography>
-                )}
+              <Paper sx={{
+                p: 3,
+                backgroundColor: '#111',
+                color: '#fff',
+                textAlign: 'center'
+              }}>
+                <Typography variant="h6" sx={{ color: '#39FF14' }}>Total Loans</Typography>
+                <Typography variant="h4">{totalLoans}</Typography>
               </Paper>
             </Grid>
             <Grid item xs={12} sm={4}>
-              <Paper sx={{ p: 2, backgroundColor: '#000', textAlign: 'center' }}>
-                <Typography variant="body1" sx={{ color: '#39FF14', fontWeight: 'bold' }}>
-                  Active Loans
-                </Typography>
-                {loading ? (
-                  <CircularProgress size={40} sx={{ color: '#39FF14', mt: 2 }} />
-                ) : (
-                  <Typography variant="h4" sx={{ color: '#fff', mt: 1 }}>
-                    {activeLoans}
-                  </Typography>
-                )}
+              <Paper sx={{
+                p: 3,
+                backgroundColor: '#111',
+                color: '#fff',
+                textAlign: 'center'
+              }}>
+                <Typography variant="h6" sx={{ color: '#39FF14' }}>Active Loans</Typography>
+                <Typography variant="h4">{activeLoans}</Typography>
               </Paper>
             </Grid>
           </Grid>
-        </Paper>
 
-        {/* Leadership Boards */}
-        <Box sx={{ mb: 4 }}>
-          <Typography variant="h5" sx={{ color: '#39FF14', mb: 2 }}>
-            Leadership Boards
-          </Typography>
+          {/* Leaderboards */}
           <Grid container spacing={4}>
-            {/* Top Borrowers */}
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 3, backgroundColor: '#111' }} elevation={3}>
-                <Typography variant="h6" sx={{ color: '#39FF14', mb: 3 }}>
+              <Paper sx={{ p: 3, backgroundColor: '#111' }}>
+                <Typography variant="h6" sx={{ color: '#39FF14', mb: 2 }}>
                   Top Borrowers
                 </Typography>
-                {loading ? (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-                    <CircularProgress sx={{ color: '#39FF14' }} />
-                  </Box>
-                ) : (
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell sx={{ color: '#39FF14', fontWeight: 'bold' }}>Rank</TableCell>
-                        <TableCell sx={{ color: '#39FF14', fontWeight: 'bold' }}>Name</TableCell>
-                        <TableCell align="right" sx={{ color: '#39FF14', fontWeight: 'bold' }}>Credit Score</TableCell>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell sx={{ color: '#fff' }}>Name</TableCell>
+                      <TableCell sx={{ color: '#fff' }}>Credit Score</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {borrowerBoard.map((borrower, index) => (
+                      <TableRow key={index}>
+                        <TableCell sx={{ color: '#fff' }}>{borrower.name}</TableCell>
+                        <TableCell sx={{ color: '#fff' }}>{borrower.creditScore}</TableCell>
                       </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {borrowerBoard.length > 0 ? (
-                        borrowerBoard.map((borrower, index) => (
-                          <TableRow key={index}>
-                            <TableCell sx={{ color: '#fff' }}>{index + 1}</TableCell>
-                            <TableCell sx={{ color: '#fff' }}>{borrower.name || 'Anonymous'}</TableCell>
-                            <TableCell align="right" sx={{ color: '#fff' }}>
-                              {borrower.creditScore}
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      ) : (
-                        <TableRow>
-                          <TableCell colSpan={3} sx={{ textAlign: 'center', color: '#999' }}>
-                            No borrowers found
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                )}
+                    ))}
+                  </TableBody>
+                </Table>
               </Paper>
             </Grid>
-
-            {/* Top Lenders */}
             <Grid item xs={12} md={6}>
-              <Paper sx={{ p: 3, backgroundColor: '#111' }} elevation={3}>
-                <Typography variant="h6" sx={{ color: '#39FF14', mb: 3 }}>
+              <Paper sx={{ p: 3, backgroundColor: '#111' }}>
+                <Typography variant="h6" sx={{ color: '#39FF14', mb: 2 }}>
                   Top Lenders
                 </Typography>
-                {loading ? (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-                    <CircularProgress sx={{ color: '#39FF14' }} />
-                  </Box>
-                ) : (
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell sx={{ color: '#39FF14', fontWeight: 'bold' }}>Rank</TableCell>
-                        <TableCell sx={{ color: '#39FF14', fontWeight: 'bold' }}>Name</TableCell>
-                        <TableCell align="right" sx={{ color: '#39FF14', fontWeight: 'bold' }}>Credit Score</TableCell>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell sx={{ color: '#fff' }}>Name</TableCell>
+                      <TableCell sx={{ color: '#fff' }}>Credit Score</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {lenderBoard.map((lender, index) => (
+                      <TableRow key={index}>
+                        <TableCell sx={{ color: '#fff' }}>{lender.name}</TableCell>
+                        <TableCell sx={{ color: '#fff' }}>{lender.creditScore}</TableCell>
                       </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {lenderBoard.length > 0 ? (
-                        lenderBoard.map((lender, index) => (
-                          <TableRow key={index}>
-                            <TableCell sx={{ color: '#fff' }}>{index + 1}</TableCell>
-                            <TableCell sx={{ color: '#fff' }}>{lender.name || 'Anonymous'}</TableCell>
-                            <TableCell align="right" sx={{ color: '#fff' }}>
-                              {lender.creditScore}
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      ) : (
-                        <TableRow>
-                          <TableCell colSpan={3} sx={{ textAlign: 'center', color: '#999' }}>
-                            No lenders found
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                )}
+                    ))}
+                  </TableBody>
+                </Table>
               </Paper>
             </Grid>
           </Grid>
-        </Box>
-
-        {/* Feature Sections */}
-        <Box sx={{ mb: 4 }}>
-          <Typography variant="h5" sx={{ color: '#39FF14', mb: 2 }}>
-            Platform Features
-          </Typography>
-          <Grid container spacing={4}>
-            <Grid item xs={12} sm={4}>
-              <Paper sx={{ p: 3, backgroundColor: '#111' }} elevation={3}>
-                <Box
-                  sx={{
-                    width: 50,
-                    height: 50,
-                    borderRadius: 2,
-                    backgroundColor: '#000',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    mb: 2
-                  }}
-                >
-                  <DashboardIcon sx={{ color: '#39FF14' }} />
-                </Box>
-                <Typography variant="h6" sx={{ color: '#39FF14', mb: 1 }}>
-                  Decentralized Lending
-                </Typography>
-                <Typography variant="body2" sx={{ color: '#fff' }}>
-                  Direct peer-to-peer loans without intermediaries. Secure, transparent, and efficient transactions using blockchain technology.
-                </Typography>
-              </Paper>
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <Paper sx={{ p: 3, backgroundColor: '#111' }} elevation={3}>
-                <Box
-                  sx={{
-                    width: 50,
-                    height: 50,
-                    borderRadius: 2,
-                    backgroundColor: '#000',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    mb: 2
-                  }}
-                >
-                  <AnalyticsIcon sx={{ color: '#39FF14' }} />
-                </Box>
-                <Typography variant="h6" sx={{ color: '#39FF14', mb: 1 }}>
-                  ML-Powered Verification
-                </Typography>
-                <Typography variant="body2" sx={{ color: '#fff' }}>
-                  Advanced machine learning models to verify documents and streamline the loan process, increasing transparency and accessibility.
-                </Typography>
-              </Paper>
-            </Grid>
-            <Grid item xs={12} sm={4}>
-              <Paper sx={{ p: 3, backgroundColor: '#111' }} elevation={3}>
-                <Box
-                  sx={{
-                    width: 50,
-                    height: 50,
-                    borderRadius: 2,
-                    backgroundColor: '#000',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    mb: 2
-                  }}
-                >
-                  <AccountBalanceWalletIcon sx={{ color: '#39FF14' }} />
-                </Box>
-                <Typography variant="h6" sx={{ color: '#39FF14', mb: 1 }}>
-                  Smart Contracts
-                </Typography>
-                <Typography variant="body2" sx={{ color: '#fff' }}>
-                  Automated loan agreements with predefined terms and conditions that execute without human intervention, secured by blockchain.
-                </Typography>
-              </Paper>
-            </Grid>
-          </Grid>
-        </Box>
-
-        {/* Disconnect Wallet Button */}
-        <Button
-          variant="contained"
-          fullWidth
-          onClick={handleDisconnectWallet}
-          sx={{
-            backgroundColor: '#ef4444',
-            color: '#fff',
-            fontWeight: 'bold',
-            py: 1.5,
-            borderRadius: 2,
-            '&:hover': { backgroundColor: '#dc2626' }
-          }}
-        >
-          <AccountBalanceWalletIcon sx={{ mr: 1 }} />
-          Disconnect Wallet
-        </Button>
-      </Box>
+        </>
+      )}
     </Box>
   );
 };
