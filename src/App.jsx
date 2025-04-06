@@ -17,6 +17,7 @@ import ViewProfile from './pages/ViewProfile.jsx';
 import RequestStatusPage from './pages/RequestStatusPage.jsx';
 import RejectedLoansPage from './pages/RejectedLoans.jsx';
 import CompletedLoansPage from './pages/CompletedLoans.jsx';
+import Intro from './pages/SplashScreen.jsx';
 
 function App() {
   return (
@@ -39,6 +40,7 @@ function App() {
           <Route path='/requestStatusPage' element={<RequestStatusPage />} />
           <Route path='/rejectedLoansPage' element={<RejectedLoansPage />} />
           <Route path='/completedLoansPage' element={<CompletedLoansPage />} />
+          <Route path='/splashScreen' element={<Intro />} />
         </Routes>
       </div>
     </Router>

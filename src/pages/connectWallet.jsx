@@ -72,16 +72,7 @@ const WalletConnect = () => {
       console.log("Borrower Data:", borrowerData);
       console.log("Lender Data:", lenderData);
 
-      if (borrowerData.isRegistered) {
-        navigate("/borrowerDashboard");
-      } else if (
-        lenderData.isRegistered &&
-        lenderData.lenderAddress !== ethers.ZeroAddress
-      ) {
-        navigate("/lenderDashboard");
-      } else {
-        navigate("/registrationForm");
-      }
+      navigate('/splashScreen');
     } catch (error) {
       console.error("Error connecting to MetaMask:", error);
       setStatus("Error connecting to Wallet");
