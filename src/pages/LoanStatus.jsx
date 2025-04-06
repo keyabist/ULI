@@ -25,6 +25,7 @@ const LoanStatus = () => {
         const signerAddress = (await signer.getAddress()).toLowerCase();
         const contract = new ethers.Contract(contractAddress, contractABI, signer);
 
+        // Fetch loan details
         const loanData = await contract.loans(loanId);
         if (!loanData) {
           console.error("Loan data is undefined or empty!");

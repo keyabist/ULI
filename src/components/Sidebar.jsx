@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import MenuIcon from "@mui/icons-material/Menu";
 import HomeIcon from "@mui/icons-material/Home";
 import PersonIcon from "@mui/icons-material/Person";
@@ -8,10 +8,16 @@ import "../styles/Sidebar.css";
 
 const Sidebar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
+  };
+
+  const handleNavigation = (path) => {
+    navigate(path);
+    setIsOpen(false);
   };
 
   return (
@@ -26,15 +32,24 @@ const Sidebar = () => {
       <div className={`sidebar ${isOpen ? 'open' : 'closed'}`}>
         <h2 className="sidebar-title">ULI</h2>
         <nav>
-          <Link to="/" className={location.pathname === "/" ? "active-link" : ""}>
+          <div 
+            className={`nav-item ${location.pathname === "/" ? "active-link" : ""}`}
+            onClick={() => handleNavigation("/")}
+          >
             <HomeIcon /> Home
-          </Link>
-          <Link to="/view-profile" className={location.pathname.includes("/view-profile") ? "active-link" : ""}>
+          </div>
+          <div 
+            className={`nav-item ${location.pathname.includes("/profile") ? "active-link" : ""}`}
+            onClick={() => handleNavigation("/view-profile")}
+          >
             <PersonIcon /> Profile
-          </Link>
-          <Link to="/lenderDashboard" className={location.pathname === "/lenderDashboard" ? "active-link" : ""}>
+          </div>
+          <div 
+            className={`nav-item ${location.pathname.includes("Dashboard") ? "active-link" : ""}`}
+            onClick={() => handleNavigation("/borrowerDashboard")}
+          >
             <DashboardIcon /> Dashboard
-          </Link>
+          </div>
         </nav>
       </div>
     </>

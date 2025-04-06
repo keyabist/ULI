@@ -17,6 +17,7 @@ import LoanStatus from './pages/LoanStatus.jsx';
 import RequestStatusPage from './pages/RequestStatusPage.jsx';
 import RejectedLoansPage from './pages/RejectedLoans.jsx';
 import CompletedLoansPage from './pages/CompletedLoans.jsx';
+import Intro from './pages/SplashScreen.jsx';
 
 // Layout
 import SidebarLayout from './components/SidebarLayout.jsx';
@@ -28,6 +29,7 @@ function App() {
         <Routes>
           {/* Public Routes (No Sidebar) */}
           <Route path="/" element={<WalletConnect />} />
+          <Route path="/splash" element={<Intro />} />
           <Route path="/registrationForm" element={<RegistrationForm />} />
           <Route path="/requestForm" element={<LoanRequestForm />} />
           <Route path="/completeProfile" element={<CompleteProfile />} />

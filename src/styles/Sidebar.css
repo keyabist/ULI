@@ -36,11 +36,17 @@
     justify-content: center;
     cursor: pointer;
     transition: all 0.3s ease;
+    padding: 0;
   }
   
   .sidebar-toggle:hover {
     background-color: #1aff5c;
     color: #0b0f0a;
+  }
+  
+  .sidebar-toggle svg {
+    width: 24px;
+    height: 24px;
   }
   
   .sidebar-title {
@@ -50,26 +56,33 @@
     color: #1aff5c;
   }
   
-  .sidebar nav a {
+  .sidebar nav {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .nav-item {
     display: flex;
     align-items: center;
     gap: 12px;
     color: #a5f2b5;
-    text-decoration: none;
-    padding: 12px 0;
+    padding: 12px 15px;
     font-size: 18px;
     font-weight: 500;
-    transition: 0.3s;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border-radius: 8px;
   }
   
-  .sidebar nav a svg {
+  .nav-item svg {
     font-size: 24px;
   }
   
-  .sidebar nav a:hover,
-  .sidebar nav a.active-link {
-    color: #1aff5c;
-    font-weight: 600;
+  .nav-item:hover,
+  .nav-item.active-link {
+    background-color: #1aff5c;
+    color: #0b0f0a;
     transform: translateX(8px);
   }
   
