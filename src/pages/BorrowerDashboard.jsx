@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ethers } from "ethers";
 import contractABI from "../contracts/abi.json";
 import NavBar from "../components/navbar";
-import "../styles/BorrowerDashboard.css"; // Import the new CSS file
+import "../styles/BorrowerDashboard.css"; // Ensure the path is correct
 
 const contractAddress = "0x3C749Fa9984369506F10c18869E7c51488D8134f";
 
@@ -13,12 +13,20 @@ const BorrowerDashboard = ({ account }) => {
   const [search, setSearch] = useState("");
   const [requests, setRequests] = useState([]);
   const [ongoingLoans, setOngoingLoans] = useState([]);
+  const [completedLoans, setCompletedLoans] = useState([]);
+  const [requestsHistory, setRequestsHistory] = useState([]);
+
+  // Track the selected lender
+  const [selectedLender, setSelectedLender] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchLenders();
     fetchRequests();
     fetchOngoingLoans();
+    fetchCompletedLoans();
+    fetchRequestsHistory();
+    // eslint-disable-next-line
   }, []);
 
   useEffect(() => {
@@ -41,13 +49,15 @@ const BorrowerDashboard = ({ account }) => {
               email: lender.email,
               phone: lender.phone,
               interestRate: parseFloat(lender.interestRate.toString()),
+              // Convert creditScore to a Number (it is a uint)
+              creditScore: Number(lender.creditScore),
             };
           }
           return null;
         })
       );
-
       const filtered = lenderDetails.filter(Boolean);
+      // Sort by interest rate ascending
       filtered.sort((a, b) => a.interestRate - b.interestRate);
       setLenders(filtered);
       setFilteredLenders(filtered);
@@ -62,14 +72,16 @@ const BorrowerDashboard = ({ account }) => {
       const signer = await provider.getSigner();
       const userAddress = await signer.getAddress();
       const contract = new ethers.Contract(contractAddress, contractABI, signer);
-
       const nextLoanIdBN = await contract.nextLoanId();
       const nextLoanId = Number(nextLoanIdBN);
-
       let borrowerRequests = [];
       for (let i = 1; i < nextLoanId; i++) {
         const loan = await contract.loans(i);
-        if (loan.borrower.toLowerCase() === userAddress.toLowerCase() && Number(loan.status) === 0) {
+        // status 0 = "Requested/Pending"
+        if (
+          loan.borrower.toLowerCase() === userAddress.toLowerCase() &&
+          Number(loan.status) === 0
+        ) {
           borrowerRequests.push({
             id: loan.loanId.toString(),
             lender: loan.lender,
@@ -89,14 +101,16 @@ const BorrowerDashboard = ({ account }) => {
       const signer = await provider.getSigner();
       const userAddress = await signer.getAddress();
       const contract = new ethers.Contract(contractAddress, contractABI, signer);
-
       const nextLoanIdBN = await contract.nextLoanId();
       const nextLoanId = Number(nextLoanIdBN);
-
       let borrowerLoans = [];
       for (let i = 1; i < nextLoanId; i++) {
         const loan = await contract.loans(i);
-        if (loan.borrower.toLowerCase() === userAddress.toLowerCase() && Number(loan.status) === 1) {
+        // status 1 = "Approved/Ongoing"
+        if (
+          loan.borrower.toLowerCase() === userAddress.toLowerCase() &&
+          Number(loan.status) === 1
+        ) {
           borrowerLoans.push({
             id: loan.loanId.toString(),
             amount: ethers.formatEther(loan.amount) + " ETH",
@@ -107,12 +121,56 @@ const BorrowerDashboard = ({ account }) => {
       }
       setOngoingLoans(borrowerLoans);
     } catch (error) {
-      console.error("Error fetching loans:", error);
+      console.error("Error fetching ongoing loans:", error);
     }
   };
 
-  const handleRequest = (lender) => {
-    navigate("/requestForm", { state: { lender } });
+  const fetchCompletedLoans = async () => {
+    try {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const userAddress = (await signer.getAddress()).toLowerCase();
+      const contract = new ethers.Contract(contractAddress, contractABI, signer);
+      const nextLoanIdBN = await contract.nextLoanId();
+      const nextLoanId = Number(nextLoanIdBN);
+      let completed = [];
+      for (let i = 1; i < nextLoanId; i++) {
+        const loan = await contract.loans(i);
+        if (
+          loan.borrower.toLowerCase() === userAddress &&
+          loan.status.toString() === "3"
+        ) {
+          completed.push(loan);
+        }
+      }
+      setCompletedLoans(completed);
+    } catch (error) {
+      console.error("Error fetching completed loans:", error);
+    }
+  };
+
+  const fetchRequestsHistory = async () => {
+    try {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const userAddress = (await signer.getAddress()).toLowerCase();
+      const contract = new ethers.Contract(contractAddress, contractABI, signer);
+      const nextLoanIdBN = await contract.nextLoanId();
+      const nextLoanId = Number(nextLoanIdBN);
+      let history = [];
+      for (let i = 1; i < nextLoanId; i++) {
+        const loan = await contract.loans(i);
+        if (
+          loan.borrower.toLowerCase() === userAddress &&
+          loan.status.toString() !== "3"
+        ) {
+          history.push(loan);
+        }
+      }
+      setRequestsHistory(history);
+    } catch (error) {
+      console.error("Error fetching requests history:", error);
+    }
   };
 
   const handleSearch = () => {
@@ -125,10 +183,23 @@ const BorrowerDashboard = ({ account }) => {
     setFilteredLenders(filtered);
   };
 
+  const handleSelectLender = (lender) => {
+    setSelectedLender(lender);
+  };
+
+  const handleRequestLoan = () => {
+    if (!selectedLender) {
+      alert("Please select a lender first!");
+      return;
+    }
+    navigate("/requestForm", { state: { lender: selectedLender } });
+  };
+
   return (
     <>
       <NavBar />
-      <div className="dashboard">
+      <div className="borrower-dashboard">
+        {/* LEFT SECTION */}
         <div className="left-section">
           <h3>Available Lenders</h3>
           <input
@@ -138,55 +209,111 @@ const BorrowerDashboard = ({ account }) => {
             onChange={(e) => setSearch(e.target.value)}
             className="search-bar"
           />
-          <div>
+          <div className="lenders-list">
             {filteredLenders.length === 0 ? (
               <p>No Lenders Found</p>
             ) : (
-              filteredLenders.map((lender, index) => (
-                <div key={index} className="lender-box">
-                  <p>Name: {lender.name}</p>
-                  <p>Email: {lender.email}</p>
-                  <p>Phone: {lender.phone}</p>
-                  <p>Interest Rate: {lender.interestRate}%</p>
-                  <button className="action-button" onClick={() => handleRequest(lender)}>
-                    Request Loan
-                  </button>
-                </div>
-              ))
+              filteredLenders.map((lender, index) => {
+                const isSelected =
+                  selectedLender?.walletAddress === lender.walletAddress;
+                return (
+                  <div
+                    key={index}
+                    className={`lender-box ${isSelected ? "selected-lender" : ""}`}
+                    onClick={() => handleSelectLender(lender)}
+                  >
+                    {/* Instead of a checkbox input, use a small div */}
+                    <div className={`select-box ${isSelected ? "selected" : ""}`}></div>
+                    <div className="lender-info">
+                      <p>Name: {lender.name}</p>
+                      <p>Email: {lender.email}</p>
+                      <p>Phone: {lender.phone}</p>
+                      <p>Interest Rate: {lender.interestRate}%</p>
+                      <p>Credit Score: {lender.creditScore}</p>
+                    </div>
+                  </div>
+                );
+              })
             )}
           </div>
+          <button className="request-loan-button" onClick={handleRequestLoan}>
+            Request Loan
+          </button>
         </div>
 
+        {/* RIGHT SECTION */}
         <div className="right-section">
-          <div className="list-container">
+          {/* Top: Generated Requests */}
+          <div className="right-top">
             <h3>Generated Requests</h3>
-            {requests.length === 0 ? (
-              <p>No Requests Found</p>
-            ) : (
-              requests.map((loan, index) => (
-                <div key={index} className="lender-box" onClick={() => navigate(`/loanStatus/${loan.id}`)}>
-                  <p>Loan ID: {loan.id}</p>
-                  <p>Lender Address: {loan.lender}</p>
-                  <p>Status: Pending</p>
-                </div>
-              ))
-            )}
+            <div className="list-container requests-list">
+              {requests.length === 0 ? (
+                <p>No Requests Found</p>
+              ) : (
+                requests.map((loan, index) => (
+                  <div
+                    key={index}
+                    className="lender-box"
+                    onClick={() => navigate(`/loanStatus/${loan.id}`)}
+                  >
+                    <p>Loan ID: {loan.id}</p>
+                    <p>Lender: {loan.lender}</p>
+                    <p>Status: Pending</p>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
 
-          <div className="list-container">
+          {/* Middle: Ongoing Loans */}
+          <div className="right-middle">
             <h3>Ongoing Loans</h3>
-            {ongoingLoans.length === 0 ? (
-              <p>No Loans Found</p>
-            ) : (
-              ongoingLoans.map((loan, index) => (
-                <div key={index} className="lender-box" onClick={() => navigate(`/loanStatus/${loan.id}`)}>
-                  <p>Loan ID: {loan.id}</p>
-                  <p>Amount: {loan.amount}</p>
-                  <p>Interest: {loan.interestRate}</p>
-                  <p>Duration: {loan.duration}</p>
-                </div>
-              ))
-            )}
+            <div className="list-container ongoing-list">
+              {ongoingLoans.length === 0 ? (
+                <p>No Loans Found</p>
+              ) : (
+                ongoingLoans.map((loan, index) => (
+                  <div
+                    key={index}
+                    className="lender-box"
+                    onClick={() => navigate(`/loanStatus/${loan.id}`)}
+                  >
+                    <p>Loan ID: {loan.id}</p>
+                    <p>Amount: {loan.amount}</p>
+                    <p>Interest: {loan.interestRate}</p>
+                    <p>Duration: {loan.duration}</p>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Bottom: Two large boxes as buttons */}
+          <div className="right-bottom">
+            <div
+              className="dashboard-button"
+              onClick={() => navigate("/requestStatusPage")}
+            >
+              <div className="icon">
+                <i className="fa fa-history"></i>
+              </div>
+              <div className="info">
+                <h4>REQUESTS HISTORY</h4>
+                <p>{requestsHistory.length} requests</p>
+              </div>
+            </div>
+            <div
+              className="dashboard-button"
+              onClick={() => navigate("/completedLoansPage")}
+            >
+              <div className="icon">
+                <i className="fa fa-check-circle"></i>
+              </div>
+              <div className="info">
+                <h4>COMPLETED LOANS</h4>
+                <p>{completedLoans.length} loans</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
