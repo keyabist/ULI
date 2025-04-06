@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import { ethers } from "ethers";
+import { Box, Typography, Alert } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import contractABI from "../contracts/abi.json";
+import CustomTable from "../components/CustomTable";
+import CustomLoader from "../components/CustomLoader";
+import Navbar from "../components/navbar";
 
 const CONTRACT_ADDRESS = "0x3C749Fa9984369506F10c18869E7c51488D8134f";
 
@@ -8,33 +13,18 @@ const RequestStatusPage = () => {
   const [loanRequests, setLoanRequests] = useState([]);
   const [filteredRequests, setFilteredRequests] = useState([]);
   const [activeFilter, setActiveFilter] = useState("all");
-  const [provider, setProvider] = useState(null);
-  const [signer, setSigner] = useState(null);
-  const [contract, setContract] = useState(null);
-
-  useEffect(() => {
-    if (!window.ethereum) {
-      alert("MetaMask is not installed.");
-      return;
-    }
-    const p = new ethers.BrowserProvider(window.ethereum);
-    setProvider(p);
-    p.getSigner()
-      .then((s) => {
-        setSigner(s);
-        const c = new ethers.Contract(CONTRACT_ADDRESS, contractABI, s);
-        setContract(c);
-      })
-      .catch((error) => {
-        console.error("Error getting signer:", error);
-      });
-  }, []);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchLoanRequests = async () => {
-      if (!contract || !signer) return;
-
       try {
+        if (!window.ethereum) throw new Error("MetaMask not installed");
+
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+        const contract = new ethers.Contract(CONTRACT_ADDRESS, contractABI, signer);
         const userAddress = (await signer.getAddress()).toLowerCase();
         const loanCount = await contract.nextLoanId();
 
@@ -45,10 +35,10 @@ const RequestStatusPage = () => {
 
           if (loan.borrower.toLowerCase() === userAddress && status !== "Completed") {
             loans.push({
-              loanId: loan.loanId.toString(),
+              loanId: i.toString(),
               amount: ethers.formatUnits(loan.amount, 18) + " ETH",
               interestRate: loan.interestRate.toString() + "%",
-              repaymentPeriod: loan.repaymentPeriod.toString() + " months",
+              term: loan.repaymentPeriod.toString() + " months",
               status: status,
             });
           }
@@ -56,79 +46,119 @@ const RequestStatusPage = () => {
 
         setLoanRequests(loans);
         setFilteredRequests(loans);
-      } catch (error) {
-        console.error("Error fetching loans:", error);
+        setError("");
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchLoanRequests();
-  }, [contract, signer]);
+  }, []);
 
   const getLoanStatus = (status) => {
     const statuses = ["Pending", "Accepted", "Rejected", "Completed"];
     return statuses[status] || "Unknown";
   };
 
-  const filterRequests = (status) => {
-    setActiveFilter(status);
-    if (status === "all") {
+  const filterRequests = (filter) => {
+    setActiveFilter(filter);
+    if (filter === "all") {
       setFilteredRequests(loanRequests);
-    } else if (status === "accepted_rejected") {
+    } else if (filter === "accepted_rejected") {
       setFilteredRequests(loanRequests.filter((req) => req.status === "Accepted" || req.status === "Rejected"));
     } else {
-      setFilteredRequests(loanRequests.filter((req) => req.status.toLowerCase() === status));
+      setFilteredRequests(loanRequests.filter((req) => req.status.toLowerCase() === filter));
     }
   };
 
+  const handleRowClick = (row) => {
+    // Navigate to loan details page when row is clicked
+    navigate(`/loanStatus/${row.loanId}`);
+  };
+
+  // Status cell rendering with appropriate colors
+  const renderStatus = (status) => {
+    let color = "#EAECEF"; // default
+
+    if (status === "Accepted") {
+      color = "#28a745"; // green
+    } else if (status === "Rejected") {
+      color = "#ff4d4d"; // red
+    } else if (status === "Pending") {
+      color = "#ffc107"; // yellow/amber
+    }
+
+    return (
+      <Typography sx={{ color, fontWeight: "bold" }}>
+        {status}
+      </Typography>
+    );
+  };
+
   return (
-    <div className="p-6 max-w-6xl mx-auto bg-white rounded-xl shadow-md">
-      <h2 className="text-xl font-bold mb-4">Your Loan Requests</h2>
+    <Box sx={{ p: 2 }}>
+      <Navbar />
+      <Typography variant="h4" gutterBottom sx={{ color: "#EAECEF" }}>
+        Your Loan Requests
+      </Typography>
 
       {/* Filter Buttons */}
-      <div className="mb-4 flex gap-2">
-        {["all", "pending", "accepted", "rejected", "accepted_rejected"].map((filter) => (
-          <button
-            key={filter}
-            className={`p-2 rounded ${activeFilter === filter ? "bg-blue-500 text-white" : "bg-gray-200"}`}
-            onClick={() => filterRequests(filter)}
+      <Box sx={{ mb: 4, display: "flex", gap: 2 }}>
+        {[
+          { value: "all", label: "All" },
+          { value: "pending", label: "Pending" },
+          { value: "accepted", label: "Accepted" },
+          { value: "rejected", label: "Rejected" },
+          { value: "accepted_rejected", label: "Accepted & Rejected" }
+        ].map((filter) => (
+          <Box
+            key={filter.value}
+            onClick={() => filterRequests(filter.value)}
+            sx={{
+              p: 1,
+              px: 2,
+              borderRadius: "5px",
+              backgroundColor: activeFilter === filter.value ? "#28a745" : "#333",
+              color: activeFilter === filter.value ? "#ffffff" : "#EAECEF",
+              cursor: "pointer",
+              "&:hover": {
+                backgroundColor: activeFilter === filter.value ? "#218838" : "#444",
+              },
+              transition: "background-color 0.2s",
+            }}
           >
-            {filter === "accepted_rejected" ? "Accepted & Rejected" : filter.charAt(0).toUpperCase() + filter.slice(1)}
-          </button>
+            {filter.label}
+          </Box>
         ))}
-      </div>
+      </Box>
 
-      {/* Loan Requests Table */}
-      {filteredRequests.length === 0 ? (
-        <p>No requests found for this filter.</p>
+      {loading ? (
+        <CustomLoader />
+      ) : error ? (
+        <Alert severity="error">{error}</Alert>
+      ) : filteredRequests.length === 0 ? (
+        <Typography sx={{ color: "#EAECEF" }}>No requests found for this filter.</Typography>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white border border-gray-200 shadow-md rounded-lg">
-            <thead>
-              <tr className="bg-gray-100 border-b">
-                <th className="p-2 text-left">Loan ID</th>
-                <th className="p-2 text-left">Amount</th>
-                <th className="p-2 text-left">Interest Rate</th>
-                <th className="p-2 text-left">Repayment Period</th>
-                <th className="p-2 text-left">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredRequests.map((req) => (
-                <tr key={req.loanId} className="border-b hover:bg-gray-50 cursor-pointer">
-                  <td className="p-2">{req.loanId}</td>
-                  <td className="p-2">{req.amount}</td>
-                  <td className="p-2">{req.interestRate}</td>
-                  <td className="p-2">{req.repaymentPeriod}</td>
-                  <td className={`p-2 font-bold ${req.status === "Accepted" ? "text-green-600" : req.status === "Rejected" ? "text-red-600" : "text-gray-700"}`}>
-                    {req.status}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <CustomTable
+          data={filteredRequests}
+          columns={[
+            { label: "Loan ID", field: "loanId" },
+            { label: "Amount", field: "amount", align: "right" },
+            { label: "Interest Rate", field: "interestRate", align: "right" },
+            { label: "Term", field: "term", align: "right" },
+            { 
+              label: "Status", 
+              field: "status", 
+              align: "center",
+              render: renderStatus
+            },
+          ]}
+          onRowClick={handleRowClick}
+        />
       )}
-    </div>
+    </Box>
   );
 };
 
