@@ -3,6 +3,7 @@ import { ethers } from "ethers";
 import "./RegistrationForm.css";
 import { useNavigate } from "react-router-dom";
 import { contractConfig } from "../contractConfig"; // Import contract config
+import Sidebar from "../components/Siderbar";
 
 const contractAddress = contractConfig.contractAddress;
 const contractABI = contractConfig.abi; // Ensure ABI is correctly imported
@@ -93,6 +94,8 @@ const RegistrationForm = () => {
         color: '#d4edda',
         fontFamily: 'Poppins, sans-serif'
       }}>
+        <Sidebar />
+        
         <h2 style={{
           textAlign: 'center',
           color: '#00ff80',

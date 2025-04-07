@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { ethers } from 'ethers';
 import ContractABI from "../contracts/abi.json";
 import "./EditProfile.css"; // Import the CSS file
+import Sidebar from '../components/Siderbar';
 
 const CONTRACT_ADDRESS = "0x3C749Fa9984369506F10c18869E7c51488D8134f";
 
@@ -162,7 +163,7 @@ const EditProfileForm = () => {
 
   return (
     <div className="edit-profile-page">
-      {/* Navbar component removed */}
+      <Sidebar />
 
       <div className="edit-profile-container">
         <Typography className="edit-profile-title" variant="h4" gutterBottom>

@@ -11,8 +11,10 @@ import {
   TableHead,
   TableRow,
   Paper,
+  Toolbar,
 } from '@mui/material';
 import "../styles/BorrowerDashboard.css"; // Ensure the path is correct
+import Sidebar from "../components/Siderbar";
 
 const contractAddress = "0x3C749Fa9984369506F10c18869E7c51488D8134f";
 
@@ -207,8 +209,10 @@ const BorrowerDashboard = ({ account }) => {
   return (
     <>
       {/* <NavBar /> */}
+      <Sidebar />
       <div className="borrower-dashboard">
         {/* LEFT SECTION */}
+        <Toolbar />
         <div className="left-section">
           <h3>Available Lenders</h3>
           <input

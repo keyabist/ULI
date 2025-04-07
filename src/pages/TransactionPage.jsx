@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ethers } from "ethers";
 import contractABI from "../contracts/abi.json";
+import Sidebar from "../components/Siderbar";
 
 const CONTRACT_ADDRESS = "0x3C749Fa9984369506F10c18869E7c51488D8134f";
 
@@ -210,6 +211,7 @@ const TransactionPage = () => {
       color: '#d4edda',
       fontFamily: 'Poppins, sans-serif'
     }}>
+      <Sidebar />
       <h2 style={{
         textAlign: 'center',
         color: '#00ff80',

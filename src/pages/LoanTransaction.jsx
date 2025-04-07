@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { ethers } from "ethers";
 import contractABI from "../contracts/abi.json";
+import Sidebar from "../components/Siderbar";
 
 const CONTRACT_ADDRESS = "0x3C749Fa9984369506F10c18869E7c51488D8134f";
 
@@ -42,6 +43,7 @@ export default function LoanStatus({ account }) {
 
   return (
     <div className="p-4">
+      <Sidebar />
       <h2 className="text-xl font-bold">Loan Status</h2>
       {loans.length === 0 ? (
         <p>No loans found.</p>

@@ -5,6 +5,7 @@ import contractABI from "../contracts/abi.json";
 import AnimatedList from "../components/AnimatedList";
 import CustomLoader from "../components/CustomLoader";
 import ProfileModal from "../components/ProfileModal"; // <-- Import the modal
+import Sidebar from "../components/Siderbar";
 
 const CONTRACT_ADDRESS = "0x3C749Fa9984369506F10c18869E7c51488D8134f";
 
@@ -106,6 +107,7 @@ const RejectedLoans = () => {
 
   return (
     <Box sx={{ p: 2 }}>
+      <Sidebar />
       <Typography variant="h4" gutterBottom>
         Rejected Loans
       </Typography>

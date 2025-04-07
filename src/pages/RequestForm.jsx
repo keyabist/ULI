@@ -4,6 +4,7 @@ import { ethers } from 'ethers';
 import axios from 'axios';
 import { contractConfig } from '../contractConfig';
 import './Requestform.css';  // Import the CSS file
+import Sidebar from '../components/Siderbar';
 
 const RequestForm = () => {
   const location = useLocation();
@@ -128,6 +129,7 @@ const RequestForm = () => {
 
   return (
     <div className="request-form-container">
+      <Sidebar />
       <h2>Loan Request Form</h2>
       <p className="info-text"><strong>Lender Address:</strong> {lender.walletAddress}</p>
       <p className="info-text"><strong>Lender Interest Rate:</strong> {lender.interestRate}%</p>

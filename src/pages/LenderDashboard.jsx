@@ -8,7 +8,8 @@ import {
   TableHead,
   TableRow,
   TableCell,
-  TableBody
+  TableBody,
+  Toolbar
 } from '@mui/material';
 import { Link } from 'react-router-dom';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
@@ -22,6 +23,7 @@ import '../App.css';
 import './LenderDashboard.css';
 import LoanBox from '../components/CustomClickableBox';
 import ClickableLoanBox from '../components/CustomClickableBox';
+import Sidebar from '../components/Siderbar';
 
 const LenderDashboard = () => {
   const [stats, setStats] = useState({
@@ -183,11 +185,11 @@ const LenderDashboard = () => {
 
   return (
     <div className="lender-dashboard">
-      {/* Navbar */}
-      <Navbar />
+      <Sidebar />
 
       {/* Main Content */}
       <div className="dashboard-content">
+        <Toolbar />
         {/* Heading & Description */}
         <div className="heading">
           <Typography variant="h4">

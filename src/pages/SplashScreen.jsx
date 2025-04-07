@@ -30,6 +30,7 @@ import LinkIcon from '@mui/icons-material/Link';
 import { Link, useNavigate } from 'react-router-dom';
 import { ethers } from 'ethers';
 import { contractConfig } from '../contractConfig';
+import Sidebar from '../components/Siderbar';
 
 const drawerWidth = 240;
 
@@ -213,7 +214,7 @@ const Intro = () => {
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', backgroundColor: '#000', color: '#fff' }}>
-     
+      <Sidebar />
       {/* Main Content */}
       <Box component="main" sx={{ flexGrow: 1, p: 3, ml: `${drawerWidth}px` }}>
         {/* Blockchain Badge */}

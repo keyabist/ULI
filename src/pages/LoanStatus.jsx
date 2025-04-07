@@ -5,6 +5,7 @@ import contractABI from "../contracts/abi.json";
 import NavBar from "../components/navbar"; // For borrowers
 import NavbarLender from "../components/navbarLender"; // For lenders
 import AnimatedList from "../components/AnimatedList"; // New animated list component
+import Sidebar from "../components/Siderbar";
 
 const contractAddress = "0x3C749Fa9984369506F10c18869E7c51488D8134f";
 
@@ -122,7 +123,7 @@ const LoanStatus = () => {
       color: "#d4edda",
       fontFamily: "'Poppins', sans-serif"
     }}>
-      {/* {isBorrower ? <NavBar /> : <NavbarLender />} */}
+      <Sidebar />
       <h2 style={{
         textAlign: "center",
         color: "#00ff80",

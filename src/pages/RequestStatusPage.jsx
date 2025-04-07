@@ -7,6 +7,7 @@ import Navbar from "../components/navbar";
 import AnimatedList from "../components/AnimatedList";
 import CustomLoader from "../components/CustomLoader";
 import ProfileModal from "../components/ProfileModal";
+import Sidebar from "../components/Siderbar";
 
 const CONTRACT_ADDRESS = "0x3C749Fa9984369506F10c18869E7c51488D8134f";
 
@@ -172,7 +173,7 @@ const RequestStatusPage = () => {
 
   return (
     <Box className="p-6 max-w-4xl mx-auto bg-white rounded-xl shadow-md" sx={{ p: 2, mt: 5 }}>
-      <Navbar />
+      <Sidebar />
       <Typography variant="h4" gutterBottom>
         Your Loan Requests
       </Typography>

@@ -8,6 +8,7 @@ import AnimatedList from "../components/AnimatedList";
 import CustomLoader from "../components/CustomLoader";
 import { Alert, Typography, Box, Link } from "@mui/material";
 import ProfileModal from "../components/ProfileModal";
+import Sidebar from "../components/Siderbar";
 
 const CONTRACT_ADDRESS = "0x3C749Fa9984369506F10c18869E7c51488D8134f";
 
@@ -140,8 +141,7 @@ const CompletedLoansPage = () => {
 
   return (
     <Box className="p-6 max-w-4xl mx-auto bg-white rounded-xl shadow-md" sx={{ p: 2, mt: 5 }}>
-      {/* Optional Navbars */}
-      {/* {userRole === "borrower" ? <NavBar /> : <NavbarLender />} */}
+      <Sidebar />
 
       <Typography variant="h4" gutterBottom>
         Completed Loans

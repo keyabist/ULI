@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { ethers } from 'ethers';
 import contractABI from "../contracts/abi.json";
 import "./ViewProfile.css";
+import Sidebar from '../components/Siderbar';
 
 const contractAddress = "0x3C749Fa9984369506F10c18869E7c51488D8134f";
 
@@ -100,8 +101,7 @@ const ViewProfile = () => {
 
   return (
     <div className="profile-page">
-      {/* We removed the navbar to "remove that bar thingy on top" */}
-
+      <Sidebar />
       {/* Outer container */}
       <div className="profile-container">
         <div className="profile-title">
