@@ -67,6 +67,11 @@ const Sidebar = () => {
 
   const menuItems = [
     {
+      label: "Home",
+      path: `/splashScreen`,
+      icon: <AccountCircle style={{ color: "#fff" }} />,
+    },
+    {
       label: "My Profile",
       path: `/view-profile/${account}`,
       icon: <AccountCircle style={{ color: "#fff" }} />,
