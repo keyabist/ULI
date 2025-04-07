@@ -304,7 +304,7 @@ const LenderDashboard = () => {
               title="Rejected"
               value="0"
               caption="0 ETH"
-              link="/rejectedLoans"
+              link="/rejectedLoansPage"
             />
           </Grid>
 
@@ -315,7 +315,7 @@ const LenderDashboard = () => {
               title="Completed"
               value="0"
               caption="0 ETH"
-              link="/completedLoans"
+              link="/completedLoansPage"
             />
           </Grid>
         </Grid>

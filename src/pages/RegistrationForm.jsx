@@ -51,12 +51,14 @@ const RegistrationForm = () => {
           formData.email,
         );
       } else {
+        const monthlyIncome = formData.monthlyIncome === "" ? "0" : formData.monthlyIncome.toString();
+
         tx = await contract.registerLender(
           formData.fullName,
           formData.phoneNumber.toString(),
           formData.email,
           formData.interestRate.toString(),
-          formData.monthlyIncome.toString()
+          monthlyIncome
         );
       }
 

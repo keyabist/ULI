@@ -72,7 +72,7 @@ const ActiveLoans = () => {
   };
 
   return (
-    <Box sx={{ p: 2 }}>
+    <Box sx={{ p: 2, mt: 5}}>
       <Navbar />
       <Typography variant="h4" gutterBottom>
         Active Loans
