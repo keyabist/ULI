@@ -5,7 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import contractABI from "../contracts/abi.json";
 import CustomTable from "../components/CustomTable";
 import CustomLoader from "../components/CustomLoader";
-import Navbar from "../components/navbarLender";
+import Sidebar from "../components/Sidebar"; // ✅ Sidebar import
 
 const CONTRACT_ADDRESS = "0x3C749Fa9984369506F10c18869E7c51488D8134f";
 
@@ -13,6 +13,7 @@ const ActiveLoans = () => {
   const [activeLoans, setActiveLoans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [userRole, setUserRole] = useState("lender"); // Optional: used if Sidebar needs it
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -29,9 +30,9 @@ const ActiveLoans = () => {
         const loans = [];
         for (let i = 1; i < loanCount; i++) {
           const loan = await contract.loans(i);
-          // Check for active loans (status "1")
+
+          // Only include active loans for current lender
           if (loan.lender.toLowerCase() === userAddress && loan.status.toString() === "1") {
-            // Fetch borrower profile for username and credit score
             const borrowerProfile = await contract.getBorrowerProfile(loan.borrower);
             const username = borrowerProfile.name;
             const creditScore = borrowerProfile.creditScore.toString();
@@ -41,19 +42,24 @@ const ActiveLoans = () => {
               borrower: (
                 <Link
                   to={`/view-profile/${loan.borrower}`}
-                  onClick={(e) => e.stopPropagation()} // Prevent row click event
-                  style={{ color: "#28a745", textDecoration: "none", fontWeight: "bold" }}
+                  onClick={(e) => e.stopPropagation()}
+                  style={{
+                    color: "#28a745",
+                    textDecoration: "none",
+                    fontWeight: "bold",
+                  }}
                 >
                   {username}
                 </Link>
               ),
-              creditScore, // New column for credit score
+              creditScore,
               amount: ethers.formatUnits(loan.amount, 18) + " ETH",
               interestRate: loan.interestRate.toString() + "%",
               term: loan.repaymentPeriod.toString() + " months",
             });
           }
         }
+
         setActiveLoans(loans);
         setError("");
       } catch (err) {
@@ -67,37 +73,38 @@ const ActiveLoans = () => {
   }, []);
 
   const handleRowClick = (row) => {
-    // Navigate to loan status page when row (except borrower link) is clicked
     navigate(`/loanStatus/${row.loanId}`);
   };
 
   return (
-    <Box sx={{ p: 2 }}>
-      <Navbar />
-      <Typography variant="h4" gutterBottom>
-        Active Loans
-      </Typography>
+    <Box sx={{ display: "flex", minHeight: "100vh", backgroundColor: "#000" }}>
+      <Sidebar role={userRole} /> {/* 🧠 Sidebar persistent across dashboard */}
+      <Box sx={{ flexGrow: 1, p: 4 }}>
+        <Typography variant="h4" sx={{ color: "#39FF14", mb: 3 }}>
+          Active Loans
+        </Typography>
 
-      {loading ? (
-        <CustomLoader />
-      ) : error ? (
-        <Alert severity="error">{error}</Alert>
-      ) : activeLoans.length === 0 ? (
-        <Typography>No active loans found.</Typography>
-      ) : (
-        <CustomTable
-          data={activeLoans}
-          columns={[
-            { label: "Loan ID", field: "loanId" },
-            { label: "Borrower", field: "borrower" },
-            { label: "Credit Score", field: "creditScore", align: "right" },
-            { label: "Amount", field: "amount", align: "right" },
-            { label: "Interest Rate", field: "interestRate", align: "right" },
-            { label: "Term", field: "term", align: "right" },
-          ]}
-          onRowClick={handleRowClick}
-        />
-      )}
+        {loading ? (
+          <CustomLoader />
+        ) : error ? (
+          <Alert severity="error">{error}</Alert>
+        ) : activeLoans.length === 0 ? (
+          <Typography sx={{ color: "#fff" }}>No active loans found.</Typography>
+        ) : (
+          <CustomTable
+            data={activeLoans}
+            columns={[
+              { label: "Loan ID", field: "loanId" },
+              { label: "Borrower", field: "borrower" },
+              { label: "Credit Score", field: "creditScore", align: "right" },
+              { label: "Amount", field: "amount", align: "right" },
+              { label: "Interest Rate", field: "interestRate", align: "right" },
+              { label: "Term", field: "term", align: "right" },
+            ]}
+            onRowClick={handleRowClick}
+          />
+        )}
+      </Box>
     </Box>
   );
 };

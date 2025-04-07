@@ -1,0 +1,88 @@
+.sidebar {
+    width: 240px;
+    background-color: #0b0f0a;
+    color: #a5f2b5;
+    padding: 20px;
+    border-right: 2px solid #1aff5c;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    transition: transform 0.3s ease-in-out;
+    z-index: 1000;
+  }
+  
+  .sidebar.closed {
+    transform: translateX(-240px);
+  }
+  
+  .sidebar.open {
+    transform: translateX(0);
+  }
+  
+  .sidebar-toggle {
+    position: fixed;
+    left: 20px;
+    top: 20px;
+    z-index: 1001;
+    background-color: #0b0f0a;
+    border: 2px solid #1aff5c;
+    color: #1aff5c;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 0;
+  }
+  
+  .sidebar-toggle:hover {
+    background-color: #1aff5c;
+    color: #0b0f0a;
+  }
+  
+  .sidebar-toggle svg {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .sidebar-title {
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 40px;
+    color: #1aff5c;
+  }
+  
+  .sidebar nav {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #a5f2b5;
+    padding: 12px 15px;
+    font-size: 18px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border-radius: 8px;
+  }
+  
+  .nav-item svg {
+    font-size: 24px;
+  }
+  
+  .nav-item:hover,
+  .nav-item.active-link {
+    background-color: #1aff5c;
+    color: #0b0f0a;
+    transform: translateX(8px);
+  }
+  

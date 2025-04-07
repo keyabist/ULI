@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ethers } from "ethers";
 import contractABI from "../contracts/abi.json";
-import NavBar from "../components/navbar";
 import {
   Table,
   TableBody,
@@ -12,7 +11,7 @@ import {
   TableRow,
   Paper,
 } from '@mui/material';
-import "../styles/BorrowerDashboard.css"; // Ensure the path is correct
+import "../styles/BorrowerDashboard.css";
 
 const contractAddress = "0x3C749Fa9984369506F10c18869E7c51488D8134f";
 
@@ -205,154 +204,161 @@ const BorrowerDashboard = ({ account }) => {
   };
 
   return (
-    <>
-      {/* <NavBar /> */}
-      <div className="borrower-dashboard">
-        {/* LEFT SECTION */}
-        <div className="left-section">
-          <h3>Available Lenders</h3>
-          <input
-            type="text"
-            placeholder="Search by Name or Interest Rate..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="search-bar"
-          />
-          <div className="lenders-list">
-            {filteredLenders.length === 0 ? (
-              <p>No Lenders Found</p>
-            ) : (
-              filteredLenders.map((lender, index) => {
-                const isSelected =
-                  selectedLender?.walletAddress === lender.walletAddress;
-                return (
-                  <div
-                    key={index}
-                    className={`lender-box ${isSelected ? "selected-lender" : ""}`}
-                    onClick={() => handleSelectLender(lender)}
-                  >
-                    {/* Instead of a checkbox input, use a small div */}
-                    <div className={`select-box ${isSelected ? "selected" : ""}`}></div>
-                    <div className="lender-info">
-                      <p>Name: {lender.name}</p>
-                      <p>Email: {lender.email}</p>
-                      <p>Phone: {lender.phone}</p>
-                      <p>Interest Rate: {lender.interestRate}%</p>
-                      <p>Credit Score: {lender.creditScore}</p>
-                    </div>
+    <div className="borrower-dashboard">
+      {/* LEFT SECTION */}
+      <div className="left-section">
+        <h3>Available Lenders</h3>
+        <input
+          type="text"
+          placeholder="Search by Name or Interest Rate..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="search-bar"
+        />
+        <div className="lenders-list">
+          {filteredLenders.length === 0 ? (
+            <p>No Lenders Found</p>
+          ) : (
+            filteredLenders.map((lender, index) => {
+              const isSelected =
+                selectedLender?.walletAddress === lender.walletAddress;
+              return (
+                <div
+                  key={index}
+                  className={`lender-box ${isSelected ? "selected-lender" : ""}`}
+                  onClick={() => handleSelectLender(lender)}
+                >
+                  <div className={`select-box ${isSelected ? "selected" : ""}`}></div>
+                  <div className="lender-info">
+                    <p>Name: {lender.name}</p>
+                    <p>Email: {lender.email}</p>
+                    <p>Phone: {lender.phone}</p>
+                    <p>Interest Rate: {lender.interestRate}%</p>
+                    <p>Credit Score: {lender.creditScore}</p>
                   </div>
-                );
-              })
+                </div>
+              );
+            })
+          )}
+        </div>
+        <button className="request-loan-button" onClick={handleRequestLoan}>
+          Request Loan
+        </button>
+      </div>
+
+      {/* RIGHT SECTION */}
+      <div className="right-section">
+        {/* Top: Generated Requests */}
+        <div className="right-top">
+          <h3>Generated Requests</h3>
+          <div className="list-container requests-list">
+            {requests.length === 0 ? (
+              <p>No Requests Found</p>
+            ) : (
+              requests.map((loan, index) => (
+                <div
+                  key={index}
+                  className="lender-box"
+                  onClick={() => navigate(`/loanStatus/${loan.id}`)}
+                >
+                  <p>Loan ID: {loan.id}</p>
+                  <p>Lender: {loan.lender}</p>
+                  <p>Status: Pending</p>
+                </div>
+              ))
             )}
           </div>
-          <button className="request-loan-button" onClick={handleRequestLoan}>
-            Request Loan
-          </button>
         </div>
 
-        {/* RIGHT SECTION */}
-        <div className="right-section">
-          {/* Top: Generated Requests */}
-          <div className="right-top">
-            <h3>Generated Requests</h3>
-            <div className="list-container requests-list">
-              {requests.length === 0 ? (
-                <p>No Requests Found</p>
-              ) : (
-                requests.map((loan, index) => (
-                  <div
-                    key={index}
-                    className="lender-box"
-                    onClick={() => navigate(`/loanStatus/${loan.id}`)}
-                  >
-                    <p>Loan ID: {loan.id}</p>
-                    <p>Lender: {loan.lender}</p>
-                    <p>Status: Pending</p>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-
-          {/* Middle: Ongoing Loans */}
-          <div className="right-middle" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <h3>Ongoing Loans</h3>
-            <div className="list-container ongoing-list" style={{ width: '80%' }}>
-              {ongoingLoans.length === 0 ? (
-                <p>No Loans Found</p>
-              ) : (
-                <TableContainer component={Paper} sx={{ backgroundColor: '#111', borderRadius: '12px' }}>
-                  <Table sx={{ minWidth: 400 }} aria-label="ongoing loans table">
-                    <TableHead>
-                      <TableRow>
-                        {['Loan ID', 'Amount', 'Interest', 'Duration'].map((heading, idx) => (
-                          <TableCell
-                            key={idx}
-                            sx={{
-                              color: '#0f0',
-                              border: '2px solid #0f0',
-                              textAlign: 'center',
-                              boxShadow: '0 0 8px #0f0',
-                            }}
-                          >
-                            {heading}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {ongoingLoans.map((loan, index) => (
-                        <TableRow
-                          key={index}
-                          hover
-                          sx={{ cursor: 'pointer' }}
-                          onClick={() => navigate(`/loanStatus/${loan.id}`)}
+        {/* Middle: Ongoing Loans */}
+        <div className="right-middle" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <h3>Ongoing Loans</h3>
+          <div className="list-container ongoing-list" style={{ width: '80%' }}>
+            {ongoingLoans.length === 0 ? (
+              <p>No Loans Found</p>
+            ) : (
+              <TableContainer component={Paper} sx={{ backgroundColor: '#111', borderRadius: '12px' }}>
+                <Table sx={{ minWidth: 400 }} aria-label="ongoing loans table">
+                  <TableHead>
+                    <TableRow>
+                      {['Loan ID', 'Amount', 'Interest', 'Duration'].map((heading, idx) => (
+                        <TableCell
+                          key={idx}
+                          sx={{
+                            color: '#0f0',
+                            border: '2px solid #0f0',
+                            textAlign: 'center',
+                            boxShadow: '0 0 8px #0f0',
+                          }}
                         >
-                          <TableCell sx={{ color: '#0f0', border: '2px solid #0f0', textAlign: 'center' }}>{loan.id}</TableCell>
-                          <TableCell sx={{ color: '#0f0', border: '2px solid #0f0', textAlign: 'center' }}>{loan.amount}</TableCell>
-                          <TableCell sx={{ color: '#0f0', border: '2px solid #0f0', textAlign: 'center' }}>{loan.interestRate}</TableCell>
-                          <TableCell sx={{ color: '#0f0', border: '2px solid #0f0', textAlign: 'center' }}>{loan.duration}</TableCell>
-                        </TableRow>
+                          {heading}
+                        </TableCell>
                       ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              )}
-            </div>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {ongoingLoans.map((loan, index) => (
+                      <TableRow
+                        key={index}
+                        hover
+                        sx={{ cursor: 'pointer' }}
+                        onClick={() => navigate(`/loanStatus/${loan.id}`)}
+                      >
+                        <TableCell sx={{ color: '#0f0', border: '2px solid #0f0', textAlign: 'center' }}>{loan.id}</TableCell>
+                        <TableCell sx={{ color: '#0f0', border: '2px solid #0f0', textAlign: 'center' }}>{loan.amount}</TableCell>
+                        <TableCell sx={{ color: '#0f0', border: '2px solid #0f0', textAlign: 'center' }}>{loan.interestRate}</TableCell>
+                        <TableCell sx={{ color: '#0f0', border: '2px solid #0f0', textAlign: 'center' }}>{loan.duration}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            )}
           </div>
+        </div>
 
+        {/* Completed Loans */}
+        <div className="section">
+          <h3>Completed Loans</h3>
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Loan ID</TableCell>
+                  <TableCell>Amount</TableCell>
+                  <TableCell>Status</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {completedLoans.map((loan, index) => (
+                  <TableRow key={index}>
+                    <TableCell>{loan.loanId.toString()}</TableCell>
+                    <TableCell>{ethers.formatEther(loan.amount)} ETH</TableCell>
+                    <TableCell>Completed</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </div>
 
-
-          {/* Bottom: Two large boxes as buttons */}
-          <div className="right-bottom">
-            <div
-              className="dashboard-button"
-              onClick={() => navigate("/requestStatusPage")}
-            >
-              <div className="icon">
-                <i className="fa fa-history"></i>
-              </div>
-              <div className="info">
-                <h4>REQUESTS HISTORY</h4>
-                <p>{requestsHistory.length} requests</p>
-              </div>
+        {/* Bottom: Two large boxes as buttons */}
+        <div className="right-bottom">
+          <div
+            className="dashboard-button"
+            onClick={() => navigate("/requestStatusPage")}
+          >
+            <div className="icon">
+              <i className="fa fa-history"></i>
             </div>
-            <div
-              className="dashboard-button"
-              onClick={() => navigate("/completedLoansPage")}
-            >
-              <div className="icon">
-                <i className="fa fa-check-circle"></i>
-              </div>
-              <div className="info">
-                <h4>COMPLETED LOANS</h4>
-                <p>{completedLoans.length} loans</p>
-              </div>
+            <div className="info">
+              <h4>REQUESTS HISTORY</h4>
+              <p>{requestsHistory.length} requests</p>
             </div>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
