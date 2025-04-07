@@ -1,61 +1,104 @@
 import { useEffect, useState } from "react";
 import { ethers } from "ethers";
-import { Box, Typography, Alert } from "@mui/material";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import contractABI from "../contracts/abi.json";
+import NavbarLender from "../components/navbarLender";
+import NavBar from "../components/navbar";
 import AnimatedList from "../components/AnimatedList";
 import CustomLoader from "../components/CustomLoader";
-import Navbar from "../components/navbarLender";
+import { Alert, Typography, Box, Link } from "@mui/material";
+import ProfileModal from "../components/ProfileModal";
 
 const CONTRACT_ADDRESS = "0x3C749Fa9984369506F10c18869E7c51488D8134f";
 
-const ActiveLoans = () => {
+const ActiveLoansPage = () => {
   const [activeLoans, setActiveLoans] = useState([]);
+  const [userRole, setUserRole] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedProfile, setSelectedProfile] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchActiveLoans = async () => {
       try {
-        if (!window.ethereum) throw new Error("MetaMask not installed");
+        if (!window.ethereum) throw new Error("MetaMask is not installed.");
 
+        setLoading(true);
         const provider = new ethers.BrowserProvider(window.ethereum);
         const signer = await provider.getSigner();
         const contract = new ethers.Contract(CONTRACT_ADDRESS, contractABI, signer);
+
         const userAddress = (await signer.getAddress()).toLowerCase();
         const loanCount = await contract.nextLoanId();
+        const borrowerData = await contract.borrowers(userAddress);
+        const lenderData = await contract.lenders(userAddress);
 
-        const loans = [];
+        const role = borrowerData.isRegistered
+          ? "borrower"
+          : lenderData.isRegistered
+          ? "lender"
+          : "unknown";
+
+        if (role === "unknown") {
+          throw new Error("User role could not be determined.");
+        }
+
+        setUserRole(role);
+
+        let loans = [];
         for (let i = 1; i < loanCount; i++) {
           const loan = await contract.loans(i);
-          // Check for active loans (status "1")
-          if (loan.lender.toLowerCase() === userAddress && loan.status.toString() === "1") {
-            // Fetch borrower profile for username and credit score
+
+          if (
+            loan.lender.toLowerCase() === userAddress &&
+            loan.status.toString() === "1"
+          ) {
             const borrowerProfile = await contract.getBorrowerProfile(loan.borrower);
-            const username = borrowerProfile.name;
             const creditScore = borrowerProfile.creditScore.toString();
 
             loans.push({
-              loanId: i.toString(),
+              loanId: loan.loanId.toString(),
+              borrowerAddress: loan.borrower,
+              profile: {
+                name: borrowerProfile.name,
+                address: loan.borrower,
+                creditScore,
+                monthlyIncome: borrowerProfile.monthlyIncome.toString(),
+              },
               borrower: (
                 <Link
-                  to={`/view-profile/${loan.borrower}`}
-                  onClick={(e) => e.stopPropagation()} // Prevent row click event
-                  style={{ color: "#28a745", textDecoration: "none", fontWeight: "bold" }}
+                  component="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedProfile({
+                      name: borrowerProfile.name,
+                      address: loan.borrower,
+                      creditScore,
+                      monthlyIncome: borrowerProfile.monthlyIncome.toString(),
+                    });
+                    setModalOpen(true);
+                  }}
+                  style={{
+                    color: "#28a745",
+                    textDecoration: "none",
+                    fontWeight: "bold",
+                    cursor: "pointer",
+                  }}
                 >
-                  {username}
+                  {borrowerProfile.name}
                 </Link>
               ),
-              creditScore, // New column for credit score
+              creditScore,
               amount: ethers.formatUnits(loan.amount, 18) + " ETH",
               interestRate: loan.interestRate.toString() + "%",
-              term: loan.repaymentPeriod.toString() + " months",
+              repaymentPeriod: loan.repaymentPeriod.toString() + " months",
             });
           }
         }
+
         setActiveLoans(loans);
-        setError("");
       } catch (err) {
         setError(err.message);
       } finally {
@@ -70,18 +113,18 @@ const ActiveLoans = () => {
     navigate(`/loanStatus/${row.loanId}`);
   };
 
-  // Build a list of JSX items to pass into AnimatedList.
-  // Each row is a flex container with 6 columns, using inline styles to mimic the table columns.
   const loanItems = activeLoans.map((row) => (
     <span
+      key={row.loanId}
       style={{
         display: "flex",
         alignItems: "center",
         width: "100%",
         fontSize: "0.9rem",
         backgroundColor: "#111",
-        padding: 8,
-        margin: 8
+        borderRadius: "4px",
+        padding: "8px",
+        marginBottom: "8px",
       }}
     >
       <span style={{ width: "10%", fontWeight: "bold" }}>{row.loanId}</span>
@@ -89,13 +132,15 @@ const ActiveLoans = () => {
       <span style={{ width: "15%", textAlign: "right" }}>{row.creditScore}</span>
       <span style={{ width: "15%", textAlign: "right" }}>{row.amount}</span>
       <span style={{ width: "15%", textAlign: "right" }}>{row.interestRate}</span>
-      <span style={{ width: "20%", textAlign: "right" }}>{row.term}</span>
+      <span style={{ width: "20%", textAlign: "right" }}>{row.repaymentPeriod}</span>
     </span>
   ));
 
   return (
-    <Box sx={{ p: 2, mt: 5 }}>
-      <Navbar />
+    <Box className="p-6 max-w-4xl mx-auto bg-white rounded-xl shadow-md" sx={{ p: 2, mt: 5 }}>
+      {/* Optional Navbars */}
+      {/* {userRole === "borrower" ? <NavBar /> : <NavbarLender />} */}
+
       <Typography variant="h4" gutterBottom>
         Active Loans
       </Typography>
@@ -105,10 +150,9 @@ const ActiveLoans = () => {
       ) : error ? (
         <Alert severity="error">{error}</Alert>
       ) : activeLoans.length === 0 ? (
-        <Typography>No active loans found.</Typography>
+        <Typography>No Active Loans Found</Typography>
       ) : (
         <>
-          {/* Header Row */}
           <Box
             sx={{
               backgroundColor: "#181818",
@@ -117,7 +161,6 @@ const ActiveLoans = () => {
               alignItems: "center",
               borderRadius: "4px",
               mb: 2,
-              ml: 1
             }}
           >
             <Typography sx={{ width: "10%", color: "#28a745", fontWeight: "bold" }}>
@@ -136,7 +179,7 @@ const ActiveLoans = () => {
               Interest Rate
             </Typography>
             <Typography sx={{ width: "20%", color: "#28a745", fontWeight: "bold", textAlign: "right" }}>
-              Term
+              Repayment Period
             </Typography>
           </Box>
           <AnimatedList
@@ -147,8 +190,10 @@ const ActiveLoans = () => {
           />
         </>
       )}
+
+      <ProfileModal open={modalOpen} onClose={() => setModalOpen(false)} profile={selectedProfile} />
     </Box>
   );
 };
 
-export default ActiveLoans;
+export default ActiveLoansPage;
