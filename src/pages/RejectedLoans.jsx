@@ -3,9 +3,8 @@ import { ethers } from "ethers";
 import { Box, Typography, Alert } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import contractABI from "../contracts/abi.json";
-import CustomTable from "../components/CustomTable";
+import AnimatedList from "../components/AnimatedList";
 import CustomLoader from "../components/CustomLoader";
-import Navbar from "../components/navbarLender";
 
 const CONTRACT_ADDRESS = "0x3C749Fa9984369506F10c18869E7c51488D8134f";
 
@@ -47,7 +46,7 @@ const RejectedLoans = () => {
                   {username}
                 </Link>
               ),
-              creditScore, // New column for credit score
+              creditScore,
               amount: ethers.formatUnits(loan.amount, 18) + " ETH",
               interestRate: loan.interestRate.toString() + "%",
               term: loan.repaymentPeriod.toString() + " months",
@@ -68,13 +67,34 @@ const RejectedLoans = () => {
   }, []);
 
   const handleRowClick = (row) => {
-    // Navigate to loan status page when row (except borrower link) is clicked
     navigate(`/loanStatus/${row.loanId}`);
   };
 
+  // Map rejectedLoans into a list of JSX rows with a dark grey background (#222)
+  const loanItems = rejectedLoans.map((row) => (
+    <span
+      style={{
+        display: "flex",
+        alignItems: "center",
+        width: "100%",
+        fontSize: "0.9rem",
+        backgroundColor: "#222",
+        borderRadius: "4px",
+        padding: "8px",
+        marginBottom: "8px",
+      }}
+    >
+      <span style={{ width: "10%", fontWeight: "bold" }}>{row.loanId}</span>
+      <span style={{ width: "25%" }}>{row.borrower}</span>
+      <span style={{ width: "15%", textAlign: "right" }}>{row.creditScore}</span>
+      <span style={{ width: "15%", textAlign: "right" }}>{row.amount}</span>
+      <span style={{ width: "15%", textAlign: "right" }}>{row.interestRate}</span>
+      <span style={{ width: "20%", textAlign: "right" }}>{row.term}</span>
+    </span>
+  ));
+
   return (
     <Box sx={{ p: 2 }}>
-      {/* <Navbar /> */}
       <Typography variant="h4" gutterBottom>
         Rejected Loans
       </Typography>
@@ -85,18 +105,44 @@ const RejectedLoans = () => {
       ) : rejectedLoans.length === 0 ? (
         <Typography>No rejected loans found.</Typography>
       ) : (
-        <CustomTable
-          data={rejectedLoans}
-          columns={[
-            { label: "Loan ID", field: "loanId" },
-            { label: "Borrower", field: "borrower" },
-            { label: "Credit Score", field: "creditScore", align: "right" },
-            { label: "Amount", field: "amount", align: "right" },
-            { label: "Interest Rate", field: "interestRate", align: "right" },
-            { label: "Term", field: "term", align: "right" },
-          ]}
-          onRowClick={handleRowClick}
-        />
+        <>
+          {/* Header Row */}
+          <Box
+            sx={{
+              backgroundColor: "#181818",
+              p: 1,
+              display: "flex",
+              alignItems: "center",
+              borderRadius: "4px",
+              mb: 2,
+            }}
+          >
+            <Typography sx={{ width: "10%", color: "#28a745", fontWeight: "bold" }}>
+              Loan ID
+            </Typography>
+            <Typography sx={{ width: "25%", color: "#28a745", fontWeight: "bold" }}>
+              Borrower
+            </Typography>
+            <Typography sx={{ width: "15%", color: "#28a745", fontWeight: "bold", textAlign: "right" }}>
+              Credit Score
+            </Typography>
+            <Typography sx={{ width: "15%", color: "#28a745", fontWeight: "bold", textAlign: "right" }}>
+              Amount
+            </Typography>
+            <Typography sx={{ width: "15%", color: "#28a745", fontWeight: "bold", textAlign: "right" }}>
+              Interest Rate
+            </Typography>
+            <Typography sx={{ width: "20%", color: "#28a745", fontWeight: "bold", textAlign: "right" }}>
+              Term
+            </Typography>
+          </Box>
+          <AnimatedList
+            items={loanItems}
+            onItemSelect={(item, index) => handleRowClick(rejectedLoans[index])}
+            className="w-full"
+            itemClassName=""
+          />
+        </>
       )}
     </Box>
   );

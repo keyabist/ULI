@@ -4,9 +4,9 @@ import { Link, useNavigate } from "react-router-dom";
 import contractABI from "../contracts/abi.json";
 import NavbarLender from "../components/navbarLender";
 import NavBar from "../components/navbar";
-import CustomTable from "../components/CustomTable";
+import AnimatedList from "../components/AnimatedList";
 import CustomLoader from "../components/CustomLoader"; // Assuming you have a loader component
-import { Alert, Typography } from "@mui/material";
+import { Alert, Typography, Box } from "@mui/material";
 
 const CONTRACT_ADDRESS = "0x3C749Fa9984369506F10c18869E7c51488D8134f";
 
@@ -94,11 +94,37 @@ const CompletedLoansPage = () => {
     navigate(`/loanStatus/${row.loanId}`);
   };
 
+  // Map completedLoans into a list of JSX rows with a dark grey background (#111)
+  const loanItems = completedLoans.map((row) => (
+    <span
+      style={{
+        display: "flex",
+        alignItems: "center",
+        width: "100%",
+        fontSize: "0.9rem",
+        backgroundColor: "#111", // dark grey background for each row
+        borderRadius: "4px",
+        padding: "8px",
+        marginBottom: "8px",
+      }}
+    >
+      <span style={{ width: "10%", fontWeight: "bold" }}>{row.loanId}</span>
+      <span style={{ width: "25%" }}>{row.borrower}</span>
+      <span style={{ width: "15%", textAlign: "right" }}>{row.creditScore}</span>
+      <span style={{ width: "15%", textAlign: "right" }}>{row.amount}</span>
+      <span style={{ width: "15%", textAlign: "right" }}>{row.interestRate}</span>
+      <span style={{ width: "20%", textAlign: "right" }}>{row.repaymentPeriod}</span>
+    </span>
+  ));
+
   return (
-    <div className="p-6 max-w-4xl mx-auto bg-white rounded-xl shadow-md">
+    <Box className="p-6 max-w-4xl mx-auto bg-white rounded-xl shadow-md" sx={{ p: 2, mt: 5 }}>
+      {/* Uncomment the appropriate Navbar if needed */}
       {/* {userRole === "borrower" ? <NavBar /> : <NavbarLender />} */}
 
-      <h2 className="text-xl font-bold mb-4">Completed Loans</h2>
+      <Typography variant="h4" gutterBottom>
+        Completed Loans
+      </Typography>
 
       {loading ? (
         <CustomLoader />
@@ -107,20 +133,46 @@ const CompletedLoansPage = () => {
       ) : completedLoans.length === 0 ? (
         <Typography>No Completed Loans Found</Typography>
       ) : (
-        <CustomTable
-          data={completedLoans}
-          columns={[
-            { label: "Loan ID", field: "loanId" },
-            { label: "Borrower", field: "borrower" },
-            { label: "Credit Score", field: "creditScore", align: "right" },
-            { label: "Amount", field: "amount", align: "right" },
-            { label: "Interest Rate", field: "interestRate", align: "right" },
-            { label: "Repayment Period", field: "repaymentPeriod", align: "right" },
-          ]}
-          onRowClick={handleRowClick}
-        />
+        <>
+          {/* Header Row */}
+          <Box
+            sx={{
+              backgroundColor: "#181818",
+              p: 1,
+              display: "flex",
+              alignItems: "center",
+              borderRadius: "4px",
+              mb: 2,
+            }}
+          >
+            <Typography sx={{ width: "10%", color: "#28a745", fontWeight: "bold" }}>
+              Loan ID
+            </Typography>
+            <Typography sx={{ width: "25%", color: "#28a745", fontWeight: "bold" }}>
+              Borrower
+            </Typography>
+            <Typography sx={{ width: "15%", color: "#28a745", fontWeight: "bold", textAlign: "right" }}>
+              Credit Score
+            </Typography>
+            <Typography sx={{ width: "15%", color: "#28a745", fontWeight: "bold", textAlign: "right" }}>
+              Amount
+            </Typography>
+            <Typography sx={{ width: "15%", color: "#28a745", fontWeight: "bold", textAlign: "right" }}>
+              Interest Rate
+            </Typography>
+            <Typography sx={{ width: "20%", color: "#28a745", fontWeight: "bold", textAlign: "right" }}>
+              Repayment Period
+            </Typography>
+          </Box>
+          <AnimatedList
+            items={loanItems}
+            onItemSelect={(item, index) => handleRowClick(completedLoans[index])}
+            className="w-full"
+            itemClassName=""
+          />
+        </>
       )}
-    </div>
+    </Box>
   );
 };
 

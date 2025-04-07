@@ -3,7 +3,7 @@ import { ethers } from "ethers";
 import { Box, Typography, Alert } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import contractABI from "../contracts/abi.json";
-import CustomTable from "../components/CustomTable";
+import AnimatedList from "../components/AnimatedList";
 import CustomLoader from "../components/CustomLoader";
 import Navbar from "../components/navbarLender";
 
@@ -67,12 +67,34 @@ const ActiveLoans = () => {
   }, []);
 
   const handleRowClick = (row) => {
-    // Navigate to loan status page when row (except borrower link) is clicked
     navigate(`/loanStatus/${row.loanId}`);
   };
 
+  // Build a list of JSX items to pass into AnimatedList.
+  // Each row is a flex container with 6 columns, using inline styles to mimic the table columns.
+  const loanItems = activeLoans.map((row) => (
+    <span
+      style={{
+        display: "flex",
+        alignItems: "center",
+        width: "100%",
+        fontSize: "0.9rem",
+        backgroundColor: "#111",
+        padding: 8,
+        margin: 8
+      }}
+    >
+      <span style={{ width: "10%", fontWeight: "bold" }}>{row.loanId}</span>
+      <span style={{ width: "25%" }}>{row.borrower}</span>
+      <span style={{ width: "15%", textAlign: "right" }}>{row.creditScore}</span>
+      <span style={{ width: "15%", textAlign: "right" }}>{row.amount}</span>
+      <span style={{ width: "15%", textAlign: "right" }}>{row.interestRate}</span>
+      <span style={{ width: "20%", textAlign: "right" }}>{row.term}</span>
+    </span>
+  ));
+
   return (
-    <Box sx={{ p: 2, mt: 5}}>
+    <Box sx={{ p: 2, mt: 5 }}>
       <Navbar />
       <Typography variant="h4" gutterBottom>
         Active Loans
@@ -85,18 +107,45 @@ const ActiveLoans = () => {
       ) : activeLoans.length === 0 ? (
         <Typography>No active loans found.</Typography>
       ) : (
-        <CustomTable
-          data={activeLoans}
-          columns={[
-            { label: "Loan ID", field: "loanId" },
-            { label: "Borrower", field: "borrower" },
-            { label: "Credit Score", field: "creditScore", align: "right" },
-            { label: "Amount", field: "amount", align: "right" },
-            { label: "Interest Rate", field: "interestRate", align: "right" },
-            { label: "Term", field: "term", align: "right" },
-          ]}
-          onRowClick={handleRowClick}
-        />
+        <>
+          {/* Header Row */}
+          <Box
+            sx={{
+              backgroundColor: "#181818",
+              p: 1,
+              display: "flex",
+              alignItems: "center",
+              borderRadius: "4px",
+              mb: 2,
+              ml: 1
+            }}
+          >
+            <Typography sx={{ width: "10%", color: "#28a745", fontWeight: "bold" }}>
+              Loan ID
+            </Typography>
+            <Typography sx={{ width: "25%", color: "#28a745", fontWeight: "bold" }}>
+              Borrower
+            </Typography>
+            <Typography sx={{ width: "15%", color: "#28a745", fontWeight: "bold", textAlign: "right" }}>
+              Credit Score
+            </Typography>
+            <Typography sx={{ width: "15%", color: "#28a745", fontWeight: "bold", textAlign: "right" }}>
+              Amount
+            </Typography>
+            <Typography sx={{ width: "15%", color: "#28a745", fontWeight: "bold", textAlign: "right" }}>
+              Interest Rate
+            </Typography>
+            <Typography sx={{ width: "20%", color: "#28a745", fontWeight: "bold", textAlign: "right" }}>
+              Term
+            </Typography>
+          </Box>
+          <AnimatedList
+            items={loanItems}
+            onItemSelect={(item, index) => handleRowClick(activeLoans[index])}
+            className="w-full"
+            itemClassName=""
+          />
+        </>
       )}
     </Box>
   );
