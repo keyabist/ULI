@@ -2,29 +2,36 @@
 html, body {
     margin: 0;
     padding: 0;
-    height: auto;       /* Allow full page height */
-    overflow-y: auto;   /* Allow scrolling */
+    /* Make the body fill the entire browser viewport */
+    height: 100%;
+    /* Helps ensure sizing calculations start from the border box */
+    box-sizing: border-box;
 }
-  
-/* Overall page background with dark gradient */
+
+/* Overall page background with full-screen image */
 .profile-page {
-    background: linear-gradient(135deg, #0a0a0a, #222);
-    min-height: 100vh;  /* Ensures at least full viewport height */
+    /* Fill at least one full viewport height */
+    min-height: 100vh; 
+    /* Use your own image path as needed */
+    background: url("/public/my-background.jpg") no-repeat center center;
+    /* "cover" makes the background image stretch to fill the container */
+    background-size: cover;
     font-family: sans-serif;
-    /* No overflow hidden here */
 }
-  
+
 /* Outer big box with neon glow */
 .profile-container {
     max-width: 1100px;
     margin: 2rem auto;
     padding: 2rem;
-    background: linear-gradient(135deg, #0a0a0a, #222); /* Dark gradient */
+    /* Dark gradient behind the container itself */
+    background: linear-gradient(135deg, #0a0a0a, #222);
     border-radius: 20px;
-    box-shadow: 0 0 20px 5px rgba(0, 255, 128, 0.6); /* Neon green glow */
+    /* Neon green glow */
+    box-shadow: 0 0 20px 5px rgba(0, 255, 128, 0.6);
     color: #d4edda;
 }
-  
+
 /* Title styling */
 .profile-title {
     text-align: center;
@@ -35,14 +42,14 @@ html, body {
     font-size: 2rem;
     margin: 0;
 }
-  
+
 /* Two boxes side by side */
 .boxes-row {
     display: flex;
     flex-wrap: wrap;
     gap: 2rem;
 }
-  
+
 /* Left info box */
 .info-box {
     flex: 1;
@@ -52,7 +59,7 @@ html, body {
     border-radius: 10px;
     padding: 1.5rem;
 }
-  
+
 /* Right docs box */
 .docs-box {
     flex: 1;
@@ -62,7 +69,7 @@ html, body {
     border-radius: 10px;
     padding: 1.5rem;
 }
-  
+
 /* Shared row styling */
 .info-row,
 .doc-row {
@@ -71,7 +78,7 @@ html, body {
     flex-direction: row;
     align-items: center;
 }
-  
+
 /* Labels and values for info */
 .info-label {
     color: #00ff80;
@@ -83,7 +90,7 @@ html, body {
     color: #d4edda;
     font-weight: 400;
 }
-  
+
 /* Progress bar container */
 .progress-bar-wrapper {
     position: relative;
@@ -93,7 +100,7 @@ html, body {
     width: 80%;
     margin-top: 0.5rem;
 }
-  
+
 /* Progress bar fill */
 .progress-bar-fill {
     background-color: #00ff80;
@@ -101,14 +108,14 @@ html, body {
     border-radius: 10px;
     transition: width 0.3s ease;
 }
-  
+
 /* Document labels */
 .doc-label {
     color: #00ff80;
     font-weight: 600;
     width: 180px;
 }
-  
+
 /* Document link button */
 .doc-link {
     background-color: #00ff80;
@@ -124,13 +131,13 @@ html, body {
 .doc-link:hover {
     background-color: #00cc66;
 }
-  
+
 /* Not provided text */
 .doc-not-provided {
     color: #aaa;
     margin-left: 0.5rem;
 }
-  
+
 /* Inline doc preview (image) */
 .doc-preview {
     margin-top: 1rem;
@@ -138,17 +145,17 @@ html, body {
 }
 .doc-image {
     max-width: 100%;
-    max-height: 300px;  /* image won't exceed 300px in height */
+    max-height: 300px;
     object-fit: contain;
     display: inline-block;
 }
-  
+
 /* Bottom row with edit profile button */
 .edit-profile-btn-row {
     margin-top: 2rem;
     text-align: center;
 }
-  
+
 /* Edit Profile button */
 .edit-profile-btn {
     display: inline-block;
@@ -166,7 +173,7 @@ html, body {
 .edit-profile-btn:hover {
     background-color: #00cc66;
 }
-  
+
 /* Responsive layout */
 @media (max-width: 768px) {
     .boxes-row {

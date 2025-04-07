@@ -140,61 +140,56 @@ const CompletedLoansPage = () => {
   ));
 
   return (
-    <Box className="p-6 max-w-4xl mx-auto bg-white rounded-xl shadow-md" sx={{ p: 2, mt: 5 }}>
-      <Sidebar />
+    <div className="profile-page">
+      <div className="profile-container">
+        <Sidebar />
 
-      <Typography variant="h4" gutterBottom>
-        Completed Loans
-      </Typography>
+        <div className="profile-title">
+          <Typography variant="h4" gutterBottom>
+            Completed Loans
+          </Typography>
+        </div>
 
-      {loading ? (
-        <CustomLoader />
-      ) : error ? (
-        <Alert severity="error">{error}</Alert>
-      ) : completedLoans.length === 0 ? (
-        <Typography>No Completed Loans Found</Typography>
-      ) : (
-        <>
-          <Box
-            sx={{
-              backgroundColor: "#181818",
-              p: 1,
-              display: "flex",
-              alignItems: "center",
-              borderRadius: "4px",
-              mb: 2,
-            }}
-          >
-            <Typography sx={{ width: "10%", color: "#28a745", fontWeight: "bold" }}>
-              Loan ID
-            </Typography>
-            <Typography sx={{ width: "25%", color: "#28a745", fontWeight: "bold" }}>
-              Borrower
-            </Typography>
-            <Typography sx={{ width: "15%", color: "#28a745", fontWeight: "bold", textAlign: "right" }}>
-              Credit Score
-            </Typography>
-            <Typography sx={{ width: "15%", color: "#28a745", fontWeight: "bold", textAlign: "right" }}>
-              Amount
-            </Typography>
-            <Typography sx={{ width: "15%", color: "#28a745", fontWeight: "bold", textAlign: "right" }}>
-              Interest Rate
-            </Typography>
-            <Typography sx={{ width: "20%", color: "#28a745", fontWeight: "bold", textAlign: "right" }}>
-              Repayment Period
-            </Typography>
-          </Box>
-          <AnimatedList
-            items={loanItems}
-            onItemSelect={(item, index) => handleRowClick(completedLoans[index])}
-            className="w-full"
-            itemClassName=""
-          />
-        </>
-      )}
+        {loading ? (
+          <CustomLoader />
+        ) : error ? (
+          <Alert severity="error">{error}</Alert>
+        ) : completedLoans.length === 0 ? (
+          <Typography>No Completed Loans Found</Typography>
+        ) : (
+          <>
+            <Box className="custom-table-header" sx={{ display: "flex", backgroundColor: "#181818", p: 1, borderRadius: "4px", mb: 2 }}>
+              <Typography sx={{ width: "10%", color: "#28a745", fontWeight: "bold" }}>
+                Loan ID
+              </Typography>
+              <Typography sx={{ width: "25%", color: "#28a745", fontWeight: "bold" }}>
+                Borrower
+              </Typography>
+              <Typography sx={{ width: "15%", color: "#28a745", fontWeight: "bold", textAlign: "right" }}>
+                Credit Score
+              </Typography>
+              <Typography sx={{ width: "15%", color: "#28a745", fontWeight: "bold", textAlign: "right" }}>
+                Amount
+              </Typography>
+              <Typography sx={{ width: "15%", color: "#28a745", fontWeight: "bold", textAlign: "right" }}>
+                Interest Rate
+              </Typography>
+              <Typography sx={{ width: "20%", color: "#28a745", fontWeight: "bold", textAlign: "right" }}>
+                Repayment Period
+              </Typography>
+            </Box>
+            <AnimatedList
+              items={loanItems}
+              onItemSelect={(item, index) => handleRowClick(completedLoans[index])}
+              className="w-full"
+              itemClassName=""
+            />
+          </>
+        )}
 
-      <ProfileModal open={modalOpen} onClose={() => setModalOpen(false)} profile={selectedProfile} />
-    </Box>
+        <ProfileModal open={modalOpen} onClose={() => setModalOpen(false)} profile={selectedProfile} />
+      </div>
+    </div>
   );
 };
 

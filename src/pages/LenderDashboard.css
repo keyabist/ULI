@@ -1,131 +1,133 @@
 /* Overall Dashboard Layout */
 .lender-dashboard {
-    background-color: #000;
-    min-height: 100vh;
-    width: 90%;
-    margin: 0 auto;
-    color: #fff;
-    font-family: 'Poppins', sans-serif;
-    padding-bottom: 2rem;
-  }
-  
-  /* Main content container */
-  .dashboard-content {
-    padding: 2rem 1rem;
-  }
-  
-  /* Heading & Description */
-  .heading {
-    text-align: left;
-    margin-bottom: 1.5rem;
-  }
-  
-  .heading h4 {
-    color: #39FF14; /* Neon green heading */
-    margin-bottom: 0.5rem;
-  }
-  
-  .heading p {
-    color: #fff;
-  }
-  
-  /* Overview Boxes Container */
-  .overview-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 16px;
-  }
-  
-  /* Overview Boxes with Futuristic Neon Look */
-  .overview-box {
-    background-color: #222;  /* Dark background */
-    border: 2px solid transparent;
-    border-radius: 10px;
-    padding: 1rem;
-    text-align: center;
-    flex: 1;
-    min-width: 150px;
-    /* Always-on neon glow */
-    box-shadow: 0 0 10px rgba(57, 255, 20, 0.5), 0 0 20px rgba(57, 255, 20, 0.3);
-    transition: box-shadow 0.3s;
-  }
-  
-  .overview-box:hover {
-    box-shadow: 0 0 20px rgba(57, 255, 20, 0.8), 0 0 40px rgba(57, 255, 20, 0.5);
-  }
-  
-  .overview-box .title {
-    color: #39FF14; /* Neon green heading */
-    font-size: 0.8rem;
-    margin-bottom: 4px;
-  }
-  
-  .overview-box .value {
-    font-size: 1.5rem;
-    margin: 0.5rem 0;
-    color: #fff;
-  }
-  
-  .overview-box .description {
-    font-size: 0.8rem;
-    color: #fff;
-  }
-  
-  /* Spacing between sections */
-  .spacing {
-    margin-top: 2rem;
-  }
-  
-  /* Clickable Boxes with Futuristic Neon Glow */
-  .clickable-box {
-    background-color: #222; /* Ensure dark background */
-    border: 2px solid transparent;
-    border-radius: 10px;
-    padding: 1rem;
-    color: #fff;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.3s;
-    text-align: center;
-    min-height: 130px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    text-decoration: none;
-    /* Always-on neon glow effect */
-    box-shadow: 0 0 10px rgba(57, 255, 20, 0.5), 0 0 20px rgba(57, 255, 20, 0.3);
-  }
-  
-  .clickable-box:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 20px rgba(57, 255, 20, 0.8), 0 0 40px rgba(57, 255, 20, 0.5);
-  }
-  
-  /* Box Header: Heading text and icons are always neon green */
-  .box-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 0.5rem;
-  }
-  
-  .box-header .icon {
-    font-size: 30px;
-    margin-right: 8px;
-    color: #39FF14; /* Neon green icon */
-  }
-  
-  .header-text {
-    color: #39FF14 !important; /* Force neon green text */
-    font-size: 1rem;
-  }
-  
-  /* Value and Caption remain white */
-  .clickable-box .value {
-    font-size: 1.5rem;
-    color: #fff;
-  }
-  
-  .clickable-box .caption {
-    font-size: 0.8rem;
-    color: #fff;
-  }
-  
+  /* Use 90% of the page width and center it */
+  width: 100%;
+  margin: 0 auto;
+  min-height: 100vh;
+  color: #fff;
+  font-family: "Poppins", sans-serif;
+  padding-bottom: 2rem;
+  /* Full-screen background image */
+  background: url("/public/my-background.jpg") no-repeat center center;
+  background-size: cover;
+}
+
+/* Main content container */
+.dashboard-content {
+  padding: 2rem 1rem;
+}
+
+/* Heading & Description */
+.heading {
+  text-align: left;
+  margin-bottom: 1.5rem;
+}
+
+.heading h4 {
+  color: #39FF14; /* Neon green heading */
+  margin-bottom: 0.5rem;
+}
+
+.heading p {
+  color: #fff;
+}
+
+/* Overview Boxes Container */
+.overview-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+/* Overview Boxes with Futuristic Neon Look */
+.overview-box {
+  background-color: #222;  /* Dark background */
+  border: 2px solid transparent;
+  border-radius: 10px;
+  padding: 1rem;
+  text-align: center;
+  flex: 1;
+  min-width: 150px;
+  /* Always-on neon glow */
+  box-shadow: 0 0 10px rgba(57, 255, 20, 0.5), 0 0 20px rgba(57, 255, 20, 0.3);
+  transition: box-shadow 0.3s;
+}
+
+.overview-box:hover {
+  box-shadow: 0 0 20px rgba(57, 255, 20, 0.8), 0 0 40px rgba(57, 255, 20, 0.5);
+}
+
+.overview-box .title {
+  color: #39FF14; /* Neon green heading */
+  font-size: 0.8rem;
+  margin-bottom: 4px;
+}
+
+.overview-box .value {
+  font-size: 1.5rem;
+  margin: 0.5rem 0;
+  color: #fff;
+}
+
+.overview-box .description {
+  font-size: 0.8rem;
+  color: #fff;
+}
+
+/* Spacing between sections */
+.spacing {
+  margin-top: 2rem;
+}
+
+/* Clickable Boxes with Futuristic Neon Glow */
+.clickable-box {
+  background-color: #222; /* Ensure dark background */
+  border: 2px solid transparent;
+  border-radius: 10px;
+  padding: 1rem;
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.3s;
+  text-align: center;
+  min-height: 130px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-decoration: none;
+  /* Always-on neon glow effect */
+  box-shadow: 0 0 10px rgba(57, 255, 20, 0.5), 0 0 20px rgba(57, 255, 20, 0.3);
+}
+
+.clickable-box:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(57, 255, 20, 0.8), 0 0 40px rgba(57, 255, 20, 0.5);
+}
+
+/* Box Header: Heading text and icons are always neon green */
+.box-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.box-header .icon {
+  font-size: 30px;
+  margin-right: 8px;
+  color: #39FF14; /* Neon green icon */
+}
+
+.header-text {
+  color: #39FF14 !important; /* Force neon green text */
+  font-size: 1rem;
+}
+
+/* Value and Caption remain white */
+.clickable-box .value {
+  font-size: 1.5rem;
+  color: #fff;
+}
+
+.clickable-box .caption {
+  font-size: 0.8rem;
+  color: #fff;
+}

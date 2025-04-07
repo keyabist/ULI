@@ -1,0 +1,97 @@
+/* Global settings */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  box-sizing: border-box;
+  font-family: sans-serif;
+}
+
+/* Overall page background with full-screen image */
+.profile-page {
+  min-height: 100vh;
+  background: url("/public/my-background.jpg") no-repeat center center;
+  background-size: cover;
+  position: relative;
+}
+
+/* Navigation bar styling */
+.navbar {
+  width: 240px;
+  background-color: #111;
+  color: #d4edda;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  overflow-y: auto;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.5);
+}
+
+.navbar .logo {
+  text-align: center;
+  padding: 1rem;
+  font-size: 1.5rem;
+  color: #00ff80;
+  border-bottom: 1px solid #00ff80;
+}
+
+.navbar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.navbar li {
+  border-bottom: 1px solid #00ff80;
+}
+
+.navbar li a {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  color: #d4edda;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+}
+
+.navbar li a:hover {
+  background-color: #222;
+}
+
+/* Responsive layout for navbar */
+@media (max-width: 768px) {
+  .navbar {
+      width: 100%;
+      height: auto;
+      position: relative;
+  }
+}
+
+/* Content area (next to the navbar) */
+.content {
+  margin-left: 260px; /* navbar width (240px) + some spacing */
+  padding: 2rem;
+}
+
+/* Outer container with neon glow effect */
+.profile-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: linear-gradient(135deg, #0a0a0a, #222);
+  border-radius: 20px;
+  box-shadow: 0 0 20px 5px rgba(0, 255, 128, 0.6);
+  color: #d4edda;
+}
+
+/* Title styling */
+.profile-title {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+.profile-title h2 {
+  color: #00ff80; /* Neon green */
+  font-size: 2rem;
+  margin: 0;
+}

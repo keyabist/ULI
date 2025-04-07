@@ -62,7 +62,7 @@ const EditProfileForm = () => {
               return;
             }
           } catch (error) {
-            // Not a borrower
+            // Not a borrower, try lender mapping
           }
 
           // Try lender mapping if borrower lookup failed
@@ -99,8 +99,8 @@ const EditProfileForm = () => {
       method: 'POST',
       body: formData,
       headers: {
-        'pinata_api_key': "631aba7bba8a85658b57", 
-        'pinata_secret_api_key': "ed236116b957abe0293ab4e1101662b755cb01051d78719021b7c9c3114cc693" 
+        'pinata_api_key': "YOUR_PINATA_API_KEY", 
+        'pinata_secret_api_key': "YOUR_PINATA_SECRET_API_KEY" 
       }
     });
     const data = await response.json();
@@ -163,20 +163,14 @@ const EditProfileForm = () => {
 
   return (
     <div className="edit-profile-page">
-      <Sidebar />
+      {/* Navbar component removed */}
 
       <div className="edit-profile-container">
         <Typography className="edit-profile-title" variant="h4" gutterBottom>
           Edit Profile
         </Typography>
-
         <Paper elevation={0} className="edit-profile-paper">
-          <Box 
-            component="form" 
-            onSubmit={handleSubmit} 
-            noValidate 
-            sx={{ mt: 2 }}
-          >
+          <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 2 }}>
             <Grid container spacing={3}>
               {/* Name */}
               <Grid item xs={12}>
@@ -286,7 +280,7 @@ const EditProfileForm = () => {
                 />
               </Grid>
 
-              {/* Documents */}
+              {/* Documents Section */}
               <Grid item xs={12}>
                 <Typography variant="h6" gutterBottom sx={{ mt: 2, color: '#00ff80' }}>
                   Documents
@@ -412,7 +406,7 @@ const EditProfileForm = () => {
                     '&:hover': { backgroundColor: '#00cc66' }
                   }}
                 >
-                  {loading ? 'Updating...' : 'Save Changes'}
+                  {loading ? 'Updating Profile...' : 'Save Changes'}
                 </Button>
               </Grid>
             </Grid>

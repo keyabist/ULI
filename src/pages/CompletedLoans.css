@@ -1,0 +1,80 @@
+/* Global settings */
+html, body {
+    margin: 0;
+    padding: 0;
+    height: auto;
+    overflow-y: auto;
+  }
+  
+  /* Overall page background with dark gradient overlay and background image */
+  .profile-page {
+    min-height: 100vh;
+    font-family: sans-serif;
+    background: 
+      linear-gradient(rgba(10, 10, 10, 0.8), rgba(34, 34, 34, 0.8)),
+      url("/public/my-background.jpg") no-repeat center center;
+    background-size: cover;
+  }
+  
+  /* Outer big box with neon glow */
+  .profile-container {
+    max-width: 1100px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: rgba(10, 10, 10, 0.8);
+    border-radius: 20px;
+    box-shadow: 0 0 20px 5px rgba(0, 255, 128, 0.6);
+    color: #d4edda;
+  }
+  
+  /* Title styling */
+  .profile-title {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  
+  .profile-title h2 {
+    color: #00ff80;
+    font-size: 2rem;
+    margin: 0;
+  }
+  
+  /* Table container overrides for neon theme */
+  .custom-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .custom-table th,
+  .custom-table td {
+    border: 1px solid #00ff80;
+    padding: 0.75rem;
+    text-align: center;
+    color: #d4edda;
+  }
+  
+  .custom-table th {
+    background-color: #111;
+    font-weight: bold;
+  }
+  
+  .custom-table tbody tr:nth-child(even) {
+    background-color: #1a1f1f;
+  }
+  
+  .custom-table tbody tr:hover {
+    background-color: #222;
+    cursor: pointer;
+  }
+  
+  /* Responsive layout */
+  @media (max-width: 768px) {
+    .profile-container {
+      margin: 1rem;
+      padding: 1rem;
+    }
+    .profile-title h2 {
+      font-size: 1.5rem;
+    }
+  }
+  

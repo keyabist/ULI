@@ -8,6 +8,7 @@ import AnimatedList from "../components/AnimatedList";
 import CustomLoader from "../components/CustomLoader";
 import ProfileModal from "../components/ProfileModal";
 import Sidebar from "../components/Siderbar";
+import "../styles/RequestStatusPage.css"; // Make sure this path is correct
 
 const CONTRACT_ADDRESS = "0x3C749Fa9984369506F10c18869E7c51488D8134f";
 
@@ -15,7 +16,6 @@ const RequestStatusPage = () => {
   const [loanRequests, setLoanRequests] = useState([]);
   const [filteredRequests, setFilteredRequests] = useState([]);
   const [selectedStatuses, setSelectedStatuses] = useState(new Set(["all"]));
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
@@ -62,7 +62,7 @@ const RequestStatusPage = () => {
                     setModalOpen(true);
                   }}
                   style={{
-                    color: "#28a745",
+                    color: "#00ff80",
                     textDecoration: "none",
                     fontWeight: "bold",
                     cursor: "pointer",
@@ -76,7 +76,7 @@ const RequestStatusPage = () => {
                 address: loan.borrower,
                 creditScore,
                 monthlyIncome: borrowerProfile.monthlyIncome.toString(),
-              }
+              },
             });
           }
         }
@@ -101,27 +101,27 @@ const RequestStatusPage = () => {
 
   const toggleStatusFilter = (status) => {
     const newStatuses = new Set(selectedStatuses);
-  
+
     if (status === "all") {
       newStatuses.clear();
       newStatuses.add("all");
     } else {
       newStatuses.delete("all"); // remove 'all' if a specific status is selected
-  
+
       if (newStatuses.has(status)) {
         newStatuses.delete(status);
       } else {
         newStatuses.add(status);
       }
-  
+
       // if nothing selected, fallback to "all"
       if (newStatuses.size === 0) {
         newStatuses.add("all");
       }
     }
-  
+
     setSelectedStatuses(newStatuses);
-  
+
     if (newStatuses.has("all")) {
       setFilteredRequests(loanRequests);
     } else {
@@ -132,7 +132,6 @@ const RequestStatusPage = () => {
       );
     }
   };
-  
 
   const handleRowClick = (row) => {
     navigate(`/loanStatus/${row.loanId}`);
@@ -147,21 +146,8 @@ const RequestStatusPage = () => {
     return <Typography sx={{ color, fontWeight: "bold" }}>{status}</Typography>;
   };
 
-
   const requestItems = filteredRequests.map((row) => (
-    <span
-      key={row.loanId}
-      style={{
-        display: "flex",
-        alignItems: "center",
-        width: "100%",
-        fontSize: "0.9rem",
-        backgroundColor: "#111",
-        borderRadius: "4px",
-        padding: "8px",
-        marginBottom: "8px",
-      }}
-    >
+    <span key={row.loanId} className="request-row" onClick={() => handleRowClick(row)}>
       <span style={{ width: "10%", fontWeight: "bold" }}>{row.loanId}</span>
       <span style={{ width: "20%" }}>{row.borrower}</span>
       <span style={{ width: "15%", textAlign: "right" }}>{row.amount}</span>
@@ -172,91 +158,59 @@ const RequestStatusPage = () => {
   ));
 
   return (
-    <Box className="p-6 max-w-4xl mx-auto bg-white rounded-xl shadow-md" sx={{ p: 2, mt: 5 }}>
+    <div className="profile-page">
       <Sidebar />
-      <Typography variant="h4" gutterBottom>
-        Your Loan Requests
-      </Typography>
+      <div className="profile-container">
+        <div className="profile-title">
+          <h2>Your Loan Requests</h2>
+        </div>
 
-      {/* Filter Buttons */}
-      <Box sx={{ mb: 4, display: "flex", gap: 2 }}>
-        {[
-          { value: "all", label: "All" },
-          { value: "pending", label: "Pending" },
-          { value: "accepted", label: "Accepted" },
-          { value: "rejected", label: "Rejected" }
-        ].map((filter) => (
-          <Box
-            key={filter.value}
-            onClick={() => toggleStatusFilter(filter.value)}
-            sx={{
-              p: 1,
-              px: 2,
-              borderRadius: "5px",
-              backgroundColor: selectedStatuses.has(filter.value) ? "#28a745" : "#333",
-              color: selectedStatuses.has(filter.value) ? "#ffffff" : "#EAECEF",
-              cursor: "pointer",
-              "&:hover": {
-                backgroundColor: selectedStatuses.has(filter.value) ? "#218838" : "#444",
-              },
-              transition: "background-color 0.2s",
-            }}
-          >
-            {filter.label}
-          </Box>
-        ))}
-      </Box>
+        {/* Filter Buttons */}
+        <Box sx={{ mb: 4, display: "flex", gap: 2 }}>
+          {[
+            { value: "all", label: "All" },
+            { value: "pending", label: "Pending" },
+            { value: "accepted", label: "Accepted" },
+            { value: "rejected", label: "Rejected" },
+          ].map((filter) => (
+            <Box
+              key={filter.value}
+              className={`filter-button ${selectedStatuses.has(filter.value) ? "active" : ""}`}
+              onClick={() => toggleStatusFilter(filter.value)}
+            >
+              {filter.label}
+            </Box>
+          ))}
+        </Box>
 
+        {loading ? (
+          <CustomLoader />
+        ) : error ? (
+          <Alert severity="error">{error}</Alert>
+        ) : filteredRequests.length === 0 ? (
+          <Typography>No requests found for this filter.</Typography>
+        ) : (
+          <>
+            <div className="request-header">
+              <span>Loan ID</span>
+              <span>Borrower</span>
+              <span style={{ textAlign: "right" }}>Amount</span>
+              <span style={{ textAlign: "right" }}>Interest Rate</span>
+              <span style={{ textAlign: "right" }}>Term</span>
+              <span style={{ textAlign: "center" }}>Status</span>
+            </div>
+            <AnimatedList
+              items={requestItems}
+              onItemSelect={(item, index) => handleRowClick(filteredRequests[index])}
+              className="w-full"
+              itemClassName=""
+            />
+          </>
+        )}
 
-      {loading ? (
-        <CustomLoader />
-      ) : error ? (
-        <Alert severity="error">{error}</Alert>
-      ) : filteredRequests.length === 0 ? (
-        <Typography>No requests found for this filter.</Typography>
-      ) : (
-        <>
-          <Box
-            sx={{
-              backgroundColor: "#181818",
-              p: 1,
-              display: "flex",
-              alignItems: "center",
-              borderRadius: "4px",
-              mb: 2,
-            }}
-          >
-            <Typography sx={{ width: "10%", color: "#28a745", fontWeight: "bold" }}>
-              Loan ID
-            </Typography>
-            <Typography sx={{ width: "20%", color: "#28a745", fontWeight: "bold" }}>
-              Borrower
-            </Typography>
-            <Typography sx={{ width: "15%", color: "#28a745", fontWeight: "bold", textAlign: "right" }}>
-              Amount
-            </Typography>
-            <Typography sx={{ width: "15%", color: "#28a745", fontWeight: "bold", textAlign: "right" }}>
-              Interest Rate
-            </Typography>
-            <Typography sx={{ width: "15%", color: "#28a745", fontWeight: "bold", textAlign: "right" }}>
-              Term
-            </Typography>
-            <Typography sx={{ width: "25%", color: "#28a745", fontWeight: "bold", textAlign: "center" }}>
-              Status
-            </Typography>
-          </Box>
-
-          <AnimatedList
-            items={requestItems}
-            onItemSelect={(item, index) => handleRowClick(filteredRequests[index])}
-            className="w-full"
-            itemClassName=""
-          />
-        </>
-      )}
-
-      <ProfileModal open={modalOpen} onClose={() => setModalOpen(false)} profile={selectedProfile} />
-    </Box>
+        <ProfileModal open={modalOpen} onClose={() => setModalOpen(false)} profile={selectedProfile} />
+      </div>
+    </div>
   );
 };
 

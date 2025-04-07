@@ -199,7 +199,7 @@ const Intro = () => {
     } else if (userType === 'lender') {
       navigate('/lenderDashboard');
     } else {
-      navigate('/registrationForm'); // Redirect to registration if not registered
+      navigate('/splashScreen'); // Redirect to registration if not registered
     }
   };
 

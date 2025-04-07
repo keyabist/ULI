@@ -133,3 +133,13 @@ button:focus-visible {
 .logout-btn:hover {
   color: #39FF14;
 }
+
+.profile-page {
+  /* Fill at least one full viewport height */
+  min-height: 100vh; 
+  /* Use your own image path as needed */
+  background: url("/public/my-background.jpg") no-repeat center center;
+  /* "cover" makes the background image stretch to fill the container */
+  background-size: cover;
+  font-family: sans-serif;
+}

@@ -13,8 +13,9 @@ import {
   Paper,
   Toolbar,
 } from '@mui/material';
-import "../styles/BorrowerDashboard.css"; // Ensure the path is correct
+import "../styles/BorrowerDashboard.css";
 import Sidebar from "../components/Siderbar";
+import CustomLoader from "../components/CustomLoader"; // <-- import this
 
 const contractAddress = "0x3C749Fa9984369506F10c18869E7c51488D8134f";
 
@@ -26,17 +27,24 @@ const BorrowerDashboard = ({ account }) => {
   const [ongoingLoans, setOngoingLoans] = useState([]);
   const [completedLoans, setCompletedLoans] = useState([]);
   const [requestsHistory, setRequestsHistory] = useState([]);
-
-  // Track the selected lender
   const [selectedLender, setSelectedLender] = useState(null);
+  const [loading, setLoading] = useState(true); // <-- NEW: Track loading state
+
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchLenders();
-    fetchRequests();
-    fetchOngoingLoans();
-    fetchCompletedLoans();
-    fetchRequestsHistory();
+    const loadData = async () => {
+      setLoading(true);
+      await Promise.all([
+        fetchLenders(),
+        fetchRequests(),
+        fetchOngoingLoans(),
+        fetchCompletedLoans(),
+        fetchRequestsHistory(),
+      ]);
+      setLoading(false);
+    };
+    loadData();
     // eslint-disable-next-line
   }, []);
 
@@ -49,7 +57,6 @@ const BorrowerDashboard = ({ account }) => {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const contract = new ethers.Contract(contractAddress, contractABI, provider);
       const lenderAddresses = await contract.getAllLenders();
-
       const lenderDetails = await Promise.all(
         lenderAddresses.map(async (address) => {
           const lender = await contract.lenders(address);
@@ -60,7 +67,6 @@ const BorrowerDashboard = ({ account }) => {
               email: lender.email,
               phone: lender.phone,
               interestRate: parseFloat(lender.interestRate.toString()),
-              // Convert creditScore to a Number (it is a uint)
               creditScore: Number(lender.creditScore),
             };
           }
@@ -68,7 +74,6 @@ const BorrowerDashboard = ({ account }) => {
         })
       );
       const filtered = lenderDetails.filter(Boolean);
-      // Sort by interest rate ascending
       filtered.sort((a, b) => a.interestRate - b.interestRate);
       setLenders(filtered);
       setFilteredLenders(filtered);
@@ -83,12 +88,10 @@ const BorrowerDashboard = ({ account }) => {
       const signer = await provider.getSigner();
       const userAddress = await signer.getAddress();
       const contract = new ethers.Contract(contractAddress, contractABI, signer);
-      const nextLoanIdBN = await contract.nextLoanId();
-      const nextLoanId = Number(nextLoanIdBN);
-      let borrowerRequests = [];
+      const nextLoanId = Number(await contract.nextLoanId());
+      const borrowerRequests = [];
       for (let i = 1; i < nextLoanId; i++) {
         const loan = await contract.loans(i);
-        // status 0 = "Requested/Pending"
         if (
           loan.borrower.toLowerCase() === userAddress.toLowerCase() &&
           Number(loan.status) === 0
@@ -112,12 +115,10 @@ const BorrowerDashboard = ({ account }) => {
       const signer = await provider.getSigner();
       const userAddress = await signer.getAddress();
       const contract = new ethers.Contract(contractAddress, contractABI, signer);
-      const nextLoanIdBN = await contract.nextLoanId();
-      const nextLoanId = Number(nextLoanIdBN);
-      let borrowerLoans = [];
+      const nextLoanId = Number(await contract.nextLoanId());
+      const borrowerLoans = [];
       for (let i = 1; i < nextLoanId; i++) {
         const loan = await contract.loans(i);
-        // status 1 = "Approved/Ongoing"
         if (
           loan.borrower.toLowerCase() === userAddress.toLowerCase() &&
           Number(loan.status) === 1
@@ -142,9 +143,8 @@ const BorrowerDashboard = ({ account }) => {
       const signer = await provider.getSigner();
       const userAddress = (await signer.getAddress()).toLowerCase();
       const contract = new ethers.Contract(contractAddress, contractABI, signer);
-      const nextLoanIdBN = await contract.nextLoanId();
-      const nextLoanId = Number(nextLoanIdBN);
-      let completed = [];
+      const nextLoanId = Number(await contract.nextLoanId());
+      const completed = [];
       for (let i = 1; i < nextLoanId; i++) {
         const loan = await contract.loans(i);
         if (
@@ -166,9 +166,8 @@ const BorrowerDashboard = ({ account }) => {
       const signer = await provider.getSigner();
       const userAddress = (await signer.getAddress()).toLowerCase();
       const contract = new ethers.Contract(contractAddress, contractABI, signer);
-      const nextLoanIdBN = await contract.nextLoanId();
-      const nextLoanId = Number(nextLoanIdBN);
-      let history = [];
+      const nextLoanId = Number(await contract.nextLoanId());
+      const history = [];
       for (let i = 1; i < nextLoanId; i++) {
         const loan = await contract.loans(i);
         if (
@@ -194,9 +193,7 @@ const BorrowerDashboard = ({ account }) => {
     setFilteredLenders(filtered);
   };
 
-  const handleSelectLender = (lender) => {
-    setSelectedLender(lender);
-  };
+  const handleSelectLender = (lender) => setSelectedLender(lender);
 
   const handleRequestLoan = () => {
     if (!selectedLender) {
@@ -208,11 +205,11 @@ const BorrowerDashboard = ({ account }) => {
 
   return (
     <>
-      {/* <NavBar /> */}
       <Sidebar />
       <div className="borrower-dashboard">
-        {/* LEFT SECTION */}
         <Toolbar />
+
+        {/* LEFT SECTION */}
         <div className="left-section">
           <h3>Available Lenders</h3>
           <input
@@ -227,15 +224,13 @@ const BorrowerDashboard = ({ account }) => {
               <p>No Lenders Found</p>
             ) : (
               filteredLenders.map((lender, index) => {
-                const isSelected =
-                  selectedLender?.walletAddress === lender.walletAddress;
+                const isSelected = selectedLender?.walletAddress === lender.walletAddress;
                 return (
                   <div
                     key={index}
                     className={`lender-box ${isSelected ? "selected-lender" : ""}`}
                     onClick={() => handleSelectLender(lender)}
                   >
-                    {/* Instead of a checkbox input, use a small div */}
                     <div className={`select-box ${isSelected ? "selected" : ""}`}></div>
                     <div className="lender-info">
                       <p>Name: {lender.name}</p>
@@ -256,104 +251,108 @@ const BorrowerDashboard = ({ account }) => {
 
         {/* RIGHT SECTION */}
         <div className="right-section">
-          {/* Top: Generated Requests */}
-          <div className="right-top">
-            <h3>Generated Requests</h3>
-            <div className="list-container requests-list">
-              {requests.length === 0 ? (
-                <p>No Requests Found</p>
-              ) : (
-                requests.map((loan, index) => (
-                  <div
-                    key={index}
-                    className="lender-box"
-                    onClick={() => navigate(`/loanStatus/${loan.id}`)}
-                  >
-                    <p>Loan ID: {loan.id}</p>
-                    <p>Lender: {loan.lender}</p>
-                    <p>Status: Pending</p>
+          {loading ? (
+            <CustomLoader />
+          ) : (
+            <>
+              {/* Top: Generated Requests */}
+              <div className="right-top">
+                <h3>Generated Requests</h3>
+                <div className="list-container requests-list">
+                  {requests.length === 0 ? (
+                    <p>No Requests Found</p>
+                  ) : (
+                    requests.map((loan, index) => (
+                      <div
+                        key={index}
+                        className="lender-box"
+                        onClick={() => navigate(`/loanStatus/${loan.id}`)}
+                      >
+                        <p>Loan ID: {loan.id}</p>
+                        <p>Lender: {loan.lender}</p>
+                        <p>Status: Pending</p>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Middle: Ongoing Loans */}
+              <div className="right-middle" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <h3>Ongoing Loans</h3>
+                <div className="list-container ongoing-list" style={{ width: '80%' }}>
+                  {ongoingLoans.length === 0 ? (
+                    <p>No Loans Found</p>
+                  ) : (
+                    <TableContainer component={Paper} sx={{ backgroundColor: '#111', borderRadius: '12px' }}>
+                      <Table sx={{ minWidth: 400 }} aria-label="ongoing loans table">
+                        <TableHead>
+                          <TableRow>
+                            {['Loan ID', 'Amount', 'Interest', 'Duration'].map((heading, idx) => (
+                              <TableCell
+                                key={idx}
+                                sx={{
+                                  color: '#0f0',
+                                  border: '2px solid #0f0',
+                                  textAlign: 'center',
+                                  boxShadow: '0 0 8px #0f0',
+                                }}
+                              >
+                                {heading}
+                              </TableCell>
+                            ))}
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {ongoingLoans.map((loan, index) => (
+                            <TableRow
+                              key={index}
+                              hover
+                              sx={{ cursor: 'pointer' }}
+                              onClick={() => navigate(`/loanStatus/${loan.id}`)}
+                            >
+                              <TableCell sx={{ color: '#0f0', border: '2px solid #0f0', textAlign: 'center' }}>{loan.id}</TableCell>
+                              <TableCell sx={{ color: '#0f0', border: '2px solid #0f0', textAlign: 'center' }}>{loan.amount}</TableCell>
+                              <TableCell sx={{ color: '#0f0', border: '2px solid #0f0', textAlign: 'center' }}>{loan.interestRate}</TableCell>
+                              <TableCell sx={{ color: '#0f0', border: '2px solid #0f0', textAlign: 'center' }}>{loan.duration}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  )}
+                </div>
+              </div>
+
+              {/* Bottom Buttons */}
+              <div className="right-bottom">
+                <div
+                  className="dashboard-button"
+                  onClick={() => navigate("/requestStatusPage")}
+                >
+                  <div className="icon">
+                    <i className="fa fa-history"></i>
                   </div>
-                ))
-              )}
-            </div>
-          </div>
-
-          {/* Middle: Ongoing Loans */}
-          <div className="right-middle" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <h3>Ongoing Loans</h3>
-            <div className="list-container ongoing-list" style={{ width: '80%' }}>
-              {ongoingLoans.length === 0 ? (
-                <p>No Loans Found</p>
-              ) : (
-                <TableContainer component={Paper} sx={{ backgroundColor: '#111', borderRadius: '12px' }}>
-                  <Table sx={{ minWidth: 400 }} aria-label="ongoing loans table">
-                    <TableHead>
-                      <TableRow>
-                        {['Loan ID', 'Amount', 'Interest', 'Duration'].map((heading, idx) => (
-                          <TableCell
-                            key={idx}
-                            sx={{
-                              color: '#0f0',
-                              border: '2px solid #0f0',
-                              textAlign: 'center',
-                              boxShadow: '0 0 8px #0f0',
-                            }}
-                          >
-                            {heading}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {ongoingLoans.map((loan, index) => (
-                        <TableRow
-                          key={index}
-                          hover
-                          sx={{ cursor: 'pointer' }}
-                          onClick={() => navigate(`/loanStatus/${loan.id}`)}
-                        >
-                          <TableCell sx={{ color: '#0f0', border: '2px solid #0f0', textAlign: 'center' }}>{loan.id}</TableCell>
-                          <TableCell sx={{ color: '#0f0', border: '2px solid #0f0', textAlign: 'center' }}>{loan.amount}</TableCell>
-                          <TableCell sx={{ color: '#0f0', border: '2px solid #0f0', textAlign: 'center' }}>{loan.interestRate}</TableCell>
-                          <TableCell sx={{ color: '#0f0', border: '2px solid #0f0', textAlign: 'center' }}>{loan.duration}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              )}
-            </div>
-          </div>
-
-
-
-          {/* Bottom: Two large boxes as buttons */}
-          <div className="right-bottom">
-            <div
-              className="dashboard-button"
-              onClick={() => navigate("/requestStatusPage")}
-            >
-              <div className="icon">
-                <i className="fa fa-history"></i>
+                  <div className="info">
+                    <h4>REQUESTS HISTORY</h4>
+                    <p>{requestsHistory.length} requests</p>
+                  </div>
+                </div>
+                <div
+                  className="dashboard-button"
+                  onClick={() => navigate("/completedLoansPage")}
+                >
+                  <div className="icon">
+                    <i className="fa fa-check-circle"></i>
+                  </div>
+                  <div className="info">
+                    <h4>COMPLETED LOANS</h4>
+                    <p>{completedLoans.length} loans</p>
+                  </div>
+                </div>
               </div>
-              <div className="info">
-                <h4>REQUESTS HISTORY</h4>
-                <p>{requestsHistory.length} requests</p>
-              </div>
-            </div>
-            <div
-              className="dashboard-button"
-              onClick={() => navigate("/completedLoansPage")}
-            >
-              <div className="icon">
-                <i className="fa fa-check-circle"></i>
-              </div>
-              <div className="info">
-                <h4>COMPLETED LOANS</h4>
-                <p>{completedLoans.length} loans</p>
-              </div>
-            </div>
-          </div>
+            </>
+          )}
         </div>
       </div>
     </>
