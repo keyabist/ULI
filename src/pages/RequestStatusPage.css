@@ -1,102 +1,114 @@
 /* Global settings */
 html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    box-sizing: border-box;
-    overflow-y: auto;
-    font-family: sans-serif;
-  }
-  
-  /* Overall page background with full-screen image */
-  .profile-page {
-    min-height: 100vh;
-    background: url("/public/my-background.jpg") no-repeat center center;
-    background-size: cover;
-  }
-  
-  /* Outer container with neon glow */
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  box-sizing: border-box;
+  overflow-y: auto;
+  font-family: sans-serif;
+}
+
+/* Overall page background with full-screen image */
+.profile-page {
+  min-height: 100vh;
+  background: url("/public/my-background.jpg") no-repeat center center;
+  background-size: cover;
+}
+
+/* Outer container with neon glow */
+.profile-container {
+  max-width: 1100px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: linear-gradient(135deg, #0a0a0a, #222);
+  border-radius: 20px;
+  box-shadow: 0 0 20px 5px rgba(0, 255, 128, 0.6);
+  color: #d4edda;
+}
+
+/* Title styling */
+.profile-title {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+.profile-title h2 {
+  color: #00ff80;
+  font-size: 2rem;
+  margin: 0;
+}
+
+/* Filter button styling */
+.filter-button {
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  background-color: #333;
+  color: #eaecef;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.filter-button:hover {
+  background-color: #444;
+}
+.filter-button.active {
+  background-color: #28a745;
+  color: #ffffff;
+}
+
+/* Table wrapper for horizontal scroll on small screens */
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+/* Requests table styling */
+.requests-table {
+  display: table;
+  table-layout: fixed;       /* enforce equal column widths */
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  background-color: #111;
+}
+.requests-table thead {
+  background-color: #181818;
+}
+.requests-table th,
+.requests-table td {
+  border: 1px solid #00ff80;
+  padding: 0.75rem;
+  color: #d4edda;
+  text-align: left;
+  font-size: 0.9rem;
+  word-wrap: break-word;
+}
+.requests-table th {
+  font-weight: bold;
+  color: #28a745;
+}
+.request-row {
+  transition: background-color 0.2s ease;
+}
+.request-row:hover {
+  background-color: #222;
+  cursor: pointer;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
   .profile-container {
-    max-width: 1100px;
-    margin: 2rem auto;
-    padding: 2rem;
-    background: linear-gradient(135deg, #0a0a0a, #222);
-    border-radius: 20px;
-    box-shadow: 0 0 20px 5px rgba(0, 255, 128, 0.6);
-    color: #d4edda;
-  }
-  
-  /* Title styling */
-  .profile-title {
-    text-align: center;
-    margin-bottom: 2rem;
+    margin: 1rem;
+    padding: 1rem;
   }
   .profile-title h2 {
-    color: #00ff80;
-    font-size: 2rem;
-    margin: 0;
+    font-size: 1.5rem;
   }
-  
-  /* Filter button styling */
-  .filter-button {
-    padding: 0.5rem 1rem;
-    border-radius: 5px;
-    background-color: #333;
-    color: #EAECEF;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
+  /* On small screens, allow scrolling */
+  .requests-table {
+    display: block;
+    white-space: nowrap;
   }
-  .filter-button:hover {
-    background-color: #444;
+  .requests-table th,
+  .requests-table td {
+    min-width: 120px;
   }
-  .filter-button.active {
-    background-color: #28a745;
-    color: #ffffff;
-  }
-  
-  /* Request rows */
-  .request-row {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    font-size: 0.9rem;
-    background-color: #111;
-    border: 1px solid #00ff80;
-    border-radius: 4px;
-    padding: 8px;
-    margin-bottom: 8px;
-    color: #d4edda;
-    cursor: pointer;
-  }
-  
-  /* Request header */
-  .request-header {
-    background-color: #181818;
-    padding: 10px;
-    display: flex;
-    align-items: center;
-    border-radius: 4px;
-    margin-bottom: 10px;
-  }
-  .request-header span {
-    font-weight: bold;
-    color: #28a745;
-  }
-  .request-header span:nth-child(1) { width: 10%; }
-  .request-header span:nth-child(2) { width: 20%; }
-  .request-header span:nth-child(3) { width: 15%; text-align: right; }
-  .request-header span:nth-child(4) { width: 15%; text-align: right; }
-  .request-header span:nth-child(5) { width: 15%; text-align: right; }
-  .request-header span:nth-child(6) { width: 25%; text-align: center; }
-  
-  /* Responsive layout */
-  @media (max-width: 768px) {
-    .profile-container {
-      margin: 1rem;
-      padding: 1rem;
-    }
-    .profile-title h2 {
-      font-size: 1.5rem;
-    }
-  }
-  
+}

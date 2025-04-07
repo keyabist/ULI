@@ -1,14 +1,16 @@
+// src/pages/RequestStatusPage.jsx
+
 import { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import { Box, Typography, Alert, Link } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import contractABI from "../contracts/abi.json";
-import Navbar from "../components/navbar";
-import AnimatedList from "../components/AnimatedList";
+// Navbar import removed
 import CustomLoader from "../components/CustomLoader";
 import ProfileModal from "../components/ProfileModal";
+// Sidebar (or Siderbar) as before
 import Sidebar from "../components/Siderbar";
-import "../styles/RequestStatusPage.css"; // Make sure this path is correct
+import "./RequestStatusPage.css";
 
 const CONTRACT_ADDRESS = "0x3C749Fa9984369506F10c18869E7c51488D8134f";
 
@@ -38,45 +40,23 @@ const RequestStatusPage = () => {
           const loan = await contract.loans(i);
           const statusText = getLoanStatus(loan.status);
 
-          if (loan.borrower.toLowerCase() === userAddress && statusText !== "Completed") {
-            const borrowerProfile = await contract.getBorrowerProfile(loan.borrower);
-            const creditScore = borrowerProfile.creditScore.toString();
-
+          if (
+            loan.borrower.toLowerCase() === userAddress &&
+            statusText !== "Completed"
+          ) {
+            const borrowerProfile = await contract.getBorrowerProfile(
+              loan.borrower
+            );
             loans.push({
               loanId: i.toString(),
               amount: ethers.formatUnits(loan.amount, 18) + " ETH",
               interestRate: loan.interestRate.toString() + "%",
               term: loan.repaymentPeriod.toString() + " months",
               status: statusText,
-              borrower: (
-                <Link
-                  component="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedProfile({
-                      name: borrowerProfile.name,
-                      address: loan.borrower,
-                      creditScore,
-                      monthlyIncome: borrowerProfile.monthlyIncome.toString(),
-                    });
-                    setModalOpen(true);
-                  }}
-                  style={{
-                    color: "#00ff80",
-                    textDecoration: "none",
-                    fontWeight: "bold",
-                    cursor: "pointer",
-                  }}
-                >
-                  {borrowerProfile.name}
-                </Link>
-              ),
-              profile: {
-                name: borrowerProfile.name,
-                address: loan.borrower,
-                creditScore,
-                monthlyIncome: borrowerProfile.monthlyIncome.toString(),
-              },
+              borrowerName: borrowerProfile.name,
+              borrowerAddress: loan.borrower,
+              creditScore: borrowerProfile.creditScore.toString(),
+              monthlyIncome: borrowerProfile.monthlyIncome.toString(),
             });
           }
         }
@@ -106,18 +86,11 @@ const RequestStatusPage = () => {
       newStatuses.clear();
       newStatuses.add("all");
     } else {
-      newStatuses.delete("all"); // remove 'all' if a specific status is selected
-
-      if (newStatuses.has(status)) {
-        newStatuses.delete(status);
-      } else {
-        newStatuses.add(status);
-      }
-
-      // if nothing selected, fallback to "all"
-      if (newStatuses.size === 0) {
-        newStatuses.add("all");
-      }
+      newStatuses.delete("all");
+      newStatuses.has(status)
+        ? newStatuses.delete(status)
+        : newStatuses.add(status);
+      if (newStatuses.size === 0) newStatuses.add("all");
     }
 
     setSelectedStatuses(newStatuses);
@@ -133,39 +106,51 @@ const RequestStatusPage = () => {
     }
   };
 
-  const handleRowClick = (row) => {
-    navigate(`/loanStatus/${row.loanId}`);
+  const handleRowClick = (loanId) => {
+    navigate(`/loanStatus/${loanId}`);
   };
 
   const renderStatus = (status) => {
     let color = "#EAECEF";
     if (status === "Accepted") color = "#28a745";
     else if (status === "Rejected") color = "#ff4d4d";
-    else if (status === "Pending") color = "#ffc107";
-
-    return <Typography sx={{ color, fontWeight: "bold" }}>{status}</Typography>;
+    return <span style={{ color, fontWeight: "bold" }}>{status}</span>;
   };
 
-  const requestItems = filteredRequests.map((row) => (
-    <span key={row.loanId} className="request-row" onClick={() => handleRowClick(row)}>
-      <span style={{ width: "10%", fontWeight: "bold" }}>{row.loanId}</span>
-      <span style={{ width: "20%" }}>{row.borrower}</span>
-      <span style={{ width: "15%", textAlign: "right" }}>{row.amount}</span>
-      <span style={{ width: "15%", textAlign: "right" }}>{row.interestRate}</span>
-      <span style={{ width: "15%", textAlign: "right" }}>{row.term}</span>
-      <span style={{ width: "25%", textAlign: "center" }}>{renderStatus(row.status)}</span>
-    </span>
-  ));
+  const renderBorrowerName = (loan) => (
+    <Link
+      component="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        setSelectedProfile({
+          name: loan.borrowerName,
+          address: loan.borrowerAddress,
+          creditScore: loan.creditScore,
+          monthlyIncome: loan.monthlyIncome,
+        });
+        setModalOpen(true);
+      }}
+      sx={{
+        color: "#00ff80",
+        textDecoration: "none",
+        fontWeight: "bold",
+        cursor: "pointer",
+      }}
+    >
+      {loan.borrowerName}
+    </Link>
+  );
 
   return (
     <div className="profile-page">
       <Sidebar />
       <div className="profile-container">
+        {/* Navbar removed from here */}
+
         <div className="profile-title">
           <h2>Your Loan Requests</h2>
         </div>
 
-        {/* Filter Buttons */}
         <Box sx={{ mb: 4, display: "flex", gap: 2 }}>
           {[
             { value: "all", label: "All" },
@@ -175,7 +160,9 @@ const RequestStatusPage = () => {
           ].map((filter) => (
             <Box
               key={filter.value}
-              className={`filter-button ${selectedStatuses.has(filter.value) ? "active" : ""}`}
+              className={`filter-button ${
+                selectedStatuses.has(filter.value) ? "active" : ""
+              }`}
               onClick={() => toggleStatusFilter(filter.value)}
             >
               {filter.label}
@@ -190,25 +177,47 @@ const RequestStatusPage = () => {
         ) : filteredRequests.length === 0 ? (
           <Typography>No requests found for this filter.</Typography>
         ) : (
-          <>
-            <div className="request-header">
-              <span>Loan ID</span>
-              <span>Borrower</span>
-              <span style={{ textAlign: "right" }}>Amount</span>
-              <span style={{ textAlign: "right" }}>Interest Rate</span>
-              <span style={{ textAlign: "right" }}>Term</span>
-              <span style={{ textAlign: "center" }}>Status</span>
-            </div>
-            <AnimatedList
-              items={requestItems}
-              onItemSelect={(item, index) => handleRowClick(filteredRequests[index])}
-              className="w-full"
-              itemClassName=""
-            />
-          </>
+          <div className="table-wrapper">
+            <table className="requests-table">
+              <thead>
+                <tr>
+                  <th>Loan ID</th>
+                  <th>Borrower</th>
+                  <th>Amount</th>
+                  <th>Interest Rate</th>
+                  <th>Term</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredRequests.map((loan) => (
+                  <tr
+                    key={loan.loanId}
+                    onClick={() => handleRowClick(loan.loanId)}
+                    className="request-row"
+                  >
+                    <td>{loan.loanId}</td>
+                    <td>{renderBorrowerName(loan)}</td>
+                    <td style={{ textAlign: "right" }}>{loan.amount}</td>
+                    <td style={{ textAlign: "right" }}>
+                      {loan.interestRate}
+                    </td>
+                    <td style={{ textAlign: "right" }}>{loan.term}</td>
+                    <td style={{ textAlign: "center" }}>
+                      {renderStatus(loan.status)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
 
-        <ProfileModal open={modalOpen} onClose={() => setModalOpen(false)} profile={selectedProfile} />
+        <ProfileModal
+          open={modalOpen}
+          onClose={() => setModalOpen(false)}
+          profile={selectedProfile}
+        />
       </div>
     </div>
   );
