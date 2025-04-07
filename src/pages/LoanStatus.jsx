@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { ethers } from "ethers";
 import contractABI from "../contracts/abi.json";
-import Sidebar from "../components/Sidebar"; // ✅ Sidebar imported
+import Sidebar from "../components/Sidebar";
+import AnimatedList from "../components/AnimatedList"; // New animated list component
 
 const contractAddress = "0x3C749Fa9984369506F10c18869E7c51488D8134f";
 
@@ -11,6 +12,7 @@ const LoanStatus = () => {
   const [loan, setLoan] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [isBorrower, setIsBorrower] = useState(false);
+  const [userRole, setUserRole] = useState(""); // Added userRole state
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,15 +28,25 @@ const LoanStatus = () => {
         const signerAddress = (await signer.getAddress()).toLowerCase();
         const contract = new ethers.Contract(contractAddress, contractABI, signer);
 
+        // Check if user is a borrower or lender to set userRole
+        const borrowerData = await contract.borrowers(signerAddress);
+        if (borrowerData[6]) { // isRegistered field
+          setUserRole("borrower");
+        } else {
+          const lenderData = await contract.lenders(signerAddress);
+          if (lenderData[7]) { // isRegistered field
+            setUserRole("lender");
+          }
+        }
+
+        // Fetch loan details
         const loanData = await contract.loans(loanId);
         if (!loanData) {
           console.error("Loan data is undefined or empty!");
           return;
         }
 
-        const borrowerProfile = await contract.getBorrowerProfile(loanData.borrower);
-        const borrowerName = borrowerProfile.name;
-
+        // Convert raw values
         const totalAmount = parseFloat(ethers.formatEther(loanData.amount));
         const amountPaid = parseFloat(ethers.formatEther(loanData.amountPaid));
         const rawInterestRate = parseFloat(ethers.formatEther(loanData.interestRate)) || 0.05;
@@ -43,10 +55,14 @@ const LoanStatus = () => {
         const duration = Number(loanData.repaymentPeriod);
         const nextInstallment = (totalAmount + interest) / duration;
 
+        // Fetch borrower profile to display the username
+        const borrowerProfile = await contract.getBorrowerProfile(loanData.borrower);
+        const borrowerName = borrowerProfile.name;
+
         setLoan({
           loanId: loanData.loanId.toString(),
           borrowerAddress: loanData.borrower,
-          borrowerName,
+          borrowerName, // fetched from profile
           amount: totalAmount.toFixed(6),
           amountPaid: amountPaid.toFixed(6),
           interestRate: (rawInterestRate * 100).toFixed(2) + "%",
@@ -106,99 +122,35 @@ const LoanStatus = () => {
   };
 
   return (
-    <div style={{ display: "flex" }}>
-      <Sidebar role={userRole} /> {/* ✅ Sidebar shown */}
-
-      <div style={{
-        maxWidth: "500px",
-        margin: "40px auto",
-        padding: "30px",
-        background: "linear-gradient(135deg, #0a0a0a, #222)",
-        border: "2px solid #00ff80",
-        borderRadius: "12px",
-        boxShadow: "0 0 20px 5px rgba(0, 255, 128, 0.6)",
-        color: "#d4edda",
-        fontFamily: "'Poppins', sans-serif",
-        flex: 1
+    <div style={{
+      maxWidth: "500px",
+      margin: "40px auto",
+      padding: "30px",
+      background: "#2E2E2E",  // Dark grey background
+      border: "2px solid #00ff80",
+      borderRadius: "12px",
+      boxShadow: "0 0 20px 5px rgba(0, 255, 128, 0.6)",
+      color: "#d4edda",
+      fontFamily: "'Poppins', sans-serif"
+    }}>
+      <Sidebar /> {/* Removed the role prop as Sidebar now determines role internally */}
+      <h2 style={{
+        textAlign: "center",
+        color: "#00ff80",
+        marginBottom: "20px",
+        fontSize: "2rem"
       }}>
-        <h2 style={{
-          textAlign: "center",
-          color: "#00ff80",
-          marginBottom: "20px",
-          fontSize: "2rem"
-        }}>
-          📜 Loan Status
-        </h2>
+        📜 Loan Status
+      </h2>
 
-        {loan ? (
-          <div style={{
-            textAlign: "center",
-            fontSize: "16px",
-            lineHeight: "1.8"
-          }}>
-            <p style={{ marginBottom: "12px" }}>
-              🔹 <b>Loan ID:</b> {loan.loanId}
-            </p>
-            <p style={{ marginBottom: "12px" }}>
-              🧑 <b>Borrower:</b>{" "}
-              <Link
-                to={`/view-profile/${loan.borrowerAddress}`}
-                onClick={(e) => e.stopPropagation()}
-                style={{
-                  color: "#28a745",
-                  textDecoration: "none",
-                  fontWeight: "bold",
-                  marginLeft: "5px"
-                }}
-              >
-                {loan.borrowerName}
-              </Link>
-            </p>
-            <p style={{ marginBottom: "12px" }}>
-              💰 <b>Total Amount:</b> {loan.amount} ETH
-            </p>
-            <p style={{ marginBottom: "12px" }}>
-              ✅ <b>Amount Paid:</b> {loan.amountPaid} ETH
-            </p>
-            <p style={{ marginBottom: "12px" }}>
-              💸 <b>Amount Remaining:</b> {loan.amountRemaining} ETH
-            </p>
-            <p style={{ marginBottom: "12px" }}>
-              📈 <b>Interest Rate:</b> {loan.interestRate}
-            </p>
-            <p style={{ marginBottom: "12px" }}>
-              ⏳ <b>Duration Left:</b> {loan.duration} Months
-            </p>
-            <p style={{ marginBottom: "12px" }}>
-              🔍 <b>Status:</b> {loan.status === 0 ? "Pending Approval" : loan.status === 1 ? "Approved" : loan.status === 3 ? "Completed" : "Other"}
-            </p>
-            {loan.status === 1 && userRole === "borrower" && (
-              <button
-                style={{
-                  padding: "12px 24px",
-                  backgroundColor: "#00d1b2",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "5px",
-                  cursor: "pointer",
-                  marginTop: "30px",
-                  fontSize: "1rem",
-                  fontWeight: "bold"
-                }}
-                onClick={handlePaymentClick}
-              >
-                Pay Next Installment ({loan.nextInstallment} ETH)
-              </button>
-            )}
-          </div>
-        ) : (
-          <div>
-          <p style={{
-            textAlign: "center",
-            color: "#d4edda",
-            fontSize: "18px"
-          }}>
-            Loading Loan Details...
+      {loan ? (
+        <div style={{
+          textAlign: "center",
+          fontSize: "16px",
+          lineHeight: "1.8"
+        }}>
+          <p style={{ marginBottom: "12px" }}>
+            🔹 <b>Loan ID:</b> {loan.loanId}
           </p>
           <p style={{ marginBottom: "12px" }}>
             🧑 <b>Borrower:</b>{" "}
@@ -298,7 +250,6 @@ const LoanStatus = () => {
           )}
         </div>
       </div>
-    </div>
     </div>
   );
 };

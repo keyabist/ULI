@@ -6,7 +6,6 @@ import contractABI from "../contracts/abi.json";
 // Import the CSS file
 import "../styles/WalletConnect.css";
 import ParallaxBackground from "../components/ParallaxBG";
-import ParallaxBackground from "../components/ParallaxBG";
 
 const contractAddress = "0x3C749Fa9984369506F10c18869E7c51488D8134f";
 

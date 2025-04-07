@@ -181,14 +181,14 @@ const LenderDashboard = () => {
   ];
 
   return (
-    <Box sx={{ backgroundColor: '#000', minHeight: '100vh' }}>
-      <Box sx={{ p: 3, mt: { xs: 2, md: 2 }}}>
+    <Box sx={{ backgroundColor: "#000", minHeight: "100vh" }}>
+      <Box sx={{ p: 3, mt: { xs: 2, md: 2 } }}>
         {/* Heading & Description */}
         <div className="heading">
-          <Typography variant="h4">
+          <Typography variant="h4" sx={{ color: "#fff" }}>
             Welcome to Lenders Dashboard
           </Typography>
-          <Typography variant="subtitle1">
+          <Typography variant="subtitle1" sx={{ color: "#ccc" }}>
             A comprehensive overview of your loan portfolio and performance metrics.
           </Typography>
         </div>
@@ -197,16 +197,40 @@ const LenderDashboard = () => {
         <Grid container spacing={2}>
           {/* Overview Boxes */}
           <Grid item xs={12} md={8}>
-            <div className="overview-container">
+            <div
+              className="overview-container"
+              style={{ display: "flex", gap: "16px" }}
+            >
               {overviewBoxes.map((box, idx) => (
-                <div className="overview-box" key={idx}>
-                  <Typography className="title" variant="caption">
+                <div
+                  className="overview-box"
+                  key={idx}
+                  style={{
+                    border: "1px solid #39FF14",
+                    padding: "16px",
+                    borderRadius: "8px",
+                    flex: 1,
+                  }}
+                >
+                  <Typography
+                    className="title"
+                    variant="caption"
+                    sx={{ color: "#39FF14" }}
+                  >
                     {box.title}
                   </Typography>
-                  <Typography className="value" variant="h6">
+                  <Typography
+                    className="value"
+                    variant="h6"
+                    sx={{ color: "#fff" }}
+                  >
                     {box.value}
                   </Typography>
-                  <Typography className="description" variant="caption">
+                  <Typography
+                    className="description"
+                    variant="caption"
+                    sx={{ color: "#ccc" }}
+                  >
                     {box.description}
                   </Typography>
                 </div>
@@ -216,22 +240,45 @@ const LenderDashboard = () => {
 
           {/* Leaderboard Box - same style as overview boxes */}
           <Grid item xs={12} md={4}>
-            <div className="overview-box" style={{ height: '100%' }}>
-              <Typography variant="h6" gutterBottom style={{ color: '#39FF14' }}>
+            <div
+              className="overview-box"
+              style={{
+                height: "100%",
+                border: "1px solid #39FF14",
+                padding: "16px",
+                borderRadius: "8px",
+              }}
+            >
+              <Typography
+                variant="h6"
+                gutterBottom
+                sx={{ color: "#39FF14" }}
+              >
                 Top Borrowers
               </Typography>
-              <Box sx={{ maxHeight: '250px', overflowY: 'auto' }}>
+              <Box sx={{ maxHeight: "250px", overflowY: "auto" }}>
                 {loading ? (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
-                    <CircularProgress sx={{ color: '#39FF14' }} />
+                  <Box sx={{ display: "flex", justifyContent: "center", p: 2 }}>
+                    <CircularProgress sx={{ color: "#39FF14" }} />
                   </Box>
                 ) : (
                   <Table>
                     <TableHead>
                       <TableRow>
-                        <TableCell sx={{ color: '#39FF14', fontWeight: 'bold' }}>Rank</TableCell>
-                        <TableCell sx={{ color: '#39FF14', fontWeight: 'bold' }}>Name</TableCell>
-                        <TableCell align="right" sx={{ color: '#39FF14', fontWeight: 'bold' }}>
+                        <TableCell
+                          sx={{ color: "#39FF14", fontWeight: "bold" }}
+                        >
+                          Rank
+                        </TableCell>
+                        <TableCell
+                          sx={{ color: "#39FF14", fontWeight: "bold" }}
+                        >
+                          Name
+                        </TableCell>
+                        <TableCell
+                          align="right"
+                          sx={{ color: "#39FF14", fontWeight: "bold" }}
+                        >
                           Credit Score
                         </TableCell>
                       </TableRow>
@@ -240,18 +287,23 @@ const LenderDashboard = () => {
                       {borrowerBoard.length > 0 ? (
                         borrowerBoard.map((borrower, index) => (
                           <TableRow key={index}>
-                            <TableCell sx={{ color: '#ccc' }}>{index + 1}</TableCell>
-                            <TableCell sx={{ color: '#ccc' }}>
-                              {borrower.name || 'Anonymous'}
+                            <TableCell sx={{ color: "#ccc" }}>
+                              {index + 1}
                             </TableCell>
-                            <TableCell align="right" sx={{ color: '#ccc' }}>
+                            <TableCell sx={{ color: "#ccc" }}>
+                              {borrower.name || "Anonymous"}
+                            </TableCell>
+                            <TableCell align="right" sx={{ color: "#ccc" }}>
                               {borrower.creditScore}
                             </TableCell>
                           </TableRow>
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={3} sx={{ textAlign: 'center', color: '#666' }}>
+                          <TableCell
+                            colSpan={3}
+                            sx={{ textAlign: "center", color: "#666" }}
+                          >
                             No borrowers found
                           </TableCell>
                         </TableRow>
@@ -265,15 +317,14 @@ const LenderDashboard = () => {
         </Grid>
 
         {/* Spacing */}
-        <div className="spacing" />
+        <div className="spacing" style={{ margin: "20px 0" }} />
 
-        {/* Row: Clickable Boxes */}
         {/* Row: Clickable Boxes */}
         <Grid container spacing={3}>
           {/* Active Loans */}
           <Grid item xs={12} sm={6} md={3}>
             <ClickableLoanBox
-              icon={<AccountBalanceIcon className="icon" />}
+              icon={<AccountBalanceIcon sx={{ color: "#39FF14" }} />}
               title="Active"
               value={stats.totalActiveLoans}
               caption={stats.totalLentAmount}
@@ -284,7 +335,7 @@ const LenderDashboard = () => {
           {/* Pending Requests */}
           <Grid item xs={12} sm={6} md={3}>
             <ClickableLoanBox
-              icon={<PendingActionsIcon className="icon" />}
+              icon={<PendingActionsIcon sx={{ color: "#39FF14" }} />}
               title="Pending"
               value={stats.totalPendingRequests}
               caption={stats.totalPendingAmount}
@@ -295,7 +346,7 @@ const LenderDashboard = () => {
           {/* Rejected Loans */}
           <Grid item xs={12} sm={6} md={3}>
             <ClickableLoanBox
-              icon={<CancelIcon className="icon" />}
+              icon={<CancelIcon sx={{ color: "#39FF14" }} />}
               title="Rejected"
               value="0"
               caption="0 ETH"
@@ -306,7 +357,7 @@ const LenderDashboard = () => {
           {/* Completed Loans */}
           <Grid item xs={12} sm={6} md={3}>
             <ClickableLoanBox
-              icon={<CheckCircleIcon className="icon" />}
+              icon={<CheckCircleIcon sx={{ color: "#39FF14" }} />}
               title="Completed"
               value="0"
               caption="0 ETH"
@@ -314,10 +365,8 @@ const LenderDashboard = () => {
             />
           </Grid>
         </Grid>
-
-
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 };
 
