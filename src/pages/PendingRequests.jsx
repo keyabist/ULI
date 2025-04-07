@@ -129,8 +129,8 @@ const PendingRequests = () => {
   };
 
   return (
-    <Box sx={{ p: 2 }}>
-      <Navbar />
+    <Box sx={{ p: 2, mt: 5}}>
+      {/* <Navbar /> */}
       <Typography variant="h4" gutterBottom>
         Pending Loan Requests
       </Typography>

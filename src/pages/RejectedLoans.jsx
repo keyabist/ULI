@@ -74,7 +74,7 @@ const RejectedLoans = () => {
 
   return (
     <Box sx={{ p: 2 }}>
-      <Navbar />
+      {/* <Navbar /> */}
       <Typography variant="h4" gutterBottom>
         Rejected Loans
       </Typography>

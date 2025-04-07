@@ -122,7 +122,7 @@ const LoanStatus = () => {
       color: "#d4edda",
       fontFamily: "'Poppins', sans-serif"
     }}>
-      {isBorrower ? <NavBar /> : <NavbarLender />}
+      {/* {isBorrower ? <NavBar /> : <NavbarLender />} */}
       <h2 style={{
         textAlign: "center",
         color: "#00ff80",

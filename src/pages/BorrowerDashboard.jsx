@@ -206,7 +206,7 @@ const BorrowerDashboard = ({ account }) => {
 
   return (
     <>
-      <NavBar />
+      {/* <NavBar /> */}
       <div className="borrower-dashboard">
         {/* LEFT SECTION */}
         <div className="left-section">

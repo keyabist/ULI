@@ -20,6 +20,8 @@ import Navbar from '../components/navbarLender';
 import { contractConfig } from '../contractConfig';
 import '../App.css';
 import './LenderDashboard.css';
+import LoanBox from '../components/CustomClickableBox';
+import ClickableLoanBox from '../components/CustomClickableBox';
 
 const LenderDashboard = () => {
   const [stats, setStats] = useState({
@@ -271,79 +273,54 @@ const LenderDashboard = () => {
         <div className="spacing" />
 
         {/* Row: Clickable Boxes */}
+        {/* Row: Clickable Boxes */}
         <Grid container spacing={3}>
           {/* Active Loans */}
           <Grid item xs={12} sm={6} md={3}>
-            <div className="clickable-box" component={Link} to="/activeLoans">
-              <Box className="box-header">
-                <AccountBalanceIcon className="icon" />
-                <Typography variant="subtitle1" className="header-text">
-                  Active
-                </Typography>
-              </Box>
-              <Typography className="value" variant="h5">
-                {stats.totalActiveLoans}
-              </Typography>
-              <Typography className="caption" variant="caption">
-                {stats.totalLentAmount}
-              </Typography>
-            </div>
+            <ClickableLoanBox
+              icon={<AccountBalanceIcon className="icon" />}
+              title="Active"
+              value={stats.totalActiveLoans}
+              caption={stats.totalLentAmount}
+              link="/activeLoans"
+            />
           </Grid>
 
           {/* Pending Requests */}
           <Grid item xs={12} sm={6} md={3}>
-            <div className="clickable-box" component={Link} to="/pendingRequests">
-              <Box className="box-header">
-                <PendingActionsIcon className="icon" />
-                <Typography variant="subtitle1" className="header-text">
-                  Pending
-                </Typography>
-              </Box>
-              <Typography className="value" variant="h5">
-                {stats.totalPendingRequests}
-              </Typography>
-              <Typography className="caption" variant="caption">
-                {stats.totalPendingAmount}
-              </Typography>
-            </div>
+            <ClickableLoanBox
+              icon={<PendingActionsIcon className="icon" />}
+              title="Pending"
+              value={stats.totalPendingRequests}
+              caption={stats.totalPendingAmount}
+              link="/pendingRequests"
+            />
           </Grid>
 
           {/* Rejected Loans */}
           <Grid item xs={12} sm={6} md={3}>
-            <div className="clickable-box" component={Link} to="/rejectedLoans">
-              <Box className="box-header">
-                <CancelIcon className="icon" />
-                <Typography variant="subtitle1" className="header-text">
-                  Rejected
-                </Typography>
-              </Box>
-              <Typography className="value" variant="h5">
-                0
-              </Typography>
-              <Typography className="caption" variant="caption">
-                0 ETH
-              </Typography>
-            </div>
+            <ClickableLoanBox
+              icon={<CancelIcon className="icon" />}
+              title="Rejected"
+              value="0"
+              caption="0 ETH"
+              link="/rejectedLoans"
+            />
           </Grid>
 
           {/* Completed Loans */}
           <Grid item xs={12} sm={6} md={3}>
-            <div className="clickable-box" component={Link} to="/completedLoans">
-              <Box className="box-header">
-                <CheckCircleIcon className="icon" />
-                <Typography variant="subtitle1" className="header-text">
-                  Completed
-                </Typography>
-              </Box>
-              <Typography className="value" variant="h5">
-                0
-              </Typography>
-              <Typography className="caption" variant="caption">
-                0 ETH
-              </Typography>
-            </div>
+            <ClickableLoanBox
+              icon={<CheckCircleIcon className="icon" />}
+              title="Completed"
+              value="0"
+              caption="0 ETH"
+              link="/completedLoans"
+            />
           </Grid>
         </Grid>
+
+
       </div>
     </div>
   );
