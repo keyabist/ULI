@@ -96,7 +96,7 @@ const CompletedLoansPage = () => {
 
   return (
     <div className="p-6 max-w-4xl mx-auto bg-white rounded-xl shadow-md">
-      {/* {userRole === "borrower" ? <NavBar /> : <NavbarLender />} */}
+      {userRole === "borrower" ? <NavBar /> : <NavbarLender />}
 
       <h2 className="text-xl font-bold mb-4">Completed Loans</h2>
 
