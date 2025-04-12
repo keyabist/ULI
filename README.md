@@ -31,8 +31,8 @@ Unified Lending Interface (ULI) is a blockchain-based decentralized lending plat
    ```
 4. **Deploy ML-model** (Ensure required libraries are installed)
    ```sh
-  cd MLBACKEND
-  python app.py
+   cd MLBACKEND
+   python app.py
    ```
 
 ## Usage
